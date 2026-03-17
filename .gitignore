@@ -37,8 +37,8 @@ dist
 .DS_Store
 
 # Hawk-Eye specifics
-hawkeye
-hawkeye.log
+/hawkeye
+/hawkeye.log
 nnmi_config.yaml
 snmp_config.yaml
 *.yaml.bak
