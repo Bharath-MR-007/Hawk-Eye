@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hawk-Eye | User Manual</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg-dark: #0a0c10;
+            --surface: #13161d;
+            --surface2: #1a1d26;
+            --border: #252832;
+            --text: #e8eaf0;
+            --muted: #7c8496;
+            --purple: #8b5cf6;
+            --blue: #3b82f6;
+            --green: #10b981;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .toc {
+            width: 260px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .toc-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            text-decoration: none;
+        }
+
+        .toc-brand span {
+            font-size: 1.5rem;
+        }
+
+        .toc-brand p {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--purple);
+        }
+
+        .toc h3 {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--muted);
+            margin-bottom: 12px;
+            margin-top: 20px;
+        }
+
+        .toc a {
+            display: block;
+            font-size: 0.82rem;
+            color: var(--muted);
+            text-decoration: none;
+            padding: 6px 10px;
+            border-radius: 5px;
+            margin-bottom: 2px;
+            transition: all 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 0.8rem;
+            text-decoration: none;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .back-link:hover {
+            color: var(--purple);
+        }
+
+        .back-dashboard-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 20px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.35);
+            color: var(--purple);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-bottom: 30px;
+        }
+
+        .back-dashboard-btn:hover {
+            background: rgba(139, 92, 246, 0.2);
+            transform: translateX(-2px);
+        }
+
+        .content {
+            flex: 1;
+            padding: 50px 60px;
+            max-width: 900px;
+        }
+
+        h1 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: var(--muted);
+            font-size: 1.05rem;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 50px 0 15px 0;
+            padding-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h2 i {
+            color: var(--purple);
+            font-size: 1.2rem;
+        }
+
+        h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text);
+            margin: 25px 0 10px 0;
+        }
+
+        p {
+            color: #b0b8cc;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        ul,
+        ol {
+            padding-left: 20px;
+            color: #b0b8cc;
+            font-size: 0.95rem;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .callout {
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 20px 0;
+            display: flex;
+            gap: 14px;
+            font-size: 0.9rem;
+        }
+
+        .callout i {
+            font-size: 1rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .callout.info {
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+        }
+
+        .callout.info i {
+            color: var(--blue);
+        }
+
+        .callout.success {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+
+        .callout.success i {
+            color: var(--green);
+        }
+
+        .callout.warn {
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+        }
+
+        .callout.warn i {
+            color: var(--yellow);
+        }
+
+        .callout p {
+            margin: 0;
+            color: var(--text);
+        }
+
+        .inline-code {
+            background: rgba(139, 92, 246, 0.1);
+            padding: 2px 7px;
+            border-radius: 4px;
+            color: #c4b5fd;
+            font-family: 'Monaco', monospace;
+            font-size: 0.85rem;
+        }
+
+        .step-list {
+            list-style: none;
+            padding: 0;
+            counter-reset: step;
+        }
+
+        .step-list li {
+            counter-increment: step;
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            align-items: flex-start;
+        }
+
+        .step-list li::before {
+            content: counter(step);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 28px;
+            background: var(--purple);
+            color: #fff;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .step-list li div {
+            flex: 1;
+        }
+
+        .step-list li strong {
+            display: block;
+            color: var(--text);
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+        }
+
+        .step-list li span {
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .nav-card {
+            background: var(--surface2);
+            padding: 18px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            text-decoration: none;
+            display: block;
+            transition: all 0.2s;
+        }
+
+        .nav-card:hover {
+            border-color: var(--purple);
+            transform: translateY(-2px);
+        }
+
+        .nav-card i {
+            color: var(--purple);
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .nav-card h4 {
+            color: var(--text);
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .nav-card p {
+            color: var(--muted);
+            font-size: 0.8rem;
+            margin: 0;
+        }
+
+        .kbd {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.88rem;
+        }
+
+        th {
+            background: var(--surface2);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(37, 40, 50, 0.5);
+            color: #b0b8cc;
+        }
+    
+        
+        
+        
+        
+        
+        .help-dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            background: transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout">
+        <nav class="toc">
+            <a href="/" class="toc-brand"><span>🦅</span>
+                <p>Hawk-Eye Docs</p>
+            </a>
+            <a href="/" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+            <h3>On This Page</h3>
+            <a href="#getting-started">Getting Started</a>
+            <a href="#dashboard">Live Dashboard</a>
+            <a href="#inventory">Inventory</a>
+            <a href="#alerts">Alert Configuration</a>
+            <a href="#tagging">Tagging & Grouping</a>
+            <a href="#backup">Backup & Restore</a>
+            <a href="#shortcuts">Keyboard Shortcuts</a>
+            <h3>Other Docs</h3>
+            <a href="/capabilities.html">Capabilities</a>
+            <a href="/admindoc.html">Admin Document</a>
+            <a href="/installation.html">Installation Guide</a>
+        </nav>
+        <main class="content">
+            <a href="/dashboard" class="back-dashboard-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+            <h1>User Manual</h1>
+            <p class="page-subtitle">A complete guide for day-to-day operation of the Hawk-Eye monitoring dashboard. No
+                prior monitoring experience required.</p>
+
+            <h2 id="getting-started"><i class="fa-solid fa-rocket"></i> Getting Started</h2>
+            <p>After a successful installation, open your browser and navigate to <span
+                    class="inline-code">http://localhost:8080</span>. You will be greeted by the login page.</p>
+            <ol class="step-list">
+                <li>
+                    <div><strong>Log In</strong><span>Enter your credentials. The default is <strong>admin /
+                                admin</strong>. Change your password immediately after your first login via the Admin
+                            settings.</span></div>
+                </li>
+                <li>
+                    <div><strong>You're on the Live Dashboard</strong><span>This is the home screen. It shows real-time
+                            health and latency data for all configured targets. A green dot means a target is UP, red
+                            means it's DOWN.</span></div>
+                </li>
+                <li>
+                    <div><strong>Configure your first target</strong><span>If no targets are shown, go to the
+                            <strong>Inventory</strong> page (top nav) to add targets, or ask your administrator to
+                            update <span class="inline-code">checks.yaml</span>.</span></div>
+                </li>
+            </ol>
+
+            <h2 id="dashboard"><i class="fa-solid fa-gauge-high"></i> Live Dashboard</h2>
+            <p>The Live Dashboard provides a WebSocket-based real-time view of your entire monitored infrastructure.
+                Data refreshes automatically without needing to reload the page.</p>
+
+            <h3>Reading the Status Table</h3>
+            <p>Each row represents a monitored target. The columns cover all monitoring layers simultaneously:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Column</th>
+                        <th>Check Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Application / Target</td>
+                        <td>—</td>
+                        <td>The URL or hostname being monitored, with favicon icon</td>
+                    </tr>
+                    <tr>
+                        <td>Tags</td>
+                        <td>—</td>
+                        <td>User-defined labels (e.g., Production, TSI, Shopping). Click to edit.</td>
+                    </tr>
+                    <tr>
+                        <td>L7 Health (HTTP)</td>
+                        <td><code>health</code></td>
+                        <td>🟢 Healthy / 🔴 Down — based on HTTP response code and retry logic</td>
+                    </tr>
+                    <tr>
+                        <td>Latency</td>
+                        <td><code>latency</code></td>
+                        <td>Round-trip time in milliseconds. Shows first-byte time as sub-text.</td>
+                    </tr>
+                    <tr>
+                        <td>DNS Resolution</td>
+                        <td><code>dns</code></td>
+                        <td>✅ Resolved / ❌ Failed — DNS lookup status and server used</td>
+                    </tr>
+                    <tr>
+                        <td>TCP Handshake</td>
+                        <td><code>tcp_metrics</code></td>
+                        <td>Time (ms) to establish a raw TCP connection to the target port</td>
+                    </tr>
+                    <tr>
+                        <td>SSL/TLS Validity</td>
+                        <td><code>ssl_tls</code></td>
+                        <td>Days remaining until the TLS certificate expires. Shows warning if &lt; 30 days.</td>
+                    </tr>
+                    <tr>
+                        <td>Network Path</td>
+                        <td><code>traceroute</code></td>
+                        <td>Minimum hop count to reach the target (e.g., "0 Hops — Restricted by Docker")</td>
+                    </tr>
+                    <tr>
+                        <td>Packet Loss</td>
+                        <td><code>traceroute</code></td>
+                        <td>Percentage of hops that did not respond. 0.0% = clean path.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Using the Search Bar</h3>
+            <p>Type in the search bar (top of the page) to filter targets in real time. The filter applies to target
+                names, IPs, and tags simultaneously. Press <span class="kbd">Esc</span> to clear.</p>
+
+            <h3>Using the Incident Summary</h3>
+            <p>If any targets are DOWN, the dashboard will show an "Incident Summary" banner at the top with a count and
+                links to open Grafana or Alertmanager for deeper investigation.</p>
+
+            <h2 id="inventory"><i class="fa-solid fa-boxes-stacked"></i> Inventory Page</h2>
+            <p>The Inventory page is accessible from the top navigation bar. It provides a full list of all configured
+                monitoring targets with their associated metadata.</p>
+
+            <h3>Grouping Targets</h3>
+            <p>Use the <strong>Group By</strong> dropdown (top right of the inventory) to organize targets:</p>
+            <ul>
+                <li><strong>None</strong> — a flat alphabetical list of all targets</li>
+                <li><strong>Tags</strong> — groups targets by their assigned tags (e.g., all <span
+                        class="inline-code">production</span> targets together)</li>
+                <li><strong>Name (Regex)</strong> — use a regular expression to group targets by naming pattern (e.g.,
+                    <span class="inline-code">^api-</span> groups all targets that start with "api-")
+                </li>
+            </ul>
+
+            <h2 id="alerts"><i class="fa-solid fa-bell"></i> Alert Configuration</h2>
+            <p>The <strong>Alerts → Config</strong> page allows you to view and edit Prometheus alerting rules that
+                control when notifications are sent.</p>
+            <ul>
+                <li>Select a target from the left sidebar to view its current alert rules</li>
+                <li>Click <strong>Edit</strong> to modify thresholds (e.g., alert if latency > 500ms for 5 minutes)</li>
+                <li>Changes are applied immediately via the Prometheus <span class="inline-code">/-/reload</span> API
+                </li>
+            </ul>
+            <div class="callout warn"><i class="fa-solid fa-triangle-exclamation"></i>
+                <p>Incorrect YAML syntax in alert rules will cause the Prometheus reload to fail. Always validate your
+                    YAML before saving.</p>
+            </div>
+
+            <h2 id="tagging"><i class="fa-solid fa-tags"></i> Tagging & Grouping</h2>
+            <p>Tags are stored in your browser's <span class="inline-code">localStorage</span> and can be applied or
+                removed from the dashboard sidebar. They allow you to create logical groupings:</p>
+            <ul>
+                <li>Tags like <span class="inline-code">production</span>, <span class="inline-code">eu-west</span>,
+                    <span class="inline-code">database</span> let you filter the dashboard to see only relevant targets
+                </li>
+                <li>Multiple tags can be active simultaneously for complex filter queries</li>
+                <li>Tags are exported as part of the full configuration backup</li>
+            </ul>
+
+            <h2 id="backup"><i class="fa-solid fa-file-zipper"></i> Backup & Restore (Export / Import)</h2>
+            <p>Hawk-Eye supports a one-click backup of the entire configuration, which can be restored on a new
+                instance. This is useful for migrations, DR testing, or version-controlled config management.</p>
+
+            <h3>Export Configuration</h3>
+            <ol class="step-list">
+                <li>
+                    <div><strong>Click "Export" in the top navigation bar</strong><span>A progress notification will
+                            appear at the bottom right of the screen.</span></div>
+                </li>
+                <li>
+                    <div><strong>A ZIP file will be downloaded</strong><span>Named <span
+                                class="inline-code">hawk-eye-full-config-YYYY-MM-DD.zip</span>. Keep this file secure —
+                            it contains your alert thresholds and notification configurations.</span></div>
+                </li>
+            </ol>
+
+            <h3>Import Configuration</h3>
+            <ol class="step-list">
+                <li>
+                    <div><strong>Click "Import" in the top navigation bar</strong><span>A confirmation dialog will warn
+                            you that existing configuration will be overwritten.</span></div>
+                </li>
+                <li>
+                    <div><strong>Select your ZIP backup file</strong><span>The system will unpack the archive and load
+                            all configuration files.</span></div>
+                </li>
+                <li>
+                    <div><strong>Services reload automatically</strong><span>Prometheus and Alertmanager will reload
+                            their configs within a few seconds. The dashboard will refresh.</span></div>
+                </li>
+            </ol>
+            <div class="callout warn"><i class="fa-solid fa-triangle-exclamation"></i>
+                <p>Import will <strong>overwrite</strong> all current configuration files. Ensure you have an existing
+                    backup before importing an older one.</p>
+            </div>
+
+            <h2 id="shortcuts"><i class="fa-solid fa-keyboard"></i> Keyboard Shortcuts</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Key</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="kbd">Esc</span></td>
+                        <td>Clear the search / filter field</td>
+                    </tr>
+                    <tr>
+                        <td><span class="kbd">/</span> or <span class="kbd">S</span></td>
+                        <td>Focus the search bar</td>
+                    </tr>
+                    <tr>
+                        <td><span class="kbd">G</span></td>
+                        <td>Toggle the group-by dropdown</td>
+                    </tr>
+                    <tr>
+                        <td><span class="kbd">R</span></td>
+                        <td>Refresh targets manually</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="callout success"><i class="fa-solid fa-circle-check"></i>
+                <p>Need help beyond this manual? Reach out to your Hawk-Eye administrator, or consult the <a
+                        style="color:var(--purple)" href="/admindoc.html">Admin Document</a> for advanced configuration
+                    options.</p>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

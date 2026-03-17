@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integration Guide | Hawk-Eye Monitoring</title>
+    <meta name="description"
+        content="Complete integration guide for Hawk-Eye monitoring — Grafana, Prometheus, Alertmanager, Kibana, Elastic Stack and more.">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #09090b;
+            --surface-color: #18181b;
+            --surface-highlight: #27272a;
+            --border-color: #3f3f46;
+            --text-primary: #f4f4f5;
+            --text-secondary: #a1a1aa;
+            --info-color: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #f43f5e;
+            --grafana: #F46800;
+            --prometheus: #E6522C;
+            --elastic: #FEC514;
+            --kibana: #00BFB3;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-window {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* SIDEBAR */
+        .main-sidebar {
+            width: 260px;
+            background: #12141c;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .main-sidebar-header {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--surface-color);
+            gap: 12px;
+        }
+
+        .main-sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-category {
+            padding: 0 1.5rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin: 1.2rem 0 0.4rem;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.83rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            gap: 12px;
+            cursor: pointer;
+            background: transparent;
+            border-top: none;
+            border-right: none;
+            border-bottom: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: rgba(139, 92, 246, 0.1);
+            color: #fff;
+            border-left-color: var(--accent-purple);
+        }
+
+        .nav-item i {
+            width: 16px;
+            text-align: center;
+        }
+
+        .tree-parent {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .tree-chevron {
+            transition: transform 0.2s;
+            font-size: 0.7rem;
+        }
+
+        .tree-parent.open .tree-chevron {
+            transform: rotate(180deg);
+        }
+
+        .tree-children {
+            display: none;
+            flex-direction: column;
+            padding-left: 1rem;
+        }
+
+        .tree-parent.open+.tree-children {
+            display: flex;
+        }
+
+        .child-item {
+            padding: 8px 1.5rem !important;
+            font-size: 0.8rem !important;
+        }
+
+        /* TOP BAR */
+        .app-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .top-navbar {
+            height: 70px;
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+            flex-shrink: 0;
+        }
+
+        .top-navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .top-navbar-left span {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .top-navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .help-dropdown {
+            position: relative;
+        }
+
+        .help-dropbtn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .help-dropbtn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .help-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: #1a1b26;
+            min-width: 230px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+            z-index: 1001;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            top: calc(100% + 10px);
+            overflow: hidden;
+        }
+
+
+
+
+
+
+
+        
+        
+        
+        
+        .help-dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            background: transparent;
+        }
+
+        .help-dropdown-content a {
+            position: relative;
+            z-index: 2;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 11px 16px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: #1a1b26;
+        }
+
+        .help-dropdown:hover .help-dropdown-content {
+            display: block;
+        }
+
+        .help-dropdown-content a:hover {
+            background: rgba(139, 92, 246, 0.2);
+            color: #fff;
+            padding-left: 20px;
+        }
+
+        .help-dropdown-content a i {
+            width: 16px;
+            text-align: center;
+        }
+
+        /* MAIN CONTENT */
+        .page-scroll-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .guide-layout {
+            display: flex;
+            min-height: 100%;
+        }
+
+        /* LEFT TOC */
+        .toc-sidebar {
+            width: 240px;
+            flex-shrink: 0;
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 0;
+            position: sticky;
+            top: 0;
+            height: calc(100vh - 70px);
+            overflow-y: auto;
+            background: #0f1014;
+        }
+
+        .toc-title {
+            padding: 0 1.5rem 1rem;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            font-weight: 700;
+        }
+
+        .toc-item {
+            display: block;
+            padding: 7px 1.5rem;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 2px solid transparent;
+            font-weight: 500;
+        }
+
+        .toc-item:hover,
+        .toc-item.active {
+            color: var(--text-primary);
+            border-left-color: var(--accent-purple);
+            background: rgba(139, 92, 246, 0.06);
+        }
+
+        .toc-sub {
+            padding-left: 2.5rem;
+            font-size: 0.78rem;
+        }
+
+        /* CONTENT BODY */
+        .guide-body {
+            flex: 1;
+            padding: 2.5rem 3.5rem 4rem;
+            max-width: 900px;
+        }
+
+        .section-anchor {
+            scroll-margin-top: 20px;
+        }
+
+        h1.page-title {
+            font-size: 2.4rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 0.75rem;
+        }
+
+        h1.page-title span {
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        h2.section-title {
+            font-size: 1.45rem;
+            font-weight: 700;
+            margin: 2.5rem 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h2.section-title i {
+            color: var(--accent-purple);
+            font-size: 1.2rem;
+        }
+
+        h3.sub-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        p.body-text {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        /* INTEGRATION CARDS */
+        .integration-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .int-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.25s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .int-card:hover {
+            border-color: var(--accent-purple);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
+        }
+
+        .int-card .icon-wrap {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .int-card .card-info h4 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .int-card .card-info p {
+            font-size: 0.76rem;
+            color: var(--text-secondary);
+        }
+
+        /* STEPS */
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .step {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.25rem 1.5rem 1.25rem 4rem;
+            position: relative;
+        }
+
+        .step-num {
+            position: absolute;
+            left: 1.25rem;
+            top: 1.25rem;
+            width: 28px;
+            height: 28px;
+            background: var(--accent-purple);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .step h4 {
+            font-size: 0.92rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .step p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* CODE */
+        .code-block {
+            background: #0d0d12;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .code-header span {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .copy-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 3px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.72rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .copy-btn:hover {
+            border-color: var(--accent-purple);
+            color: var(--text-primary);
+        }
+
+        pre {
+            padding: 1.2rem 1.4rem;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            line-height: 1.7;
+            color: #e2e8f0;
+            white-space: pre;
+        }
+
+        pre .kw {
+            color: #c084fc;
+        }
+
+        pre .str {
+            color: #86efac;
+        }
+
+        pre .num {
+            color: #fb923c;
+        }
+
+        pre .cmt {
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        pre .key {
+            color: #7dd3fc;
+        }
+
+        /* INFO / WARNING BOXES */
+        .alert-box {
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin: 1.25rem 0;
+            display: flex;
+            gap: 12px;
+            font-size: 0.87rem;
+            line-height: 1.6;
+        }
+
+        .alert-box i {
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .alert-box.info {
+            background: rgba(59, 130, 246, 0.08);
+            border-left: 4px solid var(--info-color);
+            color: #93c5fd;
+        }
+
+        .alert-box.success {
+            background: rgba(16, 185, 129, 0.08);
+            border-left: 4px solid var(--success-color);
+            color: #6ee7b7;
+        }
+
+        .alert-box.warning {
+            background: rgba(245, 158, 11, 0.08);
+            border-left: 4px solid var(--warning-color);
+            color: #fcd34d;
+        }
+
+        /* TABLE */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin: 1rem 0;
+        }
+
+        .data-table th {
+            background: var(--surface-highlight);
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .data-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .badge-blue {
+            background: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+        }
+
+        .badge-green {
+            background: rgba(16, 185, 129, 0.15);
+            color: #6ee7b7;
+        }
+
+        .badge-yellow {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fcd34d;
+        }
+
+        /* DIVIDER */
+        .section-divider {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 2.5rem 0;
+        }
+
+        /* Quick action bar */
+        .quick-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 1.5rem 0;
+        }
+
+        .quick-link {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .quick-link:hover {
+            border-color: var(--accent-purple);
+            color: var(--text-primary);
+        }
+
+        .quick-link i {
+            font-size: 0.9rem;
+        }
+
+        code.inline {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.83em;
+            color: #c084fc;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-window">
+        <!-- Sidebar -->
+        <aside class="main-sidebar">
+                                                            <div class="main-sidebar-header">
+                <span style="font-size: 1.5rem;">🦅</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                    <span style="font-weight: 700; font-size: 1.25rem;">Hawk-Eye</span>
+                    <span
+                        style="font-size: 0.65rem; color: #ff00ff; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
+                </div>
+            </div>
+
+
+
+
+
+
+
+
+
+
+                                                            <nav class="main-sidebar-nav">
+                <div class="nav-category">Monitoring</div>
+                <a href="/dashboard" class="nav-item">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </a>
+                <a href="/inventory" class="nav-item">
+                    <i class="fa-solid fa-list"></i> Target Inventory
+                </a>
+
+                <div class="nav-item tree-parent" onclick="this.classList.toggle('open')" style="margin-top: 15px;">
+                    <div style="display: flex; align-items: center; gap: 14px;"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
+                    <i class="fa-solid fa-chevron-down tree-chevron"></i>
+                </div>
+                <div class="tree-children">
+                    <a href="/incidents" class="nav-item child-item">
+                        <i class="fa-solid fa-table-cells"></i> All Incidents
+                    </a>
+                </div>
+
+                <div class="nav-category">Management</div>
+                <button class="nav-item" onclick="if(document.getElementById('addTargetModal')) { document.getElementById('addTargetModal').style.display='flex'; } else { window.location.href='/dashboard?add=true'; }">
+                    <i class="fa-solid fa-plus" style="color: var(--info-color);"></i> Add New Target
+                </button>
+                <button class="nav-item" onclick="if(typeof deleteSelectedTargets === 'function') { deleteSelectedTargets(); } else { window.location.href='/dashboard'; }">
+                    <i class="fa-solid fa-trash" style="color: var(--error-color);"></i> Delete Target
+                </button>
+
+                <div class="nav-category" style="margin-top: 15px;">Integrations</div>
+                <a href="/integrations" class="nav-item">
+                    <i class="fa-solid fa-link"></i> External Apps Links
+                </a>
+                <a href="/integrations_config" class="nav-item">
+                    <i class="fa-solid fa-gears"></i> External Apps Integration Config
+                </a>
+
+                <div class="nav-category" style="margin-top: 15px;">Configuration</div>
+                <a href="/alerts" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Alerts Config
+                </a>
+                <a href="/polling" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Polling Config
+                </a>
+                <a href="/users_config" class="nav-item">
+                    <i class="fa-solid fa-user-gear"></i> User Configuration
+                </a>
+                <button class="nav-item" onclick="if(typeof exportConfig === 'function') { exportConfig(); } else { window.location.href='/dashboard?export=true'; }">
+                    <i class="fa-solid fa-file-export"></i> Export Snapshot
+                </button>
+                <button class="nav-item" onclick="if(document.getElementById('importFile')) { document.getElementById('importFile').click(); } else { window.location.href='/dashboard?import=true'; }">
+                    <i class="fa-solid fa-file-import"></i> Import Snapshot
+                </button>
+
+                <div class="nav-category">Operations</div>
+                <a href="/troubleshooting" class="nav-item">
+                    <i class="fa-solid fa-microchip"></i> Troubleshooting
+                </a>
+                <a href="/device_reachability" class="nav-item">
+                    <i class="fa-solid fa-satellite-dish"></i> Device Reachability
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Content -->
+        <div class="app-content">
+            <header class="top-navbar">
+                <div class="top-navbar-left">
+                    <i class="fa-solid fa-layer-group" style="color:var(--accent-purple)"></i>
+                    <span>Integration Guide</span>
+                    <span style="color:var(--border-color)">/</span>
+                    <span style="color:var(--text-secondary);font-weight:400">Documentation</span>
+                </div>
+                <div class="top-navbar-right">
+                    <div class="help-dropdown">
+                        <button class="help-dropbtn"><i class="fa-solid fa-circle-question"></i> Help Menu <i
+                                class="fa-solid fa-chevron-down" style="font-size:0.6rem"></i></button>
+                                                                                                                        <div class="help-dropdown-content">
+                            <a href="/installation.html"><i class="fa-solid fa-book"></i> Installation Procedure</a>
+                            <a href="/requirements.html"><i class="fa-solid fa-list-check"></i> Software Requirements</a>
+                            <a href="/capabilities.html"><i class="fa-solid fa-bolt"></i> Capabilities of Hawk-Eye</a>
+                            <a href="/integrations_guide"><i class="fa-solid fa-layer-group"></i> Integration Guide</a>
+                            <a href="/architecture.html"><i class="fa-solid fa-diagram-project"></i> Product Architecture</a>
+                            <a href="/usermanual.html"><i class="fa-solid fa-file-lines"></i> User Manual</a>
+                            <a href="/admindoc.html"><i class="fa-solid fa-user-shield"></i> Admin Document</a>
+                            <a href="/about.html"><i class="fa-solid fa-circle-info"></i> About - Overview</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-scroll-container">
+                <div class="guide-layout">
+
+                    <!-- Table of Contents -->
+                    <nav class="toc-sidebar">
+                        <div class="toc-title">On This Page</div>
+                        <a href="#overview" class="toc-item active">Overview</a>
+                        <a href="#architecture" class="toc-item">Architecture</a>
+                        <a href="#grafana" class="toc-item">Grafana</a>
+                        <a href="#grafana-install" class="toc-item toc-sub">— Setup</a>
+                        <a href="#grafana-config" class="toc-item toc-sub">— Configuration</a>
+                        <a href="#prometheus" class="toc-item">Prometheus</a>
+                        <a href="#prometheus-scrape" class="toc-item toc-sub">— Scrape Config</a>
+                        <a href="#alertmanager" class="toc-item">Alertmanager</a>
+                        <a href="#alertmanager-config" class="toc-item toc-sub">— Routing Rules</a>
+                        <a href="#elastic" class="toc-item">Elastic Stack</a>
+                        <a href="#kibana" class="toc-item toc-sub">— Kibana</a>
+                        <a href="#snmp" class="toc-item">SNMP Integration</a>
+                        <a href="#remote-server" class="toc-item">Remote Server Setup</a>
+                        <a href="#ports" class="toc-item">Port Reference</a>
+                        <a href="#troubleshooting" class="toc-item">Troubleshooting</a>
+                    </nav>
+
+                    <!-- Guide Body -->
+                    <div class="guide-body">
+
+                        <h1 class="page-title" id="overview">Integration <span>Guide</span></h1>
+                        <p class="page-subtitle">
+                            This guide explains how to connect Hawk-Eye with your enterprise monitoring stack.
+                            Whether you are a newcomer setting up for the first time or an administrator configuring
+                            a distributed multi-server environment, follow the steps below for each tool.
+                        </p>
+
+                        <div class="quick-links">
+                            <a href="#grafana" class="quick-link"><i class="fa-solid fa-chart-line"
+                                    style="color:var(--grafana)"></i> Grafana</a>
+                            <a href="#prometheus" class="quick-link"><i class="fa-solid fa-fire"
+                                    style="color:var(--prometheus)"></i> Prometheus</a>
+                            <a href="#alertmanager" class="quick-link"><i class="fa-solid fa-bell"
+                                    style="color:var(--warning-color)"></i> Alertmanager</a>
+                            <a href="#elastic" class="quick-link"><i class="fa-solid fa-magnifying-glass-chart"
+                                    style="color:var(--elastic)"></i> Elastic Stack</a>
+                            <a href="#kibana" class="quick-link"><i class="fa-solid fa-table-columns"
+                                    style="color:var(--kibana)"></i> Kibana</a>
+                            <a href="#snmp" class="quick-link"><i class="fa-solid fa-tower-broadcast"
+                                    style="color:var(--accent-purple)"></i> SNMP Integration</a>
+                            <a href="#remote-server" class="quick-link"><i class="fa-solid fa-server"
+                                    style="color:var(--accent-purple)"></i> Remote Server</a>
+                        </div>
+
+                        <!-- WHAT IS HAWK-EYE -->
+                        <h2 class="section-title" id="overview-detail"><i class="fa-solid fa-eye"></i> What is Hawk-Eye?
+                        </h2>
+                        <p class="body-text">
+                            Hawk-Eye is an enterprise network and application monitoring platform built by T-Systems. It
+                            performs
+                            health checks (HTTP, TCP, DNS, SSL, Traceroute) at customizable intervals, exposes a
+                            Prometheus-compatible
+                            <code class="inline">/metrics</code> endpoint, and surfaces incidents in a real-time
+                            operational dashboard.
+                        </p>
+                        <p class="body-text">
+                            External tools like Grafana and Kibana are <strong>not required</strong> for Hawk-Eye to
+                            operate — but they
+                            supercharge visibility, alerting, and log analysis across your organization.
+                        </p>
+
+                        <!-- ARCHITECTURE -->
+                        <hr class="section-divider">
+                        <h2 class="section-title" id="architecture"><i class="fa-solid fa-diagram-project"></i>
+                            Integration Architecture</h2>
+                        <p class="body-text">Hawk-Eye sits at the center of your observability stack. Here is how data
+                            flows between components:</p>
+
+                        <div class="code-block">
+                            <div class="code-header"><span>Architecture Overview</span></div>
+                            <pre>
+  ┌─────────────────────────────────────────────────────┐
+  │                   Hawk-Eye (port 8080)              │
+  │   Checks: HTTP · TCP · DNS · SSL · Traceroute      │
+  │   Exposes: /metrics  /v1/metrics/{check}           │
+  └──────┬──────────────────────────┬──────────────────┘
+         │  scrape /metrics         │  push alerts
+         ▼                          ▼
+  ┌──────────────┐          ┌──────────────────┐
+  │  Prometheus  │─────────▶│  Alertmanager    │
+  │  (port 9090) │ alerts   │  (port 9093)     │
+  └──────┬───────┘          └──────┬───────────┘
+         │ query                   │ notify
+         ▼                         ▼
+  ┌──────────────┐         Slack / PagerDuty / Email
+  │   Grafana    │
+  │  (port 3000) │
+  └──────────────┘
+
+  Hawk-Eye Logs ──► Filebeat ──► Elasticsearch (9200) ──► Kibana (5601)
+</pre>
+                        </div>
+
+                        <div class="alert-box info">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <div>All services can run on the same host via Docker Compose (included) or on separate
+                                servers. The <a href="/integrations_config" style="color:#93c5fd">Integration Config
+                                    page</a> lets you define the URLs for each external service.</div>
+                        </div>
+
+                        <!-- GRAFANA -->
+                        <hr class="section-divider">
+                        <h2 class="section-title" id="grafana"><i class="fa-solid fa-chart-line"
+                                style="color:var(--grafana)"></i> Grafana</h2>
+                        <p class="body-text">Grafana visualizes Hawk-Eye metrics scraped by Prometheus. Use it to build
+                            dashboards for latency trends, success rates, and SLA reporting.</p>
+
+                        <h3 class="sub-title" id="grafana-install"><i class="fa-solid fa-circle-play"
+                                style="color:var(--success-color)"></i> Quick Start</h3>
+                        <div class="steps">
+                            <div class="step">
+                                <div class="step-num">1</div>
+                                <h4>Grafana is pre-configured in Docker Compose</h4>
+                                <p>If you're running the included <code class="inline">docker-compose.yaml</code>,
+                                    Grafana starts automatically on port <code class="inline">3000</code>. Login with
+                                    <strong>admin / admin</strong>.
+                                </p>
+                            </div>
+                            <div class="step">
+                                <div class="step-num">2</div>
+                                <h4>Add Prometheus as a Data Source</h4>
+                                <p>Go to <strong>Connections → Data Sources → Add data source → Prometheus</strong>. Set
+                                    the URL to where Prometheus is running.</p>
+                            </div>
+                            <div class="step">
+                                <div class="step-num">3</div>
+                                <h4>Import or Build a Dashboard</h4>
+                                <p>Navigate to <strong>Dashboards → Import</strong> and upload the JSON files from the
+                                    <code class="inline">/grafana/dashboards/</code> directory in this project.
+                                </p>
+                            </div>
+                        </div>
+
+                        <h3 class="sub-title" id="grafana-config"><i class="fa-solid fa-gears"
+                                style="color:var(--grafana)"></i> Configuring the Prometheus Data Source</h3>
+                        <p class="body-text">If Grafana and Prometheus are on the <strong>same host</strong>:</p>
+                        <div class="code-block">
+                            <div class="code-header"><span>Grafana Datasource URL (same host)</span><button
+                                    class="copy-btn" onclick="copyBlock(this)"><i class="fa-solid fa-copy"></i>
+                                    Copy</button></div>
+                            <pre><span class="key">URL:</span> <span class="str">http://localhost:9090</span></pre>
+                        </div>
+                        <p class="body-text">If Prometheus runs on a <strong>remote server</strong> (e.g. IP <code
+                                class="inline">192.168.1.50</code>):</p>
+                        <div class="code-block">
+                            <div class="code-header"><span>Grafana Datasource URL (remote server)</span><button
+                                    class="copy-btn" onclick="copyBlock(this)"><i class="fa-solid fa-copy"></i>
+                                    Copy</button></div>
+                            <pre><span class="key">URL:</span> <span class="str">http://192.168.1.50:9090</span></pre>
+                        </div>
+                        <p class="body-text">If Grafana is inside Docker and Prometheus is also in the same Docker
+                            Compose network:</p>
+                        <div class="code-block">
+                            <div class="code-header"><span>Grafana Datasource URL (Docker internal)</span><button
+                                    class="copy-btn" onclick="copyBlock(this)"><i class="fa-solid fa-copy"></i>
+                                    Copy</button></div>
+                            <pre><span class="key">URL:</span> <span class="str">http://prometheus:9090</span></pre>
+                        </div>
+
+                        <!-- PROMETHEUS -->
+                        <hr class="section-divider">
+                        <h2 class="section-title" id="prometheus"><i class="fa-solid fa-fire"
+                                style="color:var(--prometheus)"></i> Prometheus</h2>
+                        <p class="body-text">Prometheus scrapes the Hawk-Eye <code class="inline">/metrics</code>
+                            endpoint at regular intervals and stores time-series data used by Grafana and Alertmanager.
+                        </p>
+
+                        <h3 class="sub-title" id="prometheus-scrape"><i class="fa-solid fa-code"
+                                style="color:var(--prometheus)"></i> Scrape Configuration</h3>
+                        <p class="body-text">Add the following job to your <code class="inline">prometheus.yaml</code>:
+                        </p>
+                        <div class="code-block">
+                            <div class="code-header"><span>prometheus.yaml — scrape config</span><button
+                                    class="copy-btn" onclick="copyBlock(this)"><i class="fa-solid fa-copy"></i>
+                                    Copy</button></div>
+                            <pre><span class="key">scrape_configs</span>:
+  - <span class="key">job_name</span>: <span class="str">'hawk-eye'</span>
+    <span class="key">scrape_interval</span>: <span class="str">15s</span>
+    <span class="key">scrape_timeout</span>: <span class="str">10s</span>
+    <span class="key">static_configs</span>:
+      - <span class="key">targets</span>:
+          - <span class="str">'hawkeye:8080'</span>      <span class="cmt"># Docker internal hostname</span>
+          <span class="cmt"># - '192.168.1.100:8080'  # Remote server IP</span>
+    <span class="key">metrics_path</span>: <span class="str">'/metrics'</span></pre>
+                        </div>
+
+                        <div class="alert-box success">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <div>Verify Prometheus is scraping successfully by visiting <code
+                                    class="inline">http://localhost:9090/targets</code>. The Hawk-Eye target should show
+                                <strong>State: UP</strong>.
+                            </div>
+                        </div>
+
+                        <p class="body-text">Hawk-Eye also exposes per-check metrics at:</p>
+                        <div class="code-block">
+                            <div class="code-header"><span>Per-check metric endpoints</span></div>
+                            <pre><span class="str">GET /v1/metrics/health</span>
+<span class="str">GET /v1/metrics/latency</span>
+<span class="str">GET /v1/metrics/dns</span>
+<span class="str">GET /v1/metrics/ssl</span>
+<span class="str">GET /v1/metrics/traceroute</span></pre>
+                        </div>
+
+                        <!-- ALERTMANAGER -->
+                        <hr class="section-divider">
+                        <h2 class="section-title" id="alertmanager"><i class="fa-solid fa-bell"
+                                style="color:var(--warning-color)"></i> Alertmanager</h2>
+                        <p class="body-text">Alertmanager receives firing alerts from Prometheus and routes them to
+                            notification channels such as Slack, email, or PagerDuty.</p>
+
+                        <h3 class="sub-title" id="alertmanager-config"><i class="fa-solid fa-route"
+                                style="color:var(--warning-color)"></i> Routing Configuration</h3>
+                        <div class="code-block">
+                            <div class="code-header"><span>alertmanager.yaml — basic routing</span><button
+                                    class="copy-btn" onclick="copyBlock(this)"><i class="fa-solid fa-copy"></i>
+                                    Copy</button></div>
+                            <pre><span class="key">global</span>:
+  <span class="key">resolve_timeout</span>: <span class="str">5m</span>
+
+<span class="key">route</span>:
+  <span class="key">group_by</span>: [<span class="str">'alertname'</span>, <span class="str">'target'</span>]
+  <span class="key">group_wait</span>: <span class="str">30s</span>
+  <span class="key">group_interval</span>: <span class="str">5m</span>
+  <span class="key">repeat_interval</span>: <span class="str">1h</span>
+  <span class="key">receiver</span>: <span class="str">'slack-notifications'</span>
+
+<span class="key">receivers</span>:
+  - <span class="key">name</span>: <span class="str">'slack-notifications'</span>
+    <span class="key">slack_configs</span>:
+      - <span class="key">api_url</span>: <span class="str">'https://hooks.slack.com/services/YOUR/WEBHOOK/URL'</span>
+        <span class="key">channel</span>: <span class="str">'#alerts'</span>
+        <span class="key">text</span>: <span class="str">'{{ .CommonAnnotations.summary }}'</span></pre>
+                        </div>
+
+                        <!-- ELASTIC -->
+                        <hr class="section-divider">
+                        <h2 class="section-title" id="elastic"><i class="fa-solid fa-magnifying-glass-chart"
+                                style="color:var(--elastic)"></i> Elastic Stack (ELK)</h2>
+                        <p class="body-text">Hawk-Eye emits structured JSON logs. These can be shipped to Elasticsearch
+                            via Filebeat for deep search, audit trails, and anomaly detection.</p>
+
+                        <div class="code-block">
+                            <div class="code-header"><span>filebeat.yaml — send Hawk-Eye logs to
+                                    Elasticsearch</span><button class="copy-btn" onclick="copyBlock(this)"><i
+                                        class="fa-solid fa-copy"></i> Copy</button></div>
+                            <pre><span class="key">filebeat.inputs</span>:
+  - <span class="key">type</span>: <span class="str">log</span>
+    <span class="key">paths</span>:
+      - <span class="str">/path/to/hawkeye.log</span>
+    <span class="key">json.keys_under_root</span>: <span class="kw">true</span>
+    <span class="key">json.add_error_key</span>: <span class="kw">true</span>
+
+<span class="key">output.elasticsearch</span>:
+  <span class="key">hosts</span>: [<span class="str">"http://elasticsearch:9200"</span>]
+  <span class="key">index</span>: <span class="str">"hawk-eye-logs-%{+yyyy.MM.dd}"</span></pre>
+                        </div>
+
+                        <h3 class="sub-title" id="kibana"><i class="fa-solid fa-table-columns"
+                                style="color:var(--kibana)"></i> Kibana — Viewing Logs</h3>
+                        <div class="steps">
+                            <div class="step">
+                                <div class="step-num">1</div>
+                                <h4>Open Kibana</h4>
+                                <p>Navigate to <code class="inline">http://localhost:5601</code>. Kibana is pre-started
+                                    in the Docker Compose stack.</p>
+                            </div>
+                            <div class="step">
+                                <div class="step-num">2</div>
+                                <h4>Create Index Pattern</h4>
+                                <p>Go to <strong>Stack Management → Index Patterns</strong> and create pattern <code
+                                        class="inline">hawk-eye-logs-*</code>.</p>
+                            </div>
+                            <div class="step">
+                                <div class="step-num">3</div>
+                                <h4>Explore in Discover</h4>
+                                <p>Navigate to <strong>Discover</strong>, select your index pattern, and filter by
+                                    fields like <code class="inline">level</code>, <code class="inline">target</code>,
+                                    or <code class="inline">check</code>.</p>
+                            </div>
+                        </div>
+
+                        <!-- SNMP -->
+                        <hr class="section-divider">
+                        <h2 class="section-title" id="snmp"><i class="fa-solid fa-tower-broadcast"
+                                style="color:var(--accent-purple)"></i> SNMP Trap Integration</h2>
+                        <p class="body-text">Hawk-Eye can send SNMP v2c traps to your enterprise Network Management
+                            System (NMS) whenever an incident is detected or resolved. This is ideal for integration
+                            with tools like HP OpenView, Zabbix, or IBM Netcool.</p>
+
+                        <div class="code-block">
+                            <div class="code-header"><span>snmp.yaml — standalone trap configuration</span><button
+                                    class="copy-btn" onclick="copyBlock(this)"><i class="fa-solid fa-copy"></i>
+                                    Copy</button></div>
+                            <pre><span class="key">snmp_config</span>:
+  <span class="key">target</span>: <span class="str">"nms-server.internal"</span>
+  <span class="key">port</span>: <span class="str">162</span>
+  <span class="key">community</span>: <span class="str">"public"</span>
+  <span class="key">version</span>: <span class="str">"v2c"</span>
+  <span class="key">trap_oid</span>: <span class="str">"1.3.6.1.4.1.2021.251.1"</span></pre>
+                        </div>
+
+                        <h3 class="sub-title"><i class="fa-solid fa-circle-check"
+                                style="color:var(--success-color)"></i> Enterprise Integration</h3>
+                        <p class="body-text">Traps include the following variable bindings (VarBinds):</p>
+                        <ul class="body-text">
+                            <li><strong>AlertName:</strong> The name of the firing alert.</li>
+                            <li><strong>Severity:</strong> critical, warning, or info.</li>
+                            <li><strong>Instance:</strong> The target being monitored.</li>
+                            <li><strong>Description:</strong> Human-readable error message.</li>
+                        </ul>
+
+                        <!-- REMOTE SERVER -->
+                        <hr class="section-divider">
+                        <h2 class="section-title" id="remote-server"><i class="fa-solid fa-server"
+                                style="color:var(--accent-purple)"></i> Remote Server Configuration</h2>
+                        <p class="body-text">When any of these tools run on a different server, update the URLs in the
+                            <a href="/integrations_config" style="color:#93c5fd">Integration Config</a> page and ensure
+                            the correct ports are open in your firewall.
+                        </p>
+
+                        <div class="alert-box warning">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <div>Always use internal/private network IPs for inter-service communication. Never expose
+                                unauthenticated Prometheus or Elasticsearch ports on a public interface.</div>
+                        </div>
+
+                        <p class="body-text">Example: Hawk-Eye running on <code class="inline">10.0.0.10:8080</code>,
+                            Prometheus on <code class="inline">10.0.0.11:9090</code>, Grafana on <code
+                                class="inline">10.0.0.12:3000</code>:</p>
+                        <div class="code-block">
+                            <div class="code-header"><span>Remote multi-server setup — prometheus.yaml</span><button
+                                    class="copy-btn" onclick="copyBlock(this)"><i class="fa-solid fa-copy"></i>
+                                    Copy</button></div>
+                            <pre><span class="key">scrape_configs</span>:
+  - <span class="key">job_name</span>: <span class="str">'hawk-eye-remote'</span>
+    <span class="key">static_configs</span>:
+      - <span class="key">targets</span>: [<span class="str">'10.0.0.10:8080'</span>]</pre>
+                        </div>
+
+                        <!-- PORT REFERENCE -->
+                        <hr class="section-divider">
+                        <h2 class="section-title" id="ports"><i class="fa-solid fa-ethernet"></i> Port Reference</h2>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Default Port</th>
+                                    <th>Protocol</th>
+                                    <th>Purpose</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Hawk-Eye</td>
+                                    <td><code class="inline">8080</code></td>
+                                    <td><span class="badge badge-blue">HTTP</span></td>
+                                    <td>Dashboard UI &amp; /metrics endpoint</td>
+                                </tr>
+                                <tr>
+                                    <td>Prometheus</td>
+                                    <td><code class="inline">9090</code></td>
+                                    <td><span class="badge badge-blue">HTTP</span></td>
+                                    <td>Metrics storage &amp; query UI</td>
+                                </tr>
+                                <tr>
+                                    <td>Alertmanager</td>
+                                    <td><code class="inline">9093</code></td>
+                                    <td><span class="badge badge-blue">HTTP</span></td>
+                                    <td>Alert routing &amp; deduplication</td>
+                                </tr>
+                                <tr>
+                                    <td>Grafana</td>
+                                    <td><code class="inline">3000</code></td>
+                                    <td><span class="badge badge-blue">HTTP</span></td>
+                                    <td>Dashboards &amp; visualization</td>
+                                </tr>
+                                <tr>
+                                    <td>Elasticsearch</td>
+                                    <td><code class="inline">9200</code></td>
+                                    <td><span class="badge badge-blue">HTTP</span></td>
+                                    <td>Log storage &amp; search API</td>
+                                </tr>
+                                <tr>
+                                    <td>Kibana</td>
+                                    <td><code class="inline">5601</code></td>
+                                    <td><span class="badge badge-blue">HTTP</span></td>
+                                    <td>Log exploration UI</td>
+                                </tr>
+                                <tr>
+                                    <td>Thanos Query</td>
+                                    <td><code class="inline">10904</code></td>
+                                    <td><span class="badge badge-blue">HTTP</span></td>
+                                    <td>Long-term metrics federation</td>
+                                </tr>
+                                <tr>
+                                    <td>SNMP Trap receiver</td>
+                                    <td><code class="inline">162</code></td>
+                                    <td><span class="badge badge-blue">UDP</span></td>
+                                    <td>External NMS trap destination</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- TROUBLESHOOTING -->
+                        <hr class="section-divider">
+                        <h2 class="section-title" id="troubleshooting"><i class="fa-solid fa-stethoscope"></i>
+                            Troubleshooting</h2>
+
+                        <h3 class="sub-title"><i class="fa-solid fa-circle-xmark" style="color:var(--error-color)"></i>
+                            Prometheus target shows DOWN</h3>
+                        <p class="body-text">Check that Hawk-Eye is running and the URL/port is correct. Inside Docker,
+                            use the service name (<code class="inline">hawkeye</code>), not <code
+                                class="inline">localhost</code>.</p>
+
+                        <h3 class="sub-title"><i class="fa-solid fa-circle-xmark" style="color:var(--error-color)"></i>
+                            Grafana shows "No data"</h3>
+                        <p class="body-text">Verify the data source URL, then check that the time range in the Grafana
+                            panel matches when Prometheus started scraping. Try running a raw PromQL query like <code
+                                class="inline">up{job="hawk-eye"}</code> in Prometheus.</p>
+
+                        <h3 class="sub-title"><i class="fa-solid fa-circle-xmark" style="color:var(--error-color)"></i>
+                            Alerts not being sent</h3>
+                        <p class="body-text">Check <code class="inline">http://localhost:9093</code> to see if
+                            Alertmanager received the alert. Verify the webhook URL and that the <code
+                                class="inline">prometheus_rules.yaml</code> is loaded correctly.</p>
+
+                        <h3 class="sub-title"><i class="fa-solid fa-circle-xmark" style="color:var(--error-color)"></i>
+                            Kibana shows no index</h3>
+                        <p class="body-text">Ensure Filebeat is running and that logs are being written to the path
+                            specified in <code class="inline">filebeat.yaml</code>. Check Elasticsearch health at <code
+                                class="inline">http://localhost:9200/_cluster/health</code>.</p>
+
+                        <div class="alert-box info" style="margin-top:2rem">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <div>For advanced configuration, connection parameters for all integrations can be managed
+                                from the <a href="/integrations_config" style="color:#93c5fd"><strong>External Apps
+                                        Integration Config</strong></a> page. Changes are saved automatically and affect
+                                the quick-links on the <a href="/integrations" style="color:#93c5fd"><strong>External
+                                        Apps Links</strong></a> page.</div>
+                        </div>
+
+                    </div><!-- /guide-body -->
+                </div><!-- /guide-layout -->
+            </div><!-- /page-scroll-container -->
+        </div><!-- /app-content -->
+    </div><!-- /app-window -->
+
+    <script>
+        // Copy code block to clipboard
+        function copyBlock(btn) {
+            const pre = btn.closest('.code-block').querySelector('pre');
+            navigator.clipboard.writeText(pre.innerText).then(() => {
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+                btn.style.color = 'var(--success-color)';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fa-solid fa-copy"></i> Copy';
+                    btn.style.color = '';
+                }, 2000);
+            });
+        }
+
+        // Scroll-spy for TOC
+        const sections = document.querySelectorAll('[id]');
+        const tocLinks = document.querySelectorAll('.toc-item');
+        const scrollContainer = document.querySelector('.page-scroll-container');
+
+        scrollContainer.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(s => {
+                if (scrollContainer.scrollTop + 100 >= s.offsetTop) current = s.id;
+            });
+            tocLinks.forEach(link => {
+                link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+            });
+        });
+
+        // Smooth scroll for TOC links
+        tocLinks.forEach(link => {
+            link.addEventListener('click', e => {
+                const href = link.getAttribute('href');
+                if (href.startsWith('#')) {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

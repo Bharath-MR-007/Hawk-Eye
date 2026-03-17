@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Reachability - Hawk-Eye</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+        :root {
+            --bg-dark: #0f1115;
+            --surface-color: #1a1d24;
+            --surface-highlight: #232730;
+            --border-color: #2a2d35;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --info-color: #3b82f6;
+            --header-bg: #1e2128;
+            --card-hover: #232730;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --accent-purple: #8b5cf6;
+            --terminal-bg: #0d0e12;
+        }
+
+        body.light-theme {
+            --bg-dark: #F8FAFC;
+            --surface-color: #FFFFFF;
+            --surface-highlight: #F1F5F9;
+            --border-color: #E2E8F0;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --info-color: #2563EB;
+            --header-bg: #F1F5F9;
+            --card-hover: #F8FAFC;
+            --success-color: #059669;
+            --warning-color: #D97706;
+            --error-color: #DC2626;
+            --accent-purple: #7c3aed;
+            --terminal-bg: #1e293b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-window {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styles */
+        .main-sidebar {
+            width: 260px;
+            background-color: var(--surface-color);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 50;
+        }
+
+        .main-sidebar-header {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            gap: 12px;
+        }
+
+        .main-sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-category {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1.5rem;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            user-select: none;
+        }
+
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.88rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+
+        .nav-item:hover {
+            background: var(--surface-highlight);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--header-bg);
+            color: var(--info-color);
+            font-weight: 600;
+        }
+
+        .app-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .top-navbar {
+            height: 70px;
+            background-color: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 0 2rem;
+            flex-shrink: 0;
+        }
+
+        .page-container {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .header-section h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .header-section p {
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Reachability Controls */
+        .reachability-controls {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 1.5rem;
+            background: var(--surface-color);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            align-items: start;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .control-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .custom-textarea, .custom-select, .custom-input {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .custom-textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .custom-select:focus, .custom-input:focus, .custom-textarea:focus {
+            border-color: var(--info-color);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-primary {
+            background: var(--info-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            align-self: flex-end;
+            height: 46px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Results Display */
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            flex: 1;
+        }
+
+        .terminal-container {
+            background: var(--terminal-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            min-height: 400px;
+        }
+
+        .terminal-header {
+            background: #1e1e26;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .terminal-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .terminal-body {
+            flex: 1;
+            padding: 1.5rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            overflow-y: auto;
+            color: #d1d5db;
+        }
+
+        .terminal-line {
+            line-height: 1.6;
+            margin-bottom: 4px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .line-timestamp { color: #6b7280; font-size: 0.75rem; min-width: 85px; }
+        .line-info { color: #3b82f6; }
+        .line-success { color: #10b981; }
+        .line-error { color: #ef4444; }
+        .line-warning { color: #f59e0b; }
+
+        .results-table-container {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .results-table-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--header-bg);
+        }
+
+        .diagnostic-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .diagnostic-table th {
+            text-align: left;
+            padding: 12px 1.5rem;
+            background: var(--bg-dark);
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .diagnostic-table td {
+            padding: 12px 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-online { background: rgba(16, 185, 129, 0.1); color: var(--success-color); border: 1px solid var(--success-color); }
+        .status-offline { background: rgba(239, 68, 68, 0.1); color: var(--error-color); border: 1px solid var(--error-color); }
+        .status-warn { background: rgba(245, 158, 11, 0.1); color: var(--warning-color); border: 1px solid var(--warning-color); }
+
+        .status-indicator { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500; padding: 0.5rem 1rem; border-radius: 9999px; background: var(--surface-highlight); border: 1px solid var(--border-color); }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #9ca3af; }
+        .dot.connected { background: #10b981; box-shadow: 0 0 10px #10b981; }
+
+        .help-dropbtn {
+            background: var(--surface-highlight);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .help-dropdown { position: relative; }
+        .help-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: var(--surface-color);
+            min-width: 220px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            top: 100%;
+            margin-top: 10px;
+            z-index: 1000;
+        }
+        .help-dropdown:hover .help-dropdown-content { display: block; }
+        .help-dropdown-content a {
+            padding: 12px 16px;
+            display: block;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+        .help-dropdown-content a:hover { background: var(--surface-highlight); color: var(--info-color); }
+
+    
+        .help-dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            background: transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-window">
+        <!-- Sidebar -->
+        <aside class="main-sidebar">
+                        <div class="main-sidebar-header">
+                <span style="font-size: 1.5rem;">🦅</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                    <span style="font-weight: 700; font-size: 1.25rem;">Hawk-Eye</span>
+                    <span
+                        style="font-size: 0.65rem; color: #ff00ff; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
+                </div>
+            </div>
+
+                        <nav class="main-sidebar-nav">
+                <div class="nav-category">Monitoring</div>
+                <a href="/dashboard" class="nav-item">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </a>
+                <a href="/inventory" class="nav-item">
+                    <i class="fa-solid fa-list"></i> Target Inventory
+                </a>
+
+                <div class="nav-item tree-parent" onclick="this.classList.toggle('open')" style="margin-top: 15px;">
+                    <div style="display: flex; align-items: center; gap: 14px;"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
+                    <i class="fa-solid fa-chevron-down tree-chevron"></i>
+                </div>
+                <div class="tree-children">
+                    <a href="/incidents" class="nav-item child-item">
+                        <i class="fa-solid fa-table-cells"></i> All Incidents
+                    </a>
+                </div>
+
+                <div class="nav-category">Management</div>
+                <button class="nav-item" onclick="if(document.getElementById('addTargetModal')) { document.getElementById('addTargetModal').style.display='flex'; } else { window.location.href='/dashboard?add=true'; }">
+                    <i class="fa-solid fa-plus" style="color: var(--info-color);"></i> Add New Target
+                </button>
+                <button class="nav-item" onclick="if(typeof deleteSelectedTargets === 'function') { deleteSelectedTargets(); } else { window.location.href='/dashboard'; }">
+                    <i class="fa-solid fa-trash" style="color: var(--error-color);"></i> Delete Target
+                </button>
+
+                <div class="nav-category" style="margin-top: 15px;">Integrations</div>
+                <a href="/integrations" class="nav-item">
+                    <i class="fa-solid fa-link"></i> External Apps Links
+                </a>
+                <a href="/integrations_config" class="nav-item">
+                    <i class="fa-solid fa-gears"></i> External Apps Integration Config
+                </a>
+
+                <div class="nav-category" style="margin-top: 15px;">Configuration</div>
+                <a href="/alerts" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Alerts Config
+                </a>
+                <a href="/polling" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Polling Config
+                </a>
+                <a href="/users_config" class="nav-item">
+                    <i class="fa-solid fa-user-gear"></i> User Configuration
+                </a>
+                <button class="nav-item" onclick="if(typeof exportConfig === 'function') { exportConfig(); } else { window.location.href='/dashboard?export=true'; }">
+                    <i class="fa-solid fa-file-export"></i> Export Snapshot
+                </button>
+                <button class="nav-item" onclick="if(document.getElementById('importFile')) { document.getElementById('importFile').click(); } else { window.location.href='/dashboard?import=true'; }">
+                    <i class="fa-solid fa-file-import"></i> Import Snapshot
+                </button>
+
+                <div class="nav-category">Operations</div>
+                <a href="/troubleshooting" class="nav-item">
+                    <i class="fa-solid fa-microchip"></i> Troubleshooting
+                </a>
+                <a href="/device_reachability" class="nav-item active">
+                    <i class="fa-solid fa-satellite-dish"></i> Device Reachability
+                </a>
+            </nav>
+            <div class="main-sidebar-footer" style="padding: 1.5rem; border-top: 1px solid var(--border-color);">
+                <button class="nav-item" onclick="HawkUI.logout()" style="color: var(--error-color);">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <main class="app-content">
+            <header class="top-navbar">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div class="status-indicator">
+                        <div class="dot connected"></div>
+                        <span>Engine Online</span>
+                    </div>
+
+                    <div class="help-dropdown">
+                        <button class="help-dropbtn">
+                            <i class="fa-solid fa-circle-question"></i> Help Menu <i class="fa-solid fa-chevron-down" style="font-size: 0.6rem;"></i>
+                        </button>
+                                                <div class="help-dropdown-content">
+                            <a href="/installation.html"><i class="fa-solid fa-book"></i> Installation Procedure</a>
+                            <a href="/requirements.html"><i class="fa-solid fa-list-check"></i> Software Requirements</a>
+                            <a href="/capabilities.html"><i class="fa-solid fa-bolt"></i> Capabilities of Hawk-Eye</a>
+                            <a href="/integrations_guide.html"><i class="fa-solid fa-layer-group"></i> Integration Guide</a>
+                            <a href="/architecture.html"><i class="fa-solid fa-diagram-project"></i> Product Architecture</a>
+                            <a href="/usermanual.html"><i class="fa-solid fa-file-lines"></i> User Manual</a>
+                            <a href="/admindoc.html"><i class="fa-solid fa-user-shield"></i> Admin Document</a>
+                            <a href="/about.html"><i class="fa-solid fa-circle-info"></i> About - Overview</a>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 6px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <i class="fa-solid fa-user-circle" style="color: var(--accent-purple);"></i>
+                        <span id="displayUser" style="font-weight: 600; font-size: 0.85rem;">Admin</span>
+                    </div>
+
+                    <button id="theme-toggle-btn" class="help-dropbtn">
+                        <i id="theme-toggle-icon" class="fa-solid fa-sun"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <div class="header-section">
+                    <h1>Device Reachability Matrix</h1>
+                    <p>Perform multi-protocol reachability testing across your infrastructure.</p>
+                </div>
+
+                <div class="reachability-controls">
+                    <div class="control-group">
+                        <label class="control-label">Target Devices (IPs or Hostnames)</label>
+                        <textarea id="targetList" class="custom-textarea" placeholder="Enter IP addresses, one per line...&#10;8.8.8.8&#10;google.com"></textarea>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Protocol</label>
+                        <select id="protocolSelect" class="custom-select">
+                            <option value="icmp">ICMP (Ping)</option>
+                            <option value="snmp">SNMP (v2c)</option>
+                            <option value="tcp">TCP (Port 80/443)</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Timeout (ms)</label>
+                        <input type="number" id="timeoutInput" class="custom-input" value="1000" min="100" max="5000">
+                    </div>
+                    <button class="btn-primary" id="runBtn" onclick="runReachabilityCheck()">
+                        <i class="fa-solid fa-satellite-dish"></i> Run Reachability Check
+                    </button>
+                </div>
+
+                <div class="results-grid">
+                    <div class="terminal-container">
+                        <div class="terminal-header">
+                            <div style="display: flex; gap: 8px;">
+                                <div class="dot-red"></div>
+                                <div class="dot-yellow"></div>
+                                <div class="dot-green"></div>
+                                <span style="color: #6b7280; font-size: 0.75rem; margin-left: 10px;">reachability_engine.sh</span>
+                            </div>
+                            <div class="terminal-controls">
+                                <button onclick="clearTerminal()" style="background: transparent; border: none; color: var(--text-secondary); cursor: pointer;"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                        </div>
+                        <div id="terminal" class="terminal-body">
+                            <div class="terminal-line">
+                                <span class="line-timestamp">[SYSTEM]</span>
+                                <span>Reachability engine ready. Enter targets and protocol to begin.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="results-table-container">
+                        <div class="results-table-header">
+                            <h3 style="margin: 0; font-size: 0.95rem; color: var(--info-color);">Execution Summary</h3>
+                            <div id="summaryStats" style="font-size: 0.8rem; color: var(--text-secondary);">
+                                0 Targets Tested
+                            </div>
+                        </div>
+                        <table class="diagnostic-table">
+                            <thead>
+                                <tr>
+                                    <th>Target</th>
+                                    <th>Protocol</th>
+                                    <th>Status</th>
+                                    <th>Result Detail</th>
+                                    <th>Response Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsBody">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 3rem;">
+                                        Waiting for execution...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/scripts/hawk-ui.js"></script>
+    <script>
+        const terminal = document.getElementById('terminal');
+        const resultsBody = document.getElementById('resultsBody');
+        const runBtn = document.getElementById('runBtn');
+
+        function writeToTerminal(text, type = 'info') {
+            const line = document.createElement('div');
+            line.className = 'terminal-line';
+            const now = new Date().toLocaleTimeString();
+            let colorClass = 'line-info';
+            if (type === 'success') colorClass = 'line-success';
+            if (type === 'error') colorClass = 'line-error';
+            if (type === 'warning') colorClass = 'line-warning';
+
+            line.innerHTML = `
+                <span class="line-timestamp">${now}</span>
+                <span class="${colorClass}">[${type.toUpperCase()}]</span>
+                <span>${text}</span>
+            `;
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function clearTerminal() {
+            terminal.innerHTML = '<div class="terminal-line"><span class="line-timestamp">[SYSTEM]</span><span>Console cleared. Ready.</span></div>';
+        }
+
+        async function runReachabilityCheck() {
+            const targetsInput = document.getElementById('targetList').value.trim();
+            const protocol = document.getElementById('protocolSelect').value;
+            const timeout = parseInt(document.getElementById('timeoutInput').value) || 1000;
+
+            if (!targetsInput) {
+                alert("Please enter at least one target IP or hostname.");
+                return;
+            }
+
+            const targets = targetsInput.split('\n').map(t => t.trim()).filter(t => t !== "");
+            
+            runBtn.disabled = true;
+            runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
+            resultsBody.innerHTML = '';
+            clearTerminal();
+
+            writeToTerminal(`Starting batch reachability check for ${targets.length} targets via ${protocol.toUpperCase()}...`, 'info');
+
+            for (const target of targets) {
+                writeToTerminal(`Testing ${target}...`, 'info');
+                
+                try {
+                    const response = await fetch('/api/v1/reachability/test', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ target, protocol, timeout })
+                    });
+
+                    const data = await response.json();
+                    
+                    const row = document.createElement('tr');
+                    const statusClass = data.success ? 'status-online' : 'status-offline';
+                    const statusLabel = data.success ? 'ONLINE' : 'OFFLINE';
+                    
+                    row.innerHTML = `
+                        <td style="font-weight: 600;">${target}</td>
+                        <td><span style="color: var(--accent-purple); font-weight: 700;">${protocol.toUpperCase()}</span></td>
+                        <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+                        <td style="font-family: 'Fira Code', monospace; font-size: 0.75rem;">${data.message || (data.success ? 'Packet Received' : 'Timed Out')}</td>
+                        <td style="font-weight: 600; color: var(--info-color);">${data.latency ? data.latency + ' ms' : '--'}</td>
+                    `;
+                    resultsBody.appendChild(row);
+
+                    if (data.success) {
+                        writeToTerminal(`${target}: Success (${data.latency}ms)`, 'success');
+                    } else {
+                        writeToTerminal(`${target}: ${data.message || 'Timeout'}`, 'error');
+                    }
+
+                } catch (err) {
+                    writeToTerminal(`Error checking ${target}: ${err.message}`, 'error');
+                }
+            }
+
+            document.getElementById('summaryStats').innerText = `${targets.length} Targets Verified`;
+            runBtn.disabled = false;
+            runBtn.innerHTML = '<i class="fa-solid fa-satellite-dish"></i> Run Reachability Check';
+        }
+    </script>
+</body>
+
+</html>

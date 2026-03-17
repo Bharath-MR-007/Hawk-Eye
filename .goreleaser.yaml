@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2025 Deutsche Telekom IT GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+
+version: 2
+project_name: hawkeye
+builds:
+  - env: [CGO_ENABLED=0]
+    ldflags:
+      - -s -w -X main.version={{ .Tag }}
+      - -extldflags "-static"
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+dockers:
+  - image_templates:
+      - "ghcr.io/Bharath-MR-007/hawk-eye:latest"
+      - "ghcr.io/Bharath-MR-007/hawk-eye:{{ .Tag }}"
+      - "ghcr.io/Bharath-MR-007/hawk-eye:v{{ .Major }}.{{ .Minor }}"
+      - "ghcr.io/Bharath-MR-007/hawk-eye:v{{ .Major }}"
+      - "mtr.devops.telekom.de/hawkeye/hawkeye:latest"
+      - "mtr.devops.telekom.de/hawkeye/hawkeye:{{ .Tag }}"
+      - "mtr.devops.telekom.de/hawkeye/hawkeye:v{{ .Major }}.{{ .Minor }}"
+      - "mtr.devops.telekom.de/hawkeye/hawkeye:v{{ .Major }}"
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - --label=org.opencontainers.image.title={{ .ProjectName }}
+      - --label=org.opencontainers.image.description={{ .ProjectName }}
+      - --label=org.opencontainers.image.url=https://caas.telekom.de
+      - --label=org.opencontainers.image.source=https://github.com/Bharath-MR-007/hawk-eye
+      - --label=org.opencontainers.image.version={{ .Version }}
+      - --label=org.opencontainers.image.created={{ .Timestamp }}
+      - --label=org.opencontainers.image.revision={{ .FullCommit }}
+      - --label=org.opencontainers.image.licenses="Apache 2.0"
+nfpms:
+  - maintainer: CaaS <opensource@telekom.de>
+    description: |-
+      Monitoring tool to gather infrastructure network information
+    homepage: https://github.com/Bharath-MR-007
+    license: Apache 2.0
+    formats:
+      - deb
+      - rpm
+      - apk
+sboms:
+  - id: archive
+    artifacts: archive
+  - id: source
+    artifacts: source

@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hawk-Eye | About</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg-dark: #0a0c10;
+            --surface: #13161d;
+            --surface2: #1a1d26;
+            --border: #252832;
+            --text: #e8eaf0;
+            --muted: #7c8496;
+            --purple: #8b5cf6;
+            --blue: #3b82f6;
+            --green: #10b981;
+            --yellow: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .toc {
+            width: 260px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .toc-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            text-decoration: none;
+        }
+
+        .toc-brand span {
+            font-size: 1.5rem;
+        }
+
+        .toc-brand p {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--purple);
+        }
+
+        .toc h3 {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--muted);
+            margin-bottom: 12px;
+            margin-top: 20px;
+        }
+
+        .toc a {
+            display: block;
+            font-size: 0.82rem;
+            color: var(--muted);
+            text-decoration: none;
+            padding: 6px 10px;
+            border-radius: 5px;
+            margin-bottom: 2px;
+            transition: all 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 0.8rem;
+            text-decoration: none;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .back-link:hover {
+            color: var(--purple);
+        }
+
+        .back-dashboard-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 20px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.35);
+            color: var(--purple);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-bottom: 30px;
+        }
+
+        .back-dashboard-btn:hover {
+            background: rgba(139, 92, 246, 0.2);
+            transform: translateX(-2px);
+        }
+
+        .content {
+            flex: 1;
+            padding: 50px 60px;
+            max-width: 900px;
+        }
+
+        h1 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: var(--muted);
+            font-size: 1.05rem;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 50px 0 15px 0;
+            padding-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h2 i {
+            color: var(--purple);
+        }
+
+        h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text);
+            margin: 25px 0 10px 0;
+        }
+
+        p {
+            color: #b0b8cc;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        ul {
+            padding-left: 20px;
+            color: #b0b8cc;
+            font-size: 0.95rem;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(59, 130, 246, 0.05));
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: 12px;
+            margin-bottom: 40px;
+        }
+
+        .hero-icon {
+            font-size: 5rem;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .hero h2 {
+            justify-content: center;
+            font-size: 2rem;
+            border: none;
+            margin: 0 0 5px 0;
+            padding: 0;
+        }
+
+        .hero .version {
+            display: inline-block;
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--purple);
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .hero .org {
+            font-size: 0.85rem;
+            color: #ff00ff;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 12px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin: 25px 0;
+        }
+
+        .stat-card {
+            background: var(--surface2);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-card .num {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--purple);
+            display: block;
+        }
+
+        .stat-card .lbl {
+            font-size: 0.78rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .callout {
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 20px 0;
+            display: flex;
+            gap: 14px;
+            font-size: 0.9rem;
+        }
+
+        .callout i {
+            font-size: 1rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .callout.info {
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+        }
+
+        .callout.info i {
+            color: var(--blue);
+        }
+
+        .callout p {
+            margin: 0;
+            color: var(--text);
+        }
+
+        .link-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .doc-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: rgba(139, 92, 246, 0.08);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            color: var(--purple);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .doc-link:hover {
+            background: rgba(139, 92, 246, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .inline-code {
+            background: rgba(139, 92, 246, 0.1);
+            padding: 2px 7px;
+            border-radius: 4px;
+            color: #c4b5fd;
+            font-family: 'Monaco', monospace;
+            font-size: 0.85rem;
+        }
+
+        .apache-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--green);
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+    
+        
+        
+        
+        
+        
+        .help-dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            background: transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout">
+        <nav class="toc">
+            <a href="/" class="toc-brand"><span>🦅</span>
+                <p>Hawk-Eye Docs</p>
+            </a>
+            <a href="/" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+            <h3>On This Page</h3>
+            <a href="#intro">Introduction</a>
+            <a href="#mission">Mission</a>
+            <a href="#origin">Origin</a>
+            <a href="#stack">Technology Stack</a>
+            <a href="#license">License</a>
+            <a href="#docs">Documentation Index</a>
+            <h3>Other Docs</h3>
+            <a href="/installation.html">Installation Guide</a>
+            <a href="/capabilities.html">Capabilities</a>
+            <a href="/architecture.html">Architecture</a>
+        </nav>
+        <main class="content">
+            <a href="/dashboard" class="back-dashboard-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+            <h1>About — Overview</h1>
+            <p class="page-subtitle">Learn where Hawk-Eye came from, what it aims to achieve, and the technology stack
+                it is built on.</p>
+
+            <div class="hero">
+                <span class="hero-icon">🦅</span>
+                <h2>Hawk-Eye Monitoring Suite</h2>
+                <div class="version">v1.2.4 — Stable</div>
+                <div class="org">T-Systems | Deutsche Telekom</div>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-card"><span class="num">8</span><span class="lbl">Check Types</span></div>
+                <div class="stat-card"><span class="num">8</span><span class="lbl">Services in Stack</span></div>
+                <div class="stat-card"><span class="num">∞</span><span class="lbl">Monitoring Targets</span></div>
+                <div class="stat-card"><span class="num">15s</span><span class="lbl">Min Check Interval</span></div>
+            </div>
+
+            <h2 id="intro"><i class="fa-solid fa-circle-info"></i> Introduction</h2>
+            <p>Hawk-Eye is a full-stack network observability and infrastructure monitoring platform built on the
+                <strong>Hawk-Eye Engine</strong>. It provides SRE and platform engineering teams with
+                real-time visibility into the health, latency, DNS resolution, TCP connectivity, SSL/TLS validity,
+                and network path of distributed infrastructure components across all layers of the stack.
+            </p>
+            <p>Unlike traditional monitoring tools that only track resource utilization (CPU, RAM), Hawk-Eye focuses on
+                <strong>black-box probing</strong> — testing your services from the outside, exactly as your users or
+                dependent systems would experience them. This gives teams an objective, user-perspective measure of
+                service health.
+            </p>
+
+            <h2 id="mission"><i class="fa-solid fa-bullseye"></i> Mission</h2>
+            <p>To give platform teams the <em>eyes of a hawk</em> — the ability to detect network degradation, endpoint
+                failures, and latency spikes <strong>before your customers do</strong>. Hawk-Eye achieves this through:
+            </p>
+            <ul>
+                <li><strong>Proactive detection:</strong> Continuous check loops with sub-30-second detection times</li>
+                <li><strong>Contextual alerting:</strong> Alerts enriched with target metadata, check history, and
+                    severity levels</li>
+                <li><strong>Operational clarity:</strong> A purpose-built dashboard that gives operators one clear, live
+                    view without needing to understand Prometheus query language</li>
+                <li><strong>Portability:</strong> Full configuration export/import to enable DR failover onto a fresh
+                    instance in minutes</li>
+            </ul>
+
+            <h2 id="origin"><i class="fa-solid fa-code-branch"></i> Origin & Project History</h2>
+            <p>Hawk-Eye is a production deployment layer built on top of the <a style="color:var(--purple)"
+                    href="https://github.com/Bharath-MR-007/hawk-eye" target="_blank">Hawk-Eye</a> project, originally developed
+                and open-sourced by Deutsche Telekom's internal platform teams. Hawk-Eye was created to solve the
+                challenge of monitoring internal API health and network latency between T-Systems data centers
+                distributed across Europe.</p>
+            <p>The Hawk-Eye layer adds:</p>
+            <ul>
+                <li>A production-ready Docker Compose deployment stack</li>
+                <li>A purpose-built live dashboard with WebSocket updates</li>
+                <li>Integrated Alertmanager, Grafana, Elasticsearch, and Kibana</li>
+                <li>Target grouping, tagging, and a one-click export/import system</li>
+            </ul>
+
+            <h2 id="stack"><i class="fa-solid fa-layer-group"></i> Technology Stack</h2>
+            <ul>
+                <li><strong>Backend:</strong> Go 1.22+ — high-performance concurrent probing goroutines</li>
+                <li><strong>Web Framework:</strong> go-chi/chi — lightweight HTTP router for the REST API</li>
+                <li><strong>Frontend:</strong> Vanilla HTML/CSS/JavaScript — WebSocket-driven live updates, no SPA
+                    framework required</li>
+                <li><strong>Time-Series DB:</strong> Prometheus — metric collection, alerting rule evaluation</li>
+                <li><strong>Long-term Storage:</strong> Thanos — multi-cluster federation and block storage</li>
+                <li><strong>Log Storage:</strong> Elasticsearch 8.x — structured log and trace storage</li>
+                <li><strong>Observability:</strong> OpenTelemetry — distributed tracing from the Go engine</li>
+                <li><strong>Visualization:</strong> Grafana 10.x + Kibana 8.x</li>
+                <li><strong>Alerting:</strong> Prometheus Alertmanager — multi-channel notification routing</li>
+                <li><strong>Container Runtime:</strong> Docker / scratch-based image for minimal attack surface</li>
+            </ul>
+
+            <h2 id="license"><i class="fa-solid fa-scale-balanced"></i> License</h2>
+            <p>Hawk-Eye is released under the <span class="apache-badge">Apache 2.0
+                    License</span>. This means you are free to use, modify, and distribute this software in both
+                commercial and non-commercial applications, as long as the original license and copyright notices are
+                preserved.</p>
+            <div class="callout info"><i class="fa-solid fa-circle-info"></i>
+                <p>Copyright © 2025 Deutsche Telekom IT GmbH. SPDX-License-Identifier: Apache-2.0</p>
+            </div>
+
+            <h2 id="docs"><i class="fa-solid fa-book-open"></i> Documentation Index</h2>
+            <p>Use the links below to navigate the complete Hawk-Eye documentation:</p>
+            <div class="link-row">
+                <a class="doc-link" href="/installation.html"><i class="fa-solid fa-book"></i> Installation Guide</a>
+                <a class="doc-link" href="/requirements.html"><i class="fa-solid fa-list-check"></i> Requirements</a>
+                <a class="doc-link" href="/capabilities.html"><i class="fa-solid fa-bolt"></i> Capabilities</a>
+                <a class="doc-link" href="/architecture.html"><i class="fa-solid fa-diagram-project"></i>
+                    Architecture</a>
+                <a class="doc-link" href="/usermanual.html"><i class="fa-solid fa-file-lines"></i> User Manual</a>
+                <a class="doc-link" href="/admindoc.html"><i class="fa-solid fa-user-shield"></i> Admin Document</a>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

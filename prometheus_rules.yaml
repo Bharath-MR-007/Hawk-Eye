@@ -1,0 +1,129 @@
+groups:
+    - name: hawkeye_uptime
+      rules:
+        - alert: SiteDown
+          expr: hawkeye_health_up == 0
+          for: 10s
+          labels:
+            severity: critical
+          annotations:
+            description: '{{ $labels.target }} has been unreachable for more than 30 seconds.'
+            summary: "🔴 Site DOWN: {{ $labels.target }}"
+        - alert: TcpConnectionFailed
+          expr: hawkeye_tcp_status == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            description: TCP connection to {{ $labels.target }} has been failing for over 1 minute.
+            summary: "🔴 TCP FAIL: {{ $labels.target }}"
+    - name: hawkeye_ssl
+      rules:
+        - alert: SslCertificateCritical
+          expr: hawkeye_ssl_expiry_days < 7
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            description: The SSL certificate for {{ $labels.target }} expires in {{ $value | humanizeDuration }} days. Renew NOW.
+            summary: "🔴 SSL CRITICAL: {{ $labels.target }} expires in < 7 days"
+        - alert: SslCertificateExpiringSoon
+          expr: hawkeye_ssl_expiry_days < 32
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            description: The SSL certificate for {{ $labels.target }} will expire in {{ $value }} days.
+            summary: '⚠️ SSL WARNING: {{ $labels.target }} expires in < 30 days'
+        - alert: SslCertificateCritical
+          expr: hawkeye_ssl_expiry_days{target="google.com"} < 7
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            description: The SSL certificate for {{ $labels.target }} expires in {{ $value | humanizeDuration }} days. Renew NOW.
+            summary: "🔴 SSL CRITICAL: {{ $labels.target }} expires in < 7 days"
+        - alert: SslCertificateCritical
+          expr: hawkeye_ssl_expiry_days{target="facebook.com"} < 7
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            description: The SSL certificate for {{ $labels.target }} expires in {{ $value | humanizeDuration }} days. Renew NOW.
+            summary: "🔴 SSL CRITICAL: {{ $labels.target }} expires in < 7 days"
+        - alert: SslCertificateExpiringSoon
+          expr: hawkeye_ssl_expiry_days{target="facebook.com"} < 3
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            description: The SSL certificate for {{ $labels.target }} will expire in {{ $value }} days.
+            summary: '⚠️ SSL WARNING: {{ $labels.target }} expires in < 30 days'
+    - name: hawkeye_performance
+      rules:
+        - alert: LatencyAnomaly
+          expr: (  hawkeye_latency_seconds  - avg_over_time(hawkeye_latency_seconds[1h]))/ stddev_over_time(hawkeye_latency_seconds[1h]) > 3
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            description: Latency is significantly higher than the 1-hour historical average.
+            summary: '⚠️ High Latency Anomaly: {{ $labels.target }}'
+        - alert: HttpAdvancedCheckFailed
+          expr: hawkeye_http_advanced_status == 0
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            description: Advanced HTTP check (POST/pattern matching) failed for {{ $labels.target }}.
+            summary: '⚠️ HTTP Pattern Check FAIL: {{ $labels.target }}'
+        - alert: HighRequestLatencyWarning
+          expr: hawkeye_http_advanced_latency_seconds > 0.2
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            description: 'Total HTTP request latency for {{ $labels.target }} has been above 200ms for 2 minutes (current: {{ $value | humanizeDuration }}).'
+            summary: '⚠️ LATENCY WARNING: {{ $labels.target }} > 200ms'
+        - alert: HighRequestLatencyCritical
+          expr: hawkeye_http_advanced_latency_seconds > 0.5
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            description: 'Total HTTP request latency for {{ $labels.target }} has exceeded 500ms for 1 minute (current: {{ $value | humanizeDuration }}). Users are severely impacted.'
+            summary: "🔴 LATENCY CRITICAL: {{ $labels.target }} > 500ms"
+        - alert: DnsAnomaly
+          expr: (  hawkeye_dns_duration_seconds  - avg_over_time(hawkeye_dns_duration_seconds[1h]))/ stddev_over_time(hawkeye_dns_duration_seconds[1h]) > 3
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            description: DNS query time is significantly elevated for {{ $labels.target }}.
+            summary: '⚠️ DNS Anomaly: {{ $labels.target }}'
+        - alert: DnsAdvancedCheckFailed
+          expr: hawkeye_dns_advanced_status == 0
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            description: Advanced DNS check failed for {{ $labels.target }}.
+            summary: '⚠️ DNS Resolution FAIL: {{ $labels.target }}'
+    - name: hawkeye_network
+      rules:
+        - alert: PacketLossWarning
+          expr: hawkeye_traceroute_packet_loss_pct > 5
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            description: Network path to {{ $labels.target }} is experiencing {{ $value | humanize }}% packet loss. Intermediate hops are dropping ICMP probes.
+            summary: '⚠️ PACKET LOSS WARNING: {{ $labels.target }} > 5%'
+        - alert: PacketLossCritical
+          expr: hawkeye_traceroute_packet_loss_pct > 20
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            description: Network path to {{ $labels.target }} has {{ $value | humanize }}% packet loss. Severe network degradation detected — possible router failure along path.
+            summary: "🔴 PACKET LOSS CRITICAL: {{ $labels.target }} > 20%"

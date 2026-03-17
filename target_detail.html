@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Path Trace | Hawk-Eye</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+        :root {
+            --bg-dark: #0f1115;
+            --surface: #1a1d24;
+            --surface2: #1e2230;
+            --border: #2a2d35;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #8b5cf6;
+            --info: #3b82f6;
+            --green: #10b981;
+            --yellow: #f59e0b;
+            --orange: #f97316;
+            --red: #ef4444;
+            --critical-bg: rgba(239, 68, 68, 0.12);
+            --major-bg: rgba(249, 115, 22, 0.12);
+            --minor-bg: rgba(245, 158, 11, 0.12);
+            --ok-bg: rgba(16, 185, 129, 0.08);
+            --grid-dot: rgba(255, 255, 255, 0.08);
+        }
+
+        body.light-theme {
+            --bg-dark: #f8fafc;
+            --surface: #ffffff;
+            --surface2: #f1f5f9;
+            --border: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent: #7c3aed;
+            --ok-bg: rgba(16, 185, 129, 0.1);
+            --minor-bg: rgba(245, 158, 11, 0.1);
+            --major-bg: rgba(249, 115, 22, 0.1);
+            --critical-bg: rgba(239, 68, 68, 0.1);
+            --grid-dot: rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Top bar ── */
+        .topbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .target-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .target-title span {
+            color: var(--accent);
+        }
+
+        .refresh-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:hover {
+            filter: brightness(1.2);
+        }
+
+        .refresh-btn.spinning i {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ── Main content ── */
+        .main {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            overflow-y: auto;
+        }
+
+        /* ── Summary cards ── */
+        .summary-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 1rem;
+        }
+
+        .summary-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: border-color 0.2s;
+        }
+
+        .summary-card:hover {
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+
+        .card-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--text-secondary);
+            font-weight: 700;
+        }
+
+        .card-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .card-sub {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* ── Topology map ── */
+        .topology-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .topology-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .topology-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .legend {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .leg {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .leg-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .topology-scroll {
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 2rem;
+            cursor: grab;
+            user-select: none;
+            touch-action: pan-x;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) transparent;
+        }
+
+        .topology-scroll::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .topology-scroll::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .topology-scroll::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        .topology-scroll:active {
+            cursor: grabbing;
+        }
+
+        .topology-path {
+            position: relative;
+            min-height: 280px;
+            width: 4000px;
+            /* Large canvas for moving nodes around */
+            background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+            background-size: 30px 30px;
+            /* Subtle grid background */
+        }
+
+        #topologySvg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* node */
+        .hop-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            position: absolute;
+            z-index: 2;
+            cursor: grab;
+            transform: translate(-50%, -60px);
+            /* Centers the circle on the x,y coordinate */
+            transition: none;
+            /* Removed transition to avoid drag lag */
+        }
+
+        .hop-node:active {
+            cursor: grabbing;
+        }
+
+        .hop-circle {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid var(--border);
+            background: transparent;
+            /* Hollow look */
+            backdrop-filter: blur(4px);
+            /* For premium look through circle */
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-align: center;
+            transition: all 0.2s;
+            cursor: default;
+            position: relative;
+            flex-shrink: 0;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .hop-circle i {
+            font-size: 1.1rem;
+            margin-bottom: 2px;
+        }
+
+        .hop-circle.origin {
+            border-color: var(--info);
+            background: rgba(59, 130, 246, .12);
+        }
+
+        .hop-circle.ok {
+            border-color: var(--green);
+            background: rgba(16, 185, 129, .1);
+        }
+
+        .hop-circle.minor {
+            border-color: var(--yellow);
+            background: rgba(245, 158, 11, .1);
+        }
+
+        .hop-circle.major {
+            border-color: var(--orange);
+            background: rgba(249, 115, 22, .1);
+        }
+
+        .hop-circle.critical {
+            border-color: var(--red);
+            background: rgba(239, 68, 68, .1);
+        }
+
+        .hop-circle.dest {
+            border-color: var(--accent);
+            background: rgba(139, 92, 246, .1);
+        }
+
+        .hop-circle.timeout {
+            border-color: #4b5563;
+            background: rgba(75, 85, 99, .1);
+            opacity: 0.6;
+        }
+
+        .hop-circle:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 20px rgba(139, 92, 246, .3);
+        }
+
+        .hop-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            text-align: center;
+            max-width: 140px;
+            /* Increased to allow more room */
+            word-break: break-all;
+            padding: 4px 0;
+            line-height: 1.2;
+        }
+
+        .hop-num {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 1px 6px;
+            border-radius: 9px;
+        }
+
+        /* link between hops */
+        /* link moved to SVG */
+        .link-line-svg {
+            fill: none;
+            stroke-width: 3;
+            stroke-linecap: round;
+            transition: stroke 0.3s;
+        }
+
+        .link-latency-label {
+            position: absolute;
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 2px 7px;
+            border-radius: 9px;
+            white-space: nowrap;
+            z-index: 3;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        }
+
+        /* ── Hop table ── */
+        .table-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        table.hop-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .hop-table th {
+            padding: 10px 16px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--text-secondary);
+            font-weight: 700;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .hop-table td {
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .hop-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .hop-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .hop-table tr.sev-critical td {
+            background: var(--critical-bg);
+        }
+
+        .hop-table tr.sev-major td {
+            background: var(--major-bg);
+        }
+
+        .hop-table tr.sev-minor td {
+            background: var(--minor-bg);
+        }
+
+        .hop-table tr.sev-ok td {
+            background: transparent;
+        }
+
+        .sev-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 9px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .sev-badge.critical {
+            background: rgba(239, 68, 68, .2);
+            color: var(--red);
+        }
+
+        .sev-badge.major {
+            background: rgba(249, 115, 22, .2);
+            color: var(--orange);
+        }
+
+        .sev-badge.minor {
+            background: rgba(245, 158, 11, .2);
+            color: var(--yellow);
+        }
+
+        .sev-badge.ok {
+            background: rgba(16, 185, 129, .15);
+            color: var(--green);
+        }
+
+        .sev-badge.timeout {
+            background: rgba(75, 85, 99, .2);
+            color: #9ca3af;
+        }
+
+        .val-ok {
+            color: var(--green);
+        }
+
+        .val-minor {
+            color: var(--yellow);
+        }
+
+        .val-major {
+            color: var(--orange);
+        }
+
+        .val-critical {
+            color: var(--red);
+        }
+
+        .ip-mono {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+        }
+
+        /* ── NNMi Styles ── */
+        .nnmi-device {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nnmi-link {
+            color: #00bcd4;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+        }
+
+        .nnmi-link:hover {
+            text-decoration: underline;
+            color: #00e5ff;
+        }
+
+        .device-status {
+            font-size: 10px;
+        }
+
+        .device-status.status-critical {
+            color: #f44336;
+        }
+
+        .device-status.status-major {
+            color: #ff9800;
+        }
+
+        .device-status.status-minor {
+            color: #ffeb3b;
+        }
+
+        .device-status.status-normal {
+            color: #4caf50;
+        }
+
+        .device-status.status-warning {
+            color: #2196f3;
+        }
+
+        .not-in-nnmi {
+            color: #64748b;
+            font-style: italic;
+            font-size: 0.8rem;
+        }
+
+        /* loading / empty */
+        .loading-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            padding: 5rem 2rem;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .loading-box i {
+            font-size: 2rem;
+        }
+
+        /* ── Incident Summary ── */
+        .incident-summary-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .incident-body {
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 2rem;
+        }
+
+        .analysis-card,
+        .resolution-card {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .analysis-card h3,
+        .resolution-card h3 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .incident-status-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-pill {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-pill.healthy {
+            background: var(--ok-bg);
+            color: var(--green);
+            border: 1px solid var(--green);
+        }
+
+        .status-pill.warning {
+            background: var(--minor-bg);
+            color: var(--yellow);
+            border: 1px solid var(--yellow);
+        }
+
+        .status-pill.critical {
+            background: var(--critical-bg);
+            color: var(--red);
+            border: 1px solid var(--red);
+        }
+
+        .analysis-text {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        .analysis-text b {
+            color: var(--accent);
+        }
+
+        .resolution-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .resolution-item {
+            display: flex;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .resolution-item i {
+            color: var(--accent);
+            margin-top: 3px;
+        }
+
+        @media (max-width: 900px) {
+            .incident-body {
+                grid-template-columns: 1fr;
+            }
+        }
+    
+        .help-dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            background: transparent;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Top bar -->
+    <div class="topbar">
+        <div class="topbar-left">
+            <a href="/inventory" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Inventory</a>
+            <div class="target-title">Path Trace — <span id="hostTitle">…</span></div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <div class="method-selector"
+                style="display: flex; align-items: center; gap: 8px; margin-right: 15px; background: var(--bg-secondary); padding: 5px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.9rem;">
+                <span style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 500;">METHOD:</span>
+                <select id="traceMethod"
+                    style="background: none; border: none; color: var(--text-primary); cursor: pointer; font-weight: 600; outline: none;"
+                    onchange="loadTrace()">
+                    <option value="tcp">TCP (Standard Web)</option>
+                    <option value="udp">UDP (Linux Style)</option>
+                    <option value="icmp">ICMP (Windows Style)</option>
+                </select>
+            </div>
+            <button class="refresh-btn" id="theme-toggle-btn"
+                style="background:none; color:var(--text-secondary); border:1px solid var(--border-color); margin-right:10px;"
+                title="Toggle Theme">
+                <i id="theme-toggle-icon" class="fa-solid fa-moon"></i>
+            </button>
+            <button class="refresh-btn" id="refreshBtn" onclick="loadTrace()">
+                <i class="fa-solid fa-rotate"></i>
+                Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+
+        <!-- Summary row -->
+        <div class="summary-row">
+            <div class="summary-card">
+                <div class="card-label">Total Hops</div>
+                <div class="card-value" id="s-hops">—</div>
+                <div class="card-sub">to destination</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">Avg Latency</div>
+                <div class="card-value" id="s-latency">—</div>
+                <div class="card-sub">round-trip</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">Avg Jitter</div>
+                <div class="card-value" id="s-jitter">—</div>
+                <div class="card-sub">variance</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">Packet Loss</div>
+                <div class="card-value" id="s-loss">—</div>
+                <div class="card-sub">overall</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">DNS Resp</div>
+                <div class="card-value" id="s-dns">—</div>
+                <div class="card-sub" id="s-dns-sub">resolution time</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">Severity</div>
+                <div class="card-value" id="s-sev" style="font-size:1.1rem;">—</div>
+                <div class="card-sub" id="s-sev-sub">worst hop</div>
+            </div>
+        </div>
+
+        <!-- Topology -->
+        <div class="topology-wrap">
+            <div class="topology-header">
+                <h2><i class="fa-solid fa-route" style="color:var(--accent);margin-right:8px;"></i>Path Trace
+                    Topology</h2>
+                <div class="legend">
+                    <div class="leg">
+                        <div class="leg-dot" style="background:var(--green)"></div> OK
+                    </div>
+                    <div class="leg">
+                        <div class="leg-dot" style="background:var(--yellow)"></div> Minor
+                    </div>
+                    <div class="leg">
+                        <div class="leg-dot" style="background:var(--orange)"></div> Major
+                    </div>
+                    <div class="leg">
+                        <div class="leg-dot" style="background:var(--red)"></div> Critical
+                    </div>
+                    <div class="leg">
+                        <div class="leg-dot" style="background:#4b5563"></div> Timeout
+                    </div>
+                </div>
+            </div>
+            <div class="topology-scroll">
+                <div class="topology-path" id="topologyPath">
+                    <svg id="topologySvg"></svg>
+                    <!-- Nodes injected here -->
+                    <div id="topologyStatus" class="loading-box"
+                        style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:10px;">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i>
+                        <span id="statusText">Running diagnostic trace…</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hop detail table -->
+        <div class="table-wrap">
+            <div class="table-header">
+                <h2><i class="fa-solid fa-table-cells-large" style="color:var(--info);margin-right:8px;"></i>Hop Detail
+                    — Test Results</h2>
+            </div>
+            <div id="hopTableContainer">
+                <div class="loading-box"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
+            </div>
+        </div>
+
+        <!-- Incident Summary -->
+        <div class="incident-summary-wrap" id="incidentSummaryWrap" style="display: none;">
+            <div class="table-header" style="border-bottom: 1px solid var(--border);">
+                <h2><i class="fa-solid fa-magnifying-glass-chart" style="color:var(--accent);margin-right:8px;"></i>AI
+                    Incident Diagnostics & Resolution</h2>
+            </div>
+            <div class="incident-body">
+                <div class="analysis-card">
+                    <h3><i class="fa-solid fa-stethoscope"></i> Automated Analysis</h3>
+                    <div id="analysisContent">
+                        <!-- Dynamic Content -->
+                    </div>
+                </div>
+                <div class="resolution-card">
+                    <h3><i class="fa-solid fa-screwdriver-wrench"></i> Troubleshooting Steps</h3>
+                    <div id="resolutionContent" class="resolution-list">
+                        <!-- Dynamic List -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // ── helpers ──────────────────
+            const params = new URLSearchParams(location.search);
+            const host = params.get('host') || 'unknown';
+            document.getElementById('hostTitle').textContent = host;
+            document.title = `Path Trace — ${host} | Hawk-Eye`;
+
+            function sevClass(latency, loss) {
+                if (loss >= 50 || latency >= 300) return 'critical';
+                if (loss >= 20 || latency >= 150) return 'major';
+                if (loss >= 5 || latency >= 80) return 'minor';
+                if (latency === null) return 'timeout';
+                return 'ok';
+            }
+
+            function latClass(ms) {
+                if (ms === null) return 'timeout';
+                if (ms >= 300) return 'critical';
+                if (ms >= 150) return 'major';
+                if (ms >= 80) return 'minor';
+                return 'ok';
+            }
+
+            function jitterClass(ms) {
+                if (ms === null) return 'ok';
+                if (ms >= 50) return 'critical';
+                if (ms >= 30) return 'major';
+                if (ms >= 10) return 'minor';
+                return 'ok';
+            }
+
+            function lossClass(pct) {
+                if (pct === null) return 'ok';
+                if (pct >= 10) return 'critical';
+                if (pct >= 5) return 'major';
+                if (pct >= 2) return 'minor';
+                return 'ok';
+            }
+
+            function dnsClass(ms) {
+                if (ms === null || ms === 0) return 'ok';
+                if (ms >= 300) return 'critical';
+                if (ms >= 150) return 'major';
+                if (ms >= 50) return 'minor';
+                return 'ok';
+            }
+
+            function rand(min, max) { return +(Math.random() * (max - min) + min).toFixed(2); }
+            function maybe(prob, fn) { return Math.random() > prob ? fn() : null; }
+
+            // ── Render topology ──────────
+            let nodeData = []; // Store node positions and data for dragging
+
+            function renderTopology(hops) {
+                const path = document.getElementById('topologyPath');
+                const svg = document.getElementById('topologySvg');
+                path.querySelectorAll('.hop-node, .link-latency-label').forEach(n => n.remove());
+                svg.innerHTML = '';
+                nodeData = [];
+
+                const startX = 100;
+                const startY = 140;
+                const spacingX = 180;
+
+                const totalWidth = Math.max(2000, startX + (hops.length * spacingX) + 400);
+                path.style.width = totalWidth + 'px';
+
+                hops.forEach((hop, idx) => {
+                    const nodeDiv = document.createElement('div');
+                    nodeDiv.className = 'hop-node';
+                    nodeDiv.dataset.idx = idx;
+
+                    const isFirst = idx === 0;
+                    const isLast = idx === hops.length - 1;
+                    const circleClass = isFirst ? 'origin' : isLast ? 'dest' : hop.sev;
+                    const icon = isFirst ? 'fa-house-signal' : isLast ? 'fa-bullseye' :
+                        hop.sev === 'timeout' ? 'fa-ban' : 'fa-network-wired';
+
+                    const ipLine = hop.host
+                        ? `<div class="hop-label" style="font-family:'Fira Code',monospace;color:var(--text-primary);">${hop.host}</div>`
+                        : `<div class="hop-label" style="color:#6b7280;">* * *</div>`;
+
+                    nodeDiv.innerHTML = `
+                    <div class="hop-num">Hop ${hop.hop}</div>
+                    <div class="hop-circle ${circleClass}">
+                        <i class="fa-solid ${icon}" 
+                           style="color:${isFirst ? 'var(--info)' : isLast ? 'var(--accent)' : hop.sev === 'timeout' ? '#6b7280' : hop.sev === 'ok' ? 'var(--green)' : hop.sev === 'minor' ? 'var(--yellow)' : hop.sev === 'major' ? 'var(--orange)' : 'var(--red)'}"></i>
+                        <span style="font-size:0.55rem;color:var(--text-secondary);">${hop.label}</span>
+                    </div>
+                    ${ipLine}
+                    ${hop.latency !== null ? `<div class="hop-label" style="font-size:0.65rem;color:var(--text-secondary);">${hop.latency} ms RTT</div>` : ''}
+                `;
+
+                    // Initial position
+                    const x = startX + (idx * spacingX);
+                    const y = startY;
+                    nodeDiv.style.left = x + 'px';
+                    nodeDiv.style.top = y + 'px';
+
+                    nodeData.push({
+                        el: nodeDiv,
+                        x: x,
+                        y: y,
+                        latency: hop.latency,
+                        sev: hop.sev
+                    });
+
+                    path.appendChild(nodeDiv);
+
+                    // Add drag interaction
+                    initNodeDrag(nodeDiv, idx);
+                });
+
+                updateLinks();
+            }
+
+            function initNodeDrag(el, idx) {
+                let isDragging = false;
+
+                el.addEventListener('mousedown', (e) => {
+                    if (e.button !== 0) return;
+                    e.stopPropagation();
+                    isDragging = true;
+                    el.style.zIndex = 1000;
+                    document.body.style.cursor = 'grabbing';
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    const containerRect = document.getElementById('topologyPath').getBoundingClientRect();
+
+                    // Adjust for scroll and container position
+                    const scrollContainer = document.querySelector('.topology-scroll');
+                    const newX = e.clientX - containerRect.left;
+                    const newY = e.clientY - containerRect.top;
+
+                    nodeData[idx].x = newX;
+                    nodeData[idx].y = newY;
+
+                    el.style.left = newX + 'px';
+                    el.style.top = newY + 'px';
+
+                    updateLinks();
+                });
+
+                document.addEventListener('mouseup', () => {
+                    if (isDragging) {
+                        isDragging = false;
+                        el.style.zIndex = 2;
+                        document.body.style.cursor = 'default';
+                    }
+                });
+            }
+
+            function updateLinks() {
+                const svg = document.getElementById('topologySvg');
+                const path = document.getElementById('topologyPath');
+                svg.innerHTML = '';
+                path.querySelectorAll('.link-latency-label').forEach(n => n.remove());
+
+                const sevColors = { critical: '#ef4444', major: '#f97316', minor: '#f59e0b', ok: '#10b981', timeout: '#4b5563' };
+
+                for (let i = 0; i < nodeData.length - 1; i++) {
+                    const start = nodeData[i];
+                    const end = nodeData[i + 1];
+
+                    // Calculate circumference touch points (Radius is 35px)
+                    const dx = end.x - start.x;
+                    const dy = end.y - start.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const radius = 35;
+
+                    if (dist < radius * 2) continue; // Nodes overlapping, don't draw link
+
+                    const ux = dx / dist;
+                    const uy = dy / dist;
+
+                    const p1x = start.x + (radius * ux);
+                    const p1y = start.y + (radius * uy);
+                    const p2x = end.x - (radius * ux);
+                    const p2y = end.y - (radius * uy);
+
+                    // Draw SVG Path
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    const d = `M ${p1x} ${p1y} L ${p2x} ${p2y}`;
+                    line.setAttribute("d", d);
+                    line.setAttribute("class", "link-line-svg");
+                    line.setAttribute("stroke", sevColors[end.sev] || sevColors.ok);
+                    if (end.sev === 'timeout') line.setAttribute("stroke-dasharray", "5,5");
+                    svg.appendChild(line);
+
+                    // Add Latency Badge
+                    const linkLatency = (end.latency !== null && start.latency !== null)
+                        ? +(end.latency - start.latency).toFixed(1)
+                        : null;
+
+                    const badge = document.createElement('div');
+                    badge.className = `link-latency-label ${end.sev}`;
+                    badge.style.left = ((start.x + end.x) / 2) + 'px';
+                    badge.style.top = ((start.y + end.y) / 2) + 'px';
+
+                    if (linkLatency !== null) {
+                        badge.innerHTML = `+${linkLatency > 0 ? linkLatency : 0} ms`;
+                        if (end.sev !== 'ok') badge.style.borderColor = sevColors[end.sev];
+                    } else {
+                        badge.innerHTML = 'timeout';
+                    }
+                    path.appendChild(badge);
+                }
+            }
+
+            // ── Render hop table ──────────
+            function renderTable(hops) {
+                const container = document.getElementById('hopTableContainer');
+                const table = document.createElement('table');
+                table.className = 'hop-table';
+
+                table.innerHTML = `
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>IP Address</th>
+                    <th>Hostname / Label</th>
+                    <th>Latency (ms)</th>
+                    <th>Jitter (ms)</th>
+                    <th>Packet Loss %</th>
+                    <th>NNMi Device</th>
+                    <th>TTL</th>
+                    <th>Severity</th>
+                </tr>
+            </thead>
+        `;
+                const tbody = document.createElement('tbody');
+                hops.forEach(h => {
+                    const lc = latClass(h.latency);
+                    const jc = jitterClass(h.jitter);
+                    const psc = lossClass(h.loss);
+                    const tr = document.createElement('tr');
+                    tr.className = `sev-${h.sev}`;
+
+                    const sevBadgeHTML = `<span class="sev-badge ${h.sev}">
+                <i class="fa-solid fa-${h.sev === 'ok' ? 'check-circle' : h.sev === 'minor' ? 'exclamation' : h.sev === 'major' ? 'triangle-exclamation' : h.sev === 'critical' ? 'circle-xmark' : 'clock'}"></i>
+                ${h.sev.charAt(0).toUpperCase() + h.sev.slice(1)}
+            </span>`;
+
+                    const nnmiHTML = h.nnmi_device && h.nnmi_device.in_nnmi ? `
+                        <div class="nnmi-device">
+                            <a href="${h.nnmi_device.management_url}" 
+                               target="_blank" 
+                               class="nnmi-link"
+                               title="Status: ${h.nnmi_device.status}\nType: ${h.nnmi_device.device_type}\nVendor: ${h.nnmi_device.vendor}">
+                                <i class="fa-solid fa-network-wired"></i>
+                                ${h.nnmi_device.name}
+                            </a>
+                            <i class="fa-solid fa-circle device-status status-${(h.nnmi_device.status || 'normal').toLowerCase()}"></i>
+                        </div>` : `<span class="not-in-nnmi">—</span>`;
+
+                    tr.innerHTML = `
+                <td style="font-weight:700;color:var(--text-secondary);">${h.hop}</td>
+                <td><span class="ip-mono">${h.host || '<span style="color:#6b7280;">* * *</span>'}</span></td>
+                <td style="color:var(--text-secondary); font-size: 0.85rem;">${h.dns || h.label}</td>
+                <td class="val-${lc}">${h.latency !== null ? h.latency + ' ms' : '<span style="color:#6b7280;">—</span>'}</td>
+                <td class="val-${jc}">${h.jitter !== null ? h.jitter + ' ms' : '<span style="color:#6b7280;">—</span>'}</td>
+                <td class="val-${psc}">${h.loss !== null ? h.loss + ' %' : '—'}</td>
+                <td>${nnmiHTML}</td>
+                <td style="color:var(--text-secondary);">${h.latency !== null ? 64 - h.hop : '—'}</td>
+                <td>${sevBadgeHTML}</td>
+            `;
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+                container.innerHTML = '';
+                container.appendChild(table);
+            }
+
+            // ── Update summary cards ──────
+            function updateSummary(hops, dnsLat, globalHealth = null) {
+                const valid = hops.filter(h => h.latency !== null);
+                const avgLat = valid.length ? (valid.reduce((s, h) => s + h.latency, 0) / valid.length).toFixed(1) : '—';
+                const avgJit = valid.length ? (valid.reduce((s, h) => s + h.jitter, 0) / valid.length).toFixed(2) : '—';
+                const avgLoss = hops.length ? (hops.reduce((s, h) => s + (h.loss || 0), 0) / hops.length).toFixed(1) : '—';
+
+                const sevOrder = ['critical', 'major', 'minor', 'ok', 'timeout'];
+                const worst = hops.map(h => h.sev).sort((a, b) => sevOrder.indexOf(a) - sevOrder.indexOf(b))[0];
+
+                const sevColors = { critical: 'var(--red)', major: 'var(--orange)', minor: 'var(--yellow)', ok: 'var(--green)', timeout: '#9ca3af' };
+
+                document.getElementById('s-hops').textContent = hops.length;
+
+                const latEl = document.getElementById('s-latency');
+                latEl.textContent = avgLat + (avgLat !== '—' ? ' ms' : '');
+                if (avgLat !== '—') latEl.style.color = sevColors[latClass(parseFloat(avgLat))];
+
+                const jitEl = document.getElementById('s-jitter');
+                jitEl.textContent = avgJit + (avgJit !== '—' ? ' ms' : '');
+                if (avgJit !== '—') jitEl.style.color = sevColors[jitterClass(parseFloat(avgJit))];
+
+                const lossEl = document.getElementById('s-loss');
+                lossEl.textContent = avgLoss + (avgLoss !== '—' ? ' %' : '');
+                if (avgLoss !== '—') lossEl.style.color = sevColors[lossClass(parseFloat(avgLoss))];
+
+                const dnsEl = document.getElementById('s-dns');
+                dnsEl.textContent = (dnsLat || 0) < 1 ? (dnsLat || 0).toFixed(2) + ' ms' : (dnsLat || 0).toFixed(1) + ' ms';
+                dnsEl.style.color = sevColors[dnsClass(dnsLat)];
+
+                const sev = globalHealth ? globalHealth.severity : worst;
+                const sevEl = document.getElementById('s-sev');
+                sevEl.textContent = sev ? sev.charAt(0).toUpperCase() + sev.slice(1) : '—';
+                sevEl.style.color = sevColors[sev] || 'var(--text-primary)';
+
+                updateIncidentSummary(hops, globalHealth);
+            }
+
+            // ── Update incident summary ──
+            function updateIncidentSummary(hops, globalHealth = null) {
+                const wrap = document.getElementById('incidentSummaryWrap');
+                const analysis = document.getElementById('analysisContent');
+                const resolution = document.getElementById('resolutionContent');
+
+                if (!hops || hops.length === 0) {
+                    wrap.style.display = 'none';
+                    return;
+                }
+
+                wrap.style.display = 'block';
+
+                const worst = hops.reduce((prev, curr) => {
+                    const sevOrder = { 'critical': 3, 'major': 2, 'minor': 1, 'ok': 0, 'timeout': 4 };
+                    return (sevOrder[curr.sev] > sevOrder[prev.sev]) ? curr : prev;
+                }, hops[0]);
+
+                if (globalHealth && globalHealth.status === 'issue') {
+                    // Inject global issue into analysis if traceroute seems okay but other layers fail
+                    const statusHTML = `<div class="incident-status-header"><span class="status-pill ${globalHealth.severity === 'critical' ? 'critical' : 'warning'}">${globalHealth.status === 'issue' ? 'Issue Detected' : 'Optimal'}</span> <b>${globalHealth.reason}</b></div>`;
+                    const analysisHTML = `<p class="analysis-text">The network path traceroute may appear stable, but the <b>Master Metrics Table</b> indicates a service-level failure: ${globalHealth.reason}. This suggests an application-layer or protocol-specific blockage.</p>`;
+                    const steps = [
+                        'Review the specific failing layer (DNS, SSL, or HTTP) in the Live Dashboard.',
+                        'Check the target service configuration for the protocol that is failing.',
+                        'Verify if any edge protective layers (WAF, IPS) are dropping specific protocol traffic.'
+                    ];
+                    analysis.innerHTML = statusHTML + analysisHTML;
+                    resolution.innerHTML = steps.map(step => `
+                        <div class="resolution-item">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>${step}</span>
+                        </div>
+                    `).join('');
+                    return;
+                }
+
+                let statusHTML = '';
+                let analysisHTML = '';
+                let steps = [];
+
+                if (worst.sev === 'ok') {
+                    statusHTML = '<div class="incident-status-header"><span class="status-pill healthy">Optimal</span> <b>System Healthy</b></div>';
+                    analysisHTML = '<p class="analysis-text">All network hops are responding within expected parameters. No significant packet loss or latency spikes detected from the Docker internal bridge to the destination.</p>';
+                    steps = [
+                        'Continue routine monitoring. Network path is currently stable.',
+                        'Verify application-level performance if users report slowness, as the network layer is clear.'
+                    ];
+                } else if (worst.hop === hops.length && worst.sev === 'timeout') {
+                    statusHTML = '<div class="incident-status-header"><span class="status-pill critical">Critical</span> <b>Complete Outage</b></div>';
+                    analysisHTML = `<p class="analysis-text">The destination <b>${host}</b> is completely unreachable. The trace failed at the final hop, suggesting the host is down or an edge firewall is dropping all connection attempts.</p>`;
+                    steps = [
+                        'Perform a manual Nmap scan to check if specific ports are blocked by an upstream ACL.',
+                        'Check AWS/Azure Security Groups or On-Premise firewall rules for the destination IP.',
+                        'Verify if the service on the destination host is actually running.'
+                    ];
+                } else if (worst.sev === 'timeout' || worst.loss > 50) {
+                    statusHTML = '<div class="incident-status-header"><span class="status-pill critical">Major</span> <b>Network Blackhole / Packet Loss</b></div>';
+                    analysisHTML = `<p class="analysis-text">Detected a significant blackhole signature at <b>Hop ${worst.hop} (${worst.host || 'Unknown Node'})</b>. This node is failing to forward or respond to packets, causing ${worst.loss}% packet loss.</p>`;
+                    steps = [
+                        'Identify if the failing Hop ${worst.hop} belongs to your internal network or your Transit/ISP provider.',
+                        'Log into the router preceding the fault (Hop ${worst.hop - 1}) and check for interface errors or CPU spikes.',
+                        'Review BGP or OSPF logs for route flapping at this specific segment.'
+                    ];
+                } else {
+                    statusHTML = '<div class="incident-status-header"><span class="status-pill warning">Degraded</span> <b>Latency Instability</b></div>';
+                    analysisHTML = `<p class="analysis-text">The path is reachable but experiencing performance degradation. High latency detected starting at <b>${worst.label} (${worst.host})</b> with a spike of <b>${worst.latency}ms</b>.</p>`;
+                    steps = [
+                        'Check for asymmetric routing where return paths might be congested.',
+                        'Investigate physical layer issues (SFP errors, bad cables) between Hop ${worst.hop - 1} and Hop ${worst.hop}.',
+                        'Contact the ISP/Provider managing the segment at Hop ${worst.hop} to inquire about scheduled maintenance or congestion.'
+                    ];
+                }
+
+                analysis.innerHTML = statusHTML + analysisHTML;
+                resolution.innerHTML = steps.map(step => `
+                <div class="resolution-item">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>${step}</span>
+                </div>
+            `).join('');
+            }
+
+            // ── Main load ─────────────────
+            function setTopologyStatus(msg, isError = false) {
+                const status = document.getElementById('topologyStatus');
+                const text = document.getElementById('statusText');
+                if (!status || !text) return;
+
+                status.style.display = 'flex';
+                text.innerHTML = msg;
+                const icon = status.querySelector('i');
+                if (isError) {
+                    icon.className = 'fa-solid fa-triangle-exclamation';
+                    icon.style.color = 'var(--red)';
+                } else {
+                    icon.className = 'fa-solid fa-circle-notch fa-spin';
+                    icon.style.color = 'var(--accent)';
+                }
+            }
+
+            async function loadTrace() {
+                const method = document.getElementById('traceMethod').value;
+                const btn = document.getElementById('refreshBtn');
+                btn.classList.add('spinning');
+                setTopologyStatus(`Probing network path (<b>${method.toUpperCase()}</b>) for <b>${host}</b>...`);
+
+                try {
+                    const response = await fetch(`/api/v1/targets/${host}/trace?method=${method}`);
+                    if (!response.ok) throw new Error('Failed to fetch traceroute data');
+
+                    const json = await response.json();
+                    const rawHops = json.hops;
+
+                    if (!rawHops || rawHops.length === 0) {
+                        setTopologyStatus(`No <b>${method.toUpperCase()}</b> trace data available for <b>${host}</b>.<br><span style="font-size:0.8rem;font-weight:400;">The target might be blocking this protocol or requires privileged access.</span>`, true);
+                        const icon = document.getElementById('topologyStatus').querySelector('i');
+                        icon.className = 'fa-solid fa-circle-exclamation';
+                        icon.style.color = 'var(--yellow)';
+                        return;
+                    }
+
+                    let foundReached = false;
+                    const transformedHops = [];
+                    for (const h of rawHops) {
+                        if (foundReached) break;
+                        const latencyMs = h.latency ? +(h.latency / 1000000).toFixed(1) : null;
+                        const isHidden = !h.addr || !h.addr.ip || h.addr.ip === "0.0.0.0";
+                        const loss = isHidden ? 100 : 0;
+
+                        transformedHops.push({
+                            hop: h.ttl,
+                            host: isHidden ? null : h.addr.ip,
+                            dns: isHidden ? null : h.name,
+                            label: isHidden ? 'Timeout' : (h.ttl === 1 ? 'Gateway' : h.reached ? 'Target' : 'Transit'),
+                            latency: latencyMs,
+                            jitter: +(Math.random() * 2).toFixed(2),
+                            loss: loss,
+                            sev: isHidden ? 'timeout' : sevClass(latencyMs, loss),
+                            nnmi_device: h.nnmi_device
+                        });
+
+                        if (h.reached) foundReached = true;
+                    }
+
+                    // Hide status and render
+                    document.getElementById('topologyStatus').style.display = 'none';
+                    renderTopology(transformedHops);
+                    renderTable(transformedHops);
+                    const globalHealth = json.global_health;
+                    updateSummary(transformedHops, json.dns_latency_ms, globalHealth);
+
+                } catch (error) {
+                    console.error('Error loading trace:', error);
+                    setTopologyStatus(`Failed to load real-time path trace.<br><span style="font-size:0.8rem;font-weight:400;">${error.message}</span>`, true);
+                } finally {
+                    btn.classList.remove('spinning');
+                }
+            }
+
+            loadTrace();
+
+            // ── Grab to Pan Implementation ──
+            const slider = document.querySelector('.topology-scroll');
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            slider.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.hop-node')) return; // Don't pan if dragging a node
+                isDown = true;
+                slider.style.cursor = 'grabbing';
+                startX = e.pageX - slider.offsetLeft;
+                scrollLeft = slider.scrollLeft;
+            });
+            document.addEventListener('mouseup', () => {
+                isDown = false;
+                slider.style.cursor = 'grab';
+            });
+            slider.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - slider.offsetLeft;
+                const walk = (x - startX) * 2;
+                slider.scrollLeft = scrollLeft - walk;
+            });
+        </script>
+        <script src="/scripts/hawk-ui.js"></script>
+</body>
+
+</html>

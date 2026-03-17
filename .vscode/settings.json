@@ -1,0 +1,7 @@
+{
+    "go.testFlags": [
+        "-race",
+        "-cover",
+        "-count=1"
+    ]
+}

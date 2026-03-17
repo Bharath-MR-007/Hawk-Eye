@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integration Config | Hawk-Eye Monitoring</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --bg-dark: #0f1115;
+            --surface-color: #1a1d24;
+            --border-color: #2a2d35;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --info-color: #3b82f6;
+            --header-bg: #1e2128;
+            --accent-purple: #8b5cf6;
+            --code-bg: #0d0e12;
+            --success-color: #10b981;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        .app-window {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Sidebar Styles */
+        .main-sidebar {
+            width: 260px;
+            background-color: #12141c;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 50;
+        }
+
+        .main-sidebar-header {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--surface-color);
+            gap: 12px;
+        }
+
+        .main-sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-category {
+            padding: 0 1.5rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin: 1.5rem 0 0.5rem 0;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-category:first-of-type {
+            margin-top: 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            gap: 14px;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .nav-item i {
+            width: 16px;
+            font-size: 1.1rem;
+            text-align: center;
+            transition: color 0.2s;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: rgba(139, 92, 246, 0.1);
+            color: #fff;
+            border-left-color: var(--accent-purple);
+        }
+
+        .nav-item.active i {
+            color: var(--accent-purple);
+        }
+
+        /* Content Area */
+        .app-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow-y: auto;
+            padding: 2.5rem;
+        }
+
+        .header-section {
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 2rem;
+        }
+
+        .header-section h1 {
+            font-size: 2rem;
+            margin: 0 0 0.75rem 0;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-section p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            max-width: 800px;
+        }
+
+        .config-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+        }
+
+        .config-block {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+
+        .config-block:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        .config-header {
+            padding: 1.5rem 2rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .config-header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .config-header i {
+            font-size: 1.5rem;
+            color: var(--info-color);
+        }
+
+        .config-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .save-btn {
+            background: var(--accent-purple);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .save-btn:hover {
+            filter: brightness(1.2);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .config-content {
+            padding: 2rem;
+        }
+
+        .config-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .code-container {
+            position: relative;
+            background: var(--code-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .code-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        textarea.code-editor {
+            width: 100%;
+            background: transparent;
+            color: #e2e8f0;
+            border: none;
+            padding: 1.5rem;
+            font-family: 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            resize: vertical;
+            min-height: 200px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .settings-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .field-input {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .field-input:focus {
+            border-color: var(--accent-purple);
+        }
+
+        #saveAllStatus {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            background: var(--success-color);
+            color: white;
+            font-weight: 600;
+            display: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Top Navbar */
+        .top-navbar {
+            height: 70px;
+            background-color: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 0 2rem;
+            flex-shrink: 0;
+        }
+
+        /* Help Dropdown */
+        .help-dropdown {
+            position: relative;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .help-dropbtn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .help-dropbtn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .help-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #1a1b26;
+            min-width: 220px;
+            box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            top: 100%;
+            margin-top: 10px;
+            overflow: visible;
+            backdrop-filter: blur(10px);
+        }
+
+        .help-dropdown-content a {
+            position: relative;
+            z-index: 2;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background-color: #1a1b26;
+        }
+
+        .help-dropdown:hover .help-dropdown-content {
+            display: block;
+        }
+
+        .help-dropdown-content a:hover {
+            background-color: rgba(139, 92, 246, 0.2);
+            color: #fff;
+            padding-left: 20px;
+        }
+
+        .help-dropdown-content a i {
+            margin-right: 10px;
+            width: 16px;
+            text-align: center;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        .help-dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            background: transparent;
+        }
+
+        .integration-config-layout {
+            display: flex;
+            gap: 2rem;
+            flex: 1;
+            min-height: 0;
+            margin-top: 1rem;
+        }
+
+        .config-sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 1rem 0;
+            height: fit-content;
+            position: sticky;
+            top: 0;
+        }
+
+        .config-sidebar-item {
+            padding: 14px 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-left: 3px solid transparent;
+        }
+
+        .config-sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .config-sidebar-item.active {
+            background: rgba(139, 92, 246, 0.1);
+            color: #fff;
+            border-left-color: var(--accent-purple);
+        }
+
+        .config-sidebar-item .item-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .config-sidebar-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .config-main-viewer {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .config-block {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .config-block.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4b5563;
+        }
+
+        .status-dot.active {
+            background: var(--success-color);
+            box-shadow: 0 0 8px var(--success-color);
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="app-window">
+        <!-- Sidebar -->
+        <aside class="main-sidebar">
+            <div class="main-sidebar-header">
+                <span style="font-size: 1.5rem;">🦅</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                    <span style="font-weight: 700; font-size: 1.25rem;">Hawk-Eye</span>
+                    <span
+                        style="font-size: 0.65rem; color: #ff00ff; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
+                </div>
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <nav class="main-sidebar-nav">
+                <div class="nav-category">Monitoring</div>
+                <a href="/dashboard" class="nav-item">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </a>
+                <a href="/inventory" class="nav-item">
+                    <i class="fa-solid fa-list"></i> Target Inventory
+                </a>
+
+                <div class="nav-item tree-parent" onclick="this.classList.toggle('open')" style="margin-top: 15px;">
+                    <div style="display: flex; align-items: center; gap: 14px;"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
+                    <i class="fa-solid fa-chevron-down tree-chevron"></i>
+                </div>
+                <div class="tree-children">
+                    <a href="/incidents" class="nav-item child-item">
+                        <i class="fa-solid fa-table-cells"></i> All Incidents
+                    </a>
+                </div>
+
+                <div class="nav-category">Management</div>
+                <button class="nav-item" onclick="if(document.getElementById('addTargetModal')) { document.getElementById('addTargetModal').style.display='flex'; } else { window.location.href='/dashboard?add=true'; }">
+                    <i class="fa-solid fa-plus" style="color: var(--info-color);"></i> Add New Target
+                </button>
+                <button class="nav-item" onclick="if(typeof deleteSelectedTargets === 'function') { deleteSelectedTargets(); } else { window.location.href='/dashboard'; }">
+                    <i class="fa-solid fa-trash" style="color: var(--error-color);"></i> Delete Target
+                </button>
+
+                <div class="nav-category" style="margin-top: 15px;">Integrations</div>
+                <a href="/integrations" class="nav-item">
+                    <i class="fa-solid fa-link"></i> External Apps Links
+                </a>
+                <a href="/integrations_config" class="nav-item active">
+                    <i class="fa-solid fa-gears"></i> External Apps Integration Config
+                </a>
+
+                <div class="nav-category" style="margin-top: 15px;">Configuration</div>
+                <a href="/alerts" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Alerts Config
+                </a>
+                <a href="/polling" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Polling Config
+                </a>
+                <a href="/users_config" class="nav-item">
+                    <i class="fa-solid fa-user-gear"></i> User Configuration
+                </a>
+                <button class="nav-item" onclick="if(typeof exportConfig === 'function') { exportConfig(); } else { window.location.href='/dashboard?export=true'; }">
+                    <i class="fa-solid fa-file-export"></i> Export Snapshot
+                </button>
+                <button class="nav-item" onclick="if(document.getElementById('importFile')) { document.getElementById('importFile').click(); } else { window.location.href='/dashboard?import=true'; }">
+                    <i class="fa-solid fa-file-import"></i> Import Snapshot
+                </button>
+
+                <div class="nav-category">Operations</div>
+                <a href="/troubleshooting" class="nav-item">
+                    <i class="fa-solid fa-microchip"></i> Troubleshooting
+                </a>
+                <a href="/device_reachability" class="nav-item">
+                    <i class="fa-solid fa-satellite-dish"></i> Device Reachability
+                </a>
+            </nav>
+        </aside>
+
+        <main class="app-content">
+            <header class="top-navbar">
+                <div class="help-dropdown">
+                    <button class="help-dropbtn">
+                        <i class="fa-solid fa-circle-question"></i> Help Menu <i class="fa-solid fa-chevron-down"
+                            style="font-size: 0.6rem;"></i>
+                    </button>
+                    <div class="help-dropdown-content">
+                        <a href="/installation.html"><i class="fa-solid fa-book"></i> Installation Procedure</a>
+                        <a href="/requirements.html"><i class="fa-solid fa-list-check"></i> Software Requirements</a>
+                        <a href="/capabilities.html"><i class="fa-solid fa-bolt"></i> Capabilities of Hawk-Eye</a>
+                        <a href="/integrations_guide"><i class="fa-solid fa-layer-group"></i> Integration Guide</a>
+                        <a href="/architecture.html"><i class="fa-solid fa-diagram-project"></i> Product
+                            Architecture</a>
+                        <a href="/usermanual.html"><i class="fa-solid fa-file-lines"></i> User Manual</a>
+                        <a href="/admindoc.html"><i class="fa-solid fa-user-shield"></i> Admin Document</a>
+                        <a href="/about.html"><i class="fa-solid fa-circle-info"></i> About - Overview</a>
+                    </div>
+                </div>
+            </header>
+            <div class="header-section">
+                <h1>Integration Configuration</h1>
+                <p>Customize and persist your enterprise integration settings. Updates here will synchronize URLs across
+                    the External Apps Links page.</p>
+            </div>
+
+            <div class="integration-config-layout">
+
+                <!-- Left panel: integration list -->
+                <div class="config-sidebar">
+                    <div class="config-sidebar-item active" onclick="showBlock('grafana', this)">
+                        <div class="item-label"><i class="fa-solid fa-chart-area" style="color:#f97316;"></i> Grafana
+                        </div>
+                        <div class="status-dot" id="dot-grafana"></div>
+                    </div>
+                    <div class="config-sidebar-item" onclick="showBlock('prometheus', this)">
+                        <div class="item-label"><i class="fa-solid fa-fire-flame-simple" style="color:#e05d44;"></i>
+                            Prometheus</div>
+                        <div class="status-dot" id="dot-prometheus"></div>
+                    </div>
+                    <div class="config-sidebar-item" onclick="showBlock('alertmanager', this)">
+                        <div class="item-label"><i class="fa-solid fa-bell" style="color:#facc15;"></i> Alertmanager
+                        </div>
+                        <div class="status-dot" id="dot-alertmanager"></div>
+                    </div>
+                    <div class="config-sidebar-item" onclick="showBlock('elastic', this)">
+                        <div class="item-label"><i class="fa-solid fa-magnifying-glass" style="color:#38bdf8;"></i>
+                            Elasticsearch / Kibana</div>
+                        <div class="status-dot" id="dot-elastic"></div>
+                    </div>
+                    <div class="config-sidebar-item" onclick="showBlock('snmp', this)">
+                        <div class="item-label"><i class="fa-solid fa-tower-broadcast" style="color:#a3e635;"></i> SNMP
+                        </div>
+                        <div class="status-dot" id="dot-snmp"></div>
+                    </div>
+                    <div class="config-sidebar-item" onclick="showBlock('nnmi', this)">
+                        <div class="item-label"><i class="fa-solid fa-diagram-project" style="color:#f59e0b;"></i> HPE
+                            NNMi</div>
+                        <div class="status-dot" id="dot-nnmi"></div>
+                    </div>
+                    <div class="config-sidebar-item" onclick="showBlock('smtp', this)">
+                        <div class="item-label"><i class="fa-solid fa-envelope" style="color:#10b981;"></i> SMTP</div>
+                        <div class="status-dot" id="dot-smtp"></div>
+                    </div>
+                    <div class="config-sidebar-item" onclick="showBlock('ldap', this)">
+                        <div class="item-label"><i class="fa-solid fa-users" style="color:#3b82f6;"></i> LDAP / Active
+                            Directory</div>
+                        <div class="status-dot" id="dot-ldap"></div>
+                    </div>
+                    <div class="config-sidebar-item" onclick="showBlock('snow', this)">
+                        <div class="item-label"><i class="fa-solid fa-briefcase" style="color:#818cf8;"></i> ServiceNow
+                        </div>
+                        <div class="status-dot" id="dot-snow"></div>
+                    </div>
+                    <div class="config-sidebar-item" onclick="showBlock('ca', this)">
+                        <div class="item-label"><i class="fa-solid fa-certificate" style="color:#f43f5e;"></i> CA
+                            Certificates</div>
+                        <div class="status-dot" id="dot-ca"></div>
+                    </div>
+                    <div class="config-sidebar-item" onclick="showBlock('llm', this)">
+                        <div class="item-label"><i class="fa-solid fa-robot" style="color:#a78bfa;"></i> AI Assistant (LLM)</div>
+                        <div class="status-dot" id="dot-llm"></div>
+                    </div>
+                </div>
+
+                <!-- Right panel: active config block -->
+                <div class="config-main-viewer">
+                    <div class="config-grid">
+
+                        <!-- Grafana Config -->
+                        <div class="config-block" id="block-grafana">
+                            <div class="config-header">
+                                <div class="config-header-left">
+                                    <i class="fa-solid fa-chart-area"></i>
+                                    <h2>Grafana Management</h2>
+                                </div>
+                                <button class="save-btn" onclick="saveConfig('grafana')"><i
+                                        class="fa-solid fa-save"></i> Save
+                                    Changes</button>
+                            </div>
+                            <div class="config-content">
+                                <div class="config-desc">
+                                    Core configuration for the Grafana dashboard link and data source.
+                                </div>
+
+                                <div class="settings-form">
+                                    <div class="field-group">
+                                        <label class="field-label">External Dashbord URL</label>
+                                        <input type="text" id="url-grafana" class="field-input"
+                                            placeholder="http://localhost:3000" oninput="updateBlueprints()">
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label">Internal Data Source URL</label>
+                                        <input type="text" id="internal-hawkeye" class="field-input"
+                                            placeholder="http://hawkeye:8080/metrics" oninput="updateBlueprints()">
+                                    </div>
+                                </div>
+
+                                <div style="height: 20px;"></div>
+
+                                <div class="code-container">
+                                    <div class="code-header">
+                                        <div class="code-title"><i class="fa-solid fa-file-code"></i> datasource.yaml
+                                        </div>
+                                        <button class="copy-btn" onclick="copyCode('bp-grafana')">Copy</button>
+                                    </div>
+                                    <textarea id="bp-grafana" class="code-editor" readonly></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Prometheus Config -->
+                        <div class="config-block" id="block-prometheus">
+                            <div class="config-header">
+                                <div class="config-header-left">
+                                    <i class="fa-solid fa-fire-flame-simple"></i>
+                                    <h2>Prometheus Scrape Configuration</h2>
+                                </div>
+                                <button class="save-btn" onclick="saveConfig('prometheus')"><i
+                                        class="fa-solid fa-save"></i>
+                                    Save Changes</button>
+                            </div>
+                            <div class="config-content">
+                                <div class="config-desc">
+                                    Define how remote Prometheus instances should pull telemetry from this Hawk-Eye
+                                    node.
+                                </div>
+
+                                <div class="settings-form">
+                                    <div class="field-group">
+                                        <label class="field-label">Prometheus UI URL</label>
+                                        <input type="text" id="url-prometheus" class="field-input"
+                                            placeholder="http://localhost:9090" oninput="updateBlueprints()">
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label">Scrape Interval</label>
+                                        <input type="text" id="scrape-interval" class="field-input" placeholder="10s"
+                                            oninput="updateBlueprints()">
+                                    </div>
+                                </div>
+
+                                <div style="height: 20px;"></div>
+
+                                <div class="code-container">
+                                    <div class="code-header">
+                                        <div class="code-title"><i class="fa-solid fa-gears"></i> prometheus.yml</div>
+                                        <button class="copy-btn" onclick="copyCode('bp-prometheus')">Copy</button>
+                                    </div>
+                                    <textarea id="bp-prometheus" class="code-editor" readonly></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Alertmanager -->
+                        <div class="config-block" id="block-alertmanager">
+                            <div class="config-header">
+                                <div class="config-header-left">
+                                    <i class="fa-solid fa-bell"></i>
+                                    <h2>Alertmanager Integration</h2>
+                                </div>
+                                <button class="save-btn" onclick="saveConfig('alertmanager')"><i
+                                        class="fa-solid fa-save"></i>
+                                    Save Changes</button>
+                            </div>
+                            <div class="config-content">
+                                <div class="settings-form">
+                                    <div class="field-group">
+                                        <label class="field-label">Alertmanager UI URL</label>
+                                        <input type="text" id="url-alertmanager" class="field-input"
+                                            placeholder="http://localhost:9093" oninput="updateBlueprints()">
+                                    </div>
+                                </div>
+                                <div style="height: 20px;"></div>
+                                <div class="code-container">
+                                    <div class="code-header">
+                                        <div class="code-title"><i class="fa-solid fa-envelope-open-text"></i>
+                                            config.yml</div>
+                                        <button class="copy-btn" onclick="copyCode('bp-alertmanager')">Copy</button>
+                                    </div>
+                                    <textarea id="bp-alertmanager" class="code-editor" readonly></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Elastic -->
+                        <div class="config-block" id="block-elastic">
+                            <div class="config-header">
+                                <div class="config-header-left">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <h2>Elasticsearch & Kibana</h2>
+                                </div>
+                                <button class="save-btn" onclick="saveConfig('elastic')"><i
+                                        class="fa-solid fa-save"></i> Save
+                                    Changes</button>
+                            </div>
+                            <div class="config-content">
+                                <div class="settings-form">
+                                    <div class="field-group">
+                                        <label class="field-label">Kibana Dashboard URL</label>
+                                        <input type="text" id="url-kibana" class="field-input"
+                                            placeholder="http://localhost:5601" oninput="updateBlueprints()">
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label">Elasticsearch API URL</label>
+                                        <input type="text" id="url-elasticsearch" class="field-input"
+                                            placeholder="http://localhost:9200" oninput="updateBlueprints()">
+                                    </div>
+                                </div>
+                                <div style="height: 20px;"></div>
+                                <div class="code-container">
+                                    <div class="code-header">
+                                        <div class="code-title"><i class="fa-solid fa-terminal"></i> filebeat.yml</div>
+                                        <button class="copy-btn" onclick="copyCode('bp-elastic')">Copy</button>
+                                    </div>
+                                    <textarea id="bp-elastic" class="code-editor" readonly></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SNMP Config -->
+                        <div class="config-block" id="block-snmp">
+                            <div class="config-header">
+                                <div class="config-header-left">
+                                    <i class="fa-solid fa-tower-broadcast"></i>
+                                    <h2>SNMP Trap Configuration</h2>
+                                </div>
+                                <button class="save-btn" onclick="saveConfig('snmp')"><i class="fa-solid fa-save"></i>
+                                    Save
+                                    Changes</button>
+                            </div>
+                            <div class="config-content">
+                                <div class="config-desc">
+                                    Configure Hawk-Eye to send SNMP traps when incidents are detected. These can be
+                                    integrated
+                                    with enterprise NMS systems like OpenView or Zabbix.
+                                </div>
+
+                                <div class="settings-form">
+                                    <div class="field-group">
+                                        <label class="field-label">SNMP Trap Target (Host/IP)</label>
+                                        <input type="text" id="snmp-target" class="field-input"
+                                            placeholder="snmp-server.local" oninput="updateBlueprints()">
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label">SNMP Port</label>
+                                        <input type="text" id="snmp-port" class="field-input" placeholder="162"
+                                            oninput="updateBlueprints()">
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label">Community String</label>
+                                        <input type="text" id="snmp-community" class="field-input" placeholder="public"
+                                            oninput="updateBlueprints()">
+                                    </div>
+                                </div>
+
+                                <div style="height: 20px;"></div>
+
+                                <div class="code-container">
+                                    <div class="code-header">
+                                        <div class="code-title"><i class="fa-solid fa-network-wired"></i> snmp.yaml
+                                        </div>
+                                        <button class="copy-btn" onclick="copyCode('bp-snmp')">Copy</button>
+                                    </div>
+                                    <textarea id="bp-snmp" class="code-editor" readonly></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- NNMi Config -->
+                        <div class="config-block" id="block-nnmi">
+                            <div class="config-header">
+                                <div class="config-header-left">
+                                    <i class="fa-solid fa-diagram-project" style="color:#f59e0b;"></i>
+                                    <h2>HPE NNMi Integration</h2>
+                                </div>
+                                <div style="display:flex;gap:10px;">
+                                    <button class="save-btn"
+                                        style="background:rgba(245,158,11,0.15);color:#f59e0b;border-color:rgba(245,158,11,0.4);"
+                                        onclick="testNnmi()"><i class="fa-solid fa-plug"></i> Test Connection</button>
+                                    <button class="save-btn" onclick="saveConfig('nnmi')"><i
+                                            class="fa-solid fa-save"></i> Save
+                                        Changes</button>
+                                </div>
+                            </div>
+                            <div class="config-content">
+                                <div class="config-desc">
+                                    Connect Hawk-Eye to <strong>HPE Network Node Manager i (NNMi)</strong> to forward
+                                    incidents
+                                    as NNMi management events. Hawk-Eye uses the NNMi Web Services REST API (<code
+                                        style="color:#f59e0b;">nnm/rest/</code>) to create incidents when alerts fire.
+                                </div>
+
+                                <div class="settings-form">
+                                    <div class="field-group">
+                                        <label class="field-label">NNMi Server IP / Hostname</label>
+                                        <input type="text" id="nnmi-host" class="field-input"
+                                            placeholder="nnmi.corp.example.com or 192.168.1.10"
+                                            oninput="updateBlueprints()">
+                                        <div style="font-size:0.75rem;color:#64748b;margin-top:4px;">The fully-qualified
+                                            hostname or IP address of the NNMi management server.</div>
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label">NNMi API Port</label>
+                                        <input type="text" id="nnmi-port" class="field-input" placeholder="9443"
+                                            oninput="updateBlueprints()">
+                                        <div style="font-size:0.75rem;color:#64748b;margin-top:4px;">Default:
+                                            <strong>9443</strong> (HTTPS) or <strong>80</strong> (HTTP). Check NNMi
+                                            admin
+                                            console for your configured port.
+                                        </div>
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label">NNMi User (Web Services Client role)</label>
+                                        <input type="text" id="nnmi-user" class="field-input" placeholder="nnmi-ws-user"
+                                            oninput="updateBlueprints()">
+                                        <div style="font-size:0.75rem;color:#64748b;margin-top:4px;">The NNMi account
+                                            must have
+                                            the <strong>Web Services Client</strong> role assigned in NNMi → Security →
+                                            User
+                                            Accounts.</div>
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label">Password</label>
+                                        <input type="password" id="nnmi-password" class="field-input"
+                                            placeholder="••••••••" oninput="updateBlueprints()">
+                                        <div style="font-size:0.75rem;color:#64748b;margin-top:4px;">Password for the
+                                            NNMi Web
+                                            Services user account.</div>
+                                    </div>
+                                </div>
+
+                                <div style="height:20px;"></div>
+
+                                <div class="code-container">
+                                    <div class="code-header">
+                                        <div class="code-title"><i class="fa-solid fa-diagram-project"></i>
+                                            nnmi_config.yaml
+                                            (preview)</div>
+                                        <button class="copy-btn" onclick="copyCode('bp-nnmi')">Copy</button>
+                                    </div>
+                                    <textarea id="bp-nnmi" class="code-editor" readonly></textarea>
+                                </div>
+
+                                <div id="nnmi-test-result"
+                                    style="display:none;margin-top:16px;padding:12px 16px;border-radius:8px;font-size:0.85rem;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SMTP Config -->
+                        <div class="config-block" id="block-smtp">
+                            <div class="config-header">
+                                <div class="config-header-left">
+                                    <i class="fa-solid fa-envelope" style="color:#10b981;"></i>
+                                    <h2>SMTP Notification Settings</h2>
+                                </div>
+                                <button class="save-btn" onclick="saveConfig('smtp')"><i class="fa-solid fa-save"></i>
+                                    Save
+                                    Changes</button>
+                            </div>
+                            <div class="config-content">
+                                <div class="settings-form">
+                                    <div class="field-group">
+                                        <label class="field-label">SMTP Relay Host</label>
+                                        <input type="text" id="smtp-host" class="field-input"
+                                            placeholder="smtp.gmail.com" oninput="updateBlueprints()">
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label">Port</label>
+                                        <input type="text" id="smtp-port" class="field-input" placeholder="587"
+                                            oninput="updateBlueprints()">
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label">From Address</label>
+                                        <input type="text" id="smtp-from" class="field-input"
+                                            placeholder="hawk-eye@example.com" oninput="updateBlueprints()">
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label">SMTP User</label>
+                                        <input type="text" id="smtp-user" class="field-input"
+                                            placeholder="user@example.com" oninput="updateBlueprints()">
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label">Password</label>
+                                        <input type="password" id="smtp-password" class="field-input"
+                                            placeholder="••••••••" oninput="updateBlueprints()">
+                                    </div>
+                                </div>
+                                <div style="height:20px;"></div>
+                                <div class="code-container">
+                                    <div class="code-header">
+                                        <div class="code-title"><i class="fa-solid fa-envelope"></i>
+                                            notification_smtp.yaml
+                                        </div>
+                                        <button class="copy-btn" onclick="copyCode('bp-smtp')">Copy</button>
+                                    </div>
+                                    <textarea id="bp-smtp" class="code-editor" readonly></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- LDAP Config -->
+                        <div class="config-block" id="block-ldap">
+                            <div class="config-header">
+                                <div class="config-header-left">
+                                    <i class="fa-solid fa-users" style="color:#3b82f6;"></i>
+                                    <h2>LDAP / Active Directory</h2>
+                                </div>
+                                <button class="save-btn" onclick="saveConfig('ldap')"><i class="fa-solid fa-save"></i>
+                                    Save
+                                    Changes</button>
+                            </div>
+                            <div class="config-content">
+                                <div class="settings-form">
+                                    <div class="field-group">
+                                        <label class="field-label">LDAP Server</label>
+                                        <input type="text" id="ldap-host" class="field-input"
+                                            placeholder="ldap.corp.local" oninput="updateBlueprints()">
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label">Base DN</label>
+                                        <input type="text" id="ldap-base" class="field-input"
+                                            placeholder="dc=example,dc=com" oninput="updateBlueprints()">
+                                    </div>
+                                    <div class="field-group" style="grid-column: span 2;">
+                                        <label class="field-label">Bind User DN</label>
+                                        <input type="text" id="ldap-user" class="field-input"
+                                            placeholder="cn=read-only-admin,dc=example,dc=com"
+                                            oninput="updateBlueprints()">
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label">Bind Password</label>
+                                        <input type="password" id="ldap-password" class="field-input"
+                                            placeholder="••••••••" oninput="updateBlueprints()">
+                                    </div>
+                                </div>
+                                <div style="height:20px;"></div>
+                                <div class="code-container">
+                                    <div class="code-header">
+                                        <div class="code-title"><i class="fa-solid fa-shield-halved"></i> auth_ldap.yaml
+                                        </div>
+                                        <button class="copy-btn" onclick="copyCode('bp-ldap')">Copy</button>
+                                    </div>
+                                    <textarea id="bp-ldap" class="code-editor" readonly></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ServiceNow Config -->
+                        <div class="config-block" id="block-snow">
+                            <div class="config-header">
+                                <div class="config-header-left">
+                                    <i class="fa-solid fa-briefcase" style="color:#818cf8;"></i>
+                                    <h2>ServiceNow ITSM</h2>
+                                </div>
+                                <button class="save-btn" onclick="saveConfig('snow')"><i class="fa-solid fa-save"></i>
+                                    Save
+                                    Changes</button>
+                            </div>
+                            <div class="config-content">
+                                <div class="settings-form">
+                                    <div class="field-group">
+                                        <label class="field-label">Instance URL</label>
+                                        <input type="text" id="snow-url" class="field-input"
+                                            placeholder="https://dev12345.service-now.com" oninput="updateBlueprints()">
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label">User ID (v3 API)</label>
+                                        <input type="text" id="snow-user" class="field-input" placeholder="admin"
+                                            oninput="updateBlueprints()">
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label">ServiceNow Password</label>
+                                        <input type="password" id="snow-password" class="field-input"
+                                            placeholder="••••••••" oninput="updateBlueprints()">
+                                    </div>
+                                </div>
+                                <div style="height:20px;"></div>
+                                <div class="code-container">
+                                    <div class="code-header">
+                                        <div class="code-title"><i class="fa-solid fa-ticket"></i> snow_integration.yaml
+                                        </div>
+                                        <button class="copy-btn" onclick="copyCode('bp-snow')">Copy</button>
+                                    </div>
+                                    <textarea id="bp-snow" class="code-editor" readonly></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CA Certificate Config -->
+                        <div class="config-block" id="block-ca">
+                            <div class="config-header">
+                                <div class="config-header-left">
+                                    <i class="fa-solid fa-certificate" style="color:#f43f5e;"></i>
+                                    <h2>Root CA Certificates</h2>
+                                </div>
+                                <button class="save-btn" onclick="saveConfig('ca')"><i class="fa-solid fa-save"></i>
+                                    Save
+                                    Changes</button>
+                            </div>
+                            <div class="config-content">
+                                <div class="config-desc">
+                                    Import custom Root CA certificates to allow Hawk-Eye to trust internal self-signed
+                                    endpoints
+                                    or enterprise proxies.
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label">Paste CA Certificate (PEM Format)</label>
+                                    <textarea id="ca-cert" class="code-editor"
+                                        placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
+                                        style="height: 150px; background: var(--bg-dark); border: 1px solid var(--border-color);"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Assistant / LLM Config -->
+                        <div class="config-block" id="block-llm">
+                            <div class="config-header">
+                                <div class="config-header-left">
+                                    <i class="fa-solid fa-robot" style="color:#a78bfa;"></i>
+                                    <h2>AI Assistant (LLM) Configuration</h2>
+                                </div>
+                                <button class="save-btn" onclick="saveConfig('llm')" style="background:rgba(167,139,250,0.15);color:#a78bfa;border-color:rgba(167,139,250,0.4);"><i class="fa-solid fa-save"></i> Save Changes</button>
+                            </div>
+                            <div class="config-content">
+                                <div class="config-desc">
+                                    Configure the Large Language Model provider for the AI Chat Assistant. You can use local models via <strong>Ollama</strong> or external cloud providers.
+                                </div>
+
+                                <div class="settings-form">
+                                    <div class="field-group">
+                                        <label class="field-label">Provider</label>
+                                        <select id="llm-provider" class="field-input" onchange="onLlmProviderChange(); updateBlueprints();" style="background:var(--bg-dark);color:var(--text-primary);border:1px solid var(--border-color);border-radius:6px;padding:10px 14px;font-family:inherit;font-size:0.9rem;">
+                                            <option value="ollama">Local (Ollama)</option>
+                                            <option value="openai">OpenAI</option>
+                                            <option value="anthropic">Anthropic (Claude)</option>
+                                            <option value="gemini">Google Gemini</option>
+                                        </select>
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label">Model Name</label>
+                                        <input type="text" id="llm-model" class="field-input" placeholder="mixtral" oninput="updateBlueprints()">
+                                        <div style="font-size:0.75rem;color:#64748b;margin-top:4px;">e.g. <code style="color:#a78bfa;">mixtral</code>, <code style="color:#a78bfa;">llama3</code>, <code style="color:#a78bfa;">gpt-4o</code>, <code style="color:#a78bfa;">claude-3-opus</code></div>
+                                    </div>
+                                    <div class="field-group" id="llm-endpoint-group">
+                                        <label class="field-label">LLM Endpoint URL</label>
+                                        <input type="text" id="llm-endpoint" class="field-input" placeholder="http://localhost:11434" oninput="updateBlueprints()">
+                                        <div style="font-size:0.75rem;color:#64748b;margin-top:4px;">Ollama default: <code style="color:#a78bfa;">http://localhost:11434</code></div>
+                                    </div>
+                                    <div class="field-group" id="llm-apikey-group" style="display:none;">
+                                        <label class="field-label">API Key</label>
+                                        <input type="password" id="llm-apikey" class="field-input" placeholder="sk-..." oninput="updateBlueprints()">
+                                    </div>
+                                    <div class="field-group" style="grid-column:span 2;">
+                                        <label class="field-label">AI Assistant Service URL <span style="font-size:0.75rem;color:#64748b;font-weight:400;">(Frontend Connectivity)</span></label>
+                                        <input type="text" id="llm-service-url" class="field-input" placeholder="http://localhost:8000" oninput="updateBlueprints()">
+                                        <div style="font-size:0.75rem;color:#64748b;margin-top:4px;">This is the URL where your Python <code style="color:#a78bfa;">web_api.py</code> is running.</div>
+                                    </div>
+                                </div>
+
+                                <div style="height:20px;"></div>
+
+                                <div class="code-container">
+                                    <div class="code-header">
+                                        <div class="code-title"><i class="fa-solid fa-robot"></i> LLM_CONFIG.YAML</div>
+                                        <button class="copy-btn" onclick="copyCode('bp-llm')">Copy</button>
+                                    </div>
+                                    <textarea id="bp-llm" class="code-editor" readonly></textarea>
+                                </div>
+
+                                <div style="height:24px;"></div>
+
+                                <!-- MCP Tools Info Panel -->
+                                <div style="background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.2);border-radius:10px;padding:20px 24px;">
+                                    <div style="font-size:0.95rem;font-weight:700;color:#a78bfa;margin-bottom:14px;"><i class="fa-solid fa-screwdriver-wrench" style="margin-right:8px;"></i>AI Assistant — MCP Tools</div>
+                                    <div style="font-family:monospace;font-size:0.82rem;color:var(--text-secondary);line-height:1.9;">
+                                        <div>├── MCP Server Status: <span style="color:#10b981;font-weight:700;">[● Enabled]</span></div>
+                                        <div>├── Mount Path: <span style="color:#a78bfa;">/mcp</span></div>
+                                        <div>├── Available Tools:</div>
+                                        <div style="margin-left:20px;">✓ <span style="color:#10b981;">query_metrics</span> — Prometheus queries</div>
+                                        <div style="margin-left:20px;">✓ <span style="color:#10b981;">get_alerts</span> — Active alerts</div>
+                                        <div style="margin-left:20px;">✓ <span style="color:#10b981;">get_incidents</span> — Incident history</div>
+                                        <div style="margin-left:20px;">✓ <span style="color:#10b981;">get_system_health</span> — System status</div>
+                                        <div style="margin-left:20px;">✓ <span style="color:#10b981;">list_dashboards</span> — Grafana dashboards</div>
+                                        <div style="margin-left:20px;">✓ <span style="color:#10b981;">get_dashboard_details</span> — Dashboard specs</div>
+                                        <div style="margin-left:20px;">✓ <span style="color:#10b981;">analyze_grafana_panel</span> — Panel analysis</div>
+                                        <div>└── Authentication: <span style="color:#64748b;">None (Local)</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                <!-- Prometheus Config -->
+                <div class="config-block" id="block-prometheus">
+                    <div class="config-header">
+                        <div class="config-header-left">
+                            <i class="fa-solid fa-fire-flame-simple"></i>
+                            <h2>Prometheus Scrape Configuration</h2>
+                        </div>
+                        <button class="save-btn" onclick="saveConfig('prometheus')"><i class="fa-solid fa-save"></i>
+                            Save Changes</button>
+                    </div>
+                    <div class="config-content">
+                        <div class="config-desc">
+                            Define how remote Prometheus instances should pull telemetry from this Hawk-Eye node.
+                        </div>
+
+                        <div class="settings-form">
+                            <div class="field-group">
+                                <label class="field-label">Prometheus UI URL</label>
+                                <input type="text" id="url-prometheus" class="field-input"
+                                    placeholder="http://localhost:9090" oninput="updateBlueprints()">
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Scrape Interval</label>
+                                <input type="text" id="scrape-interval" class="field-input" placeholder="10s"
+                                    oninput="updateBlueprints()">
+                            </div>
+                        </div>
+
+                        <div style="height: 20px;"></div>
+
+                        <div class="code-container">
+                            <div class="code-header">
+                                <div class="code-title"><i class="fa-solid fa-gears"></i> prometheus.yml</div>
+                                <button class="copy-btn" onclick="copyCode('bp-prometheus')">Copy</button>
+                            </div>
+                            <textarea id="bp-prometheus" class="code-editor" readonly></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alertmanager -->
+                <div class="config-block" id="block-alertmanager">
+                    <div class="config-header">
+                        <div class="config-header-left">
+                            <i class="fa-solid fa-bell"></i>
+                            <h2>Alertmanager Integration</h2>
+                        </div>
+                        <button class="save-btn" onclick="saveConfig('alertmanager')"><i class="fa-solid fa-save"></i>
+                            Save Changes</button>
+                    </div>
+                    <div class="config-content">
+                        <div class="settings-form">
+                            <div class="field-group">
+                                <label class="field-label">Alertmanager UI URL</label>
+                                <input type="text" id="url-alertmanager" class="field-input"
+                                    placeholder="http://localhost:9093" oninput="updateBlueprints()">
+                            </div>
+                        </div>
+                        <div style="height: 20px;"></div>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <div class="code-title"><i class="fa-solid fa-envelope-open-text"></i> config.yml</div>
+                                <button class="copy-btn" onclick="copyCode('bp-alertmanager')">Copy</button>
+                            </div>
+                            <textarea id="bp-alertmanager" class="code-editor" readonly></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Elastic -->
+                <div class="config-block" id="block-elastic">
+                    <div class="config-header">
+                        <div class="config-header-left">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <h2>Elasticsearch & Kibana</h2>
+                        </div>
+                        <button class="save-btn" onclick="saveConfig('elastic')"><i class="fa-solid fa-save"></i> Save
+                            Changes</button>
+                    </div>
+                    <div class="config-content">
+                        <div class="settings-form">
+                            <div class="field-group">
+                                <label class="field-label">Kibana Dashboard URL</label>
+                                <input type="text" id="url-kibana" class="field-input"
+                                    placeholder="http://localhost:5601" oninput="updateBlueprints()">
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Elasticsearch API URL</label>
+                                <input type="text" id="url-elasticsearch" class="field-input"
+                                    placeholder="http://localhost:9200" oninput="updateBlueprints()">
+                            </div>
+                        </div>
+                        <div style="height: 20px;"></div>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <div class="code-title"><i class="fa-solid fa-terminal"></i> filebeat.yml</div>
+                                <button class="copy-btn" onclick="copyCode('bp-elastic')">Copy</button>
+                            </div>
+                            <textarea id="bp-elastic" class="code-editor" readonly></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SNMP Config -->
+                <div class="config-block" id="block-snmp">
+                    <div class="config-header">
+                        <div class="config-header-left">
+                            <i class="fa-solid fa-tower-broadcast"></i>
+                            <h2>SNMP Trap Configuration</h2>
+                        </div>
+                        <button class="save-btn" onclick="saveConfig('snmp')"><i class="fa-solid fa-save"></i> Save
+                            Changes</button>
+                    </div>
+                    <div class="config-content">
+                        <div class="config-desc">
+                            Configure Hawk-Eye to send SNMP traps when incidents are detected. These can be integrated
+                            with enterprise NMS systems like OpenView or Zabbix.
+                        </div>
+
+                        <div class="settings-form">
+                            <div class="field-group">
+                                <label class="field-label">SNMP Trap Target (Host/IP)</label>
+                                <input type="text" id="snmp-target" class="field-input" placeholder="snmp-server.local"
+                                    oninput="updateBlueprints()">
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">SNMP Port</label>
+                                <input type="text" id="snmp-port" class="field-input" placeholder="162"
+                                    oninput="updateBlueprints()">
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Community String</label>
+                                <input type="text" id="snmp-community" class="field-input" placeholder="public"
+                                    oninput="updateBlueprints()">
+                            </div>
+                        </div>
+
+                        <div style="height: 20px;"></div>
+
+                        <div class="code-container">
+                            <div class="code-header">
+                                <div class="code-title"><i class="fa-solid fa-network-wired"></i> snmp.yaml</div>
+                                <button class="copy-btn" onclick="copyCode('bp-snmp')">Copy</button>
+                            </div>
+                            <textarea id="bp-snmp" class="code-editor" readonly></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NNMi Config -->
+                <div class="config-block" id="block-nnmi">
+                    <div class="config-header">
+                        <div class="config-header-left">
+                            <i class="fa-solid fa-diagram-project" style="color:#f59e0b;"></i>
+                            <h2>HPE NNMi Integration</h2>
+                        </div>
+                        <div style="display:flex;gap:10px;">
+                            <button class="save-btn"
+                                style="background:rgba(245,158,11,0.15);color:#f59e0b;border-color:rgba(245,158,11,0.4);"
+                                onclick="testNnmi()"><i class="fa-solid fa-plug"></i> Test Connection</button>
+                            <button class="save-btn" onclick="saveConfig('nnmi')"><i class="fa-solid fa-save"></i> Save
+                                Changes</button>
+                        </div>
+                    </div>
+                    <div class="config-content">
+                        <div class="config-desc">
+                            Connect Hawk-Eye to <strong>HPE Network Node Manager i (NNMi)</strong> to forward incidents
+                            as NNMi management events. Hawk-Eye uses the NNMi Web Services REST API (<code
+                                style="color:#f59e0b;">nnm/rest/</code>) to create incidents when alerts fire.
+                        </div>
+
+                        <div class="settings-form">
+                            <div class="field-group">
+                                <label class="field-label">NNMi Server IP / Hostname</label>
+                                <input type="text" id="nnmi-host" class="field-input"
+                                    placeholder="nnmi.corp.example.com or 192.168.1.10" oninput="updateBlueprints()">
+                                <div style="font-size:0.75rem;color:#64748b;margin-top:4px;">The fully-qualified
+                                    hostname or IP address of the NNMi management server.</div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">NNMi API Port</label>
+                                <input type="text" id="nnmi-port" class="field-input" placeholder="9443"
+                                    oninput="updateBlueprints()">
+                                <div style="font-size:0.75rem;color:#64748b;margin-top:4px;">Default:
+                                    <strong>9443</strong> (HTTPS) or <strong>80</strong> (HTTP). Check NNMi admin
+                                    console for your configured port.</div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">NNMi User (Web Services Client role)</label>
+                                <input type="text" id="nnmi-user" class="field-input" placeholder="nnmi-ws-user"
+                                    oninput="updateBlueprints()">
+                                <div style="font-size:0.75rem;color:#64748b;margin-top:4px;">The NNMi account must have
+                                    the <strong>Web Services Client</strong> role assigned in NNMi → Security → User
+                                    Accounts.</div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Password</label>
+                                <input type="password" id="nnmi-password" class="field-input" placeholder="••••••••"
+                                    oninput="updateBlueprints()">
+                                <div style="font-size:0.75rem;color:#64748b;margin-top:4px;">Password for the NNMi Web
+                                    Services user account.</div>
+                            </div>
+                        </div>
+
+                        <div style="height:20px;"></div>
+
+                        <div class="code-container">
+                            <div class="code-header">
+                                <div class="code-title"><i class="fa-solid fa-diagram-project"></i> nnmi_config.yaml
+                                    (preview)</div>
+                                <button class="copy-btn" onclick="copyCode('bp-nnmi')">Copy</button>
+                            </div>
+                            <textarea id="bp-nnmi" class="code-editor" readonly></textarea>
+                        </div>
+
+                        <div id="nnmi-test-result"
+                            style="display:none;margin-top:16px;padding:12px 16px;border-radius:8px;font-size:0.85rem;">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <div id="saveAllStatus">Configuration Saved Successfully!</div>
+
+    <script>
+        function showBlock(id, el) {
+            document.querySelectorAll('.config-block').forEach(b => b.style.display = 'none');
+            const block = document.getElementById('block-' + id);
+            if (block) block.style.display = 'block';
+            document.querySelectorAll('.config-sidebar-item').forEach(i => i.classList.remove('active'));
+            if (el) el.classList.add('active');
+        }
+
+        // On load, show the first block (grafana) by default
+        window.addEventListener('DOMContentLoaded', () => {
+            const firstBlock = document.querySelector('.config-block');
+            if (firstBlock) firstBlock.style.display = 'block';
+        });
+
+        const defaults = {
+            grafana: 'http://localhost:3000',
+            prometheus: 'http://localhost:9090',
+            alertmanager: 'http://localhost:9093',
+            kibana: 'http://localhost:5601',
+            elasticsearch: 'http://localhost:9200',
+            snmp_target: 'localhost',
+            snmp_port: '162',
+            snmp_community: 'public',
+            nnmi_host: '',
+            nnmi_port: '9443',
+            nnmi_user: '',
+            nnmi_password: '',
+            hawkeye_internal: 'http://hawkeye:8080/metrics',
+            interval: '10s'
+        };
+
+        function loadSaved() {
+            const saved = JSON.parse(localStorage.getItem('hawkeye_integrations_v2')) || {};
+            // Load LLM config
+            const llmSaved = JSON.parse(localStorage.getItem('hawkeye_llm_config')) || {};
+            if (document.getElementById('llm-provider')) {
+                document.getElementById('llm-provider').value = llmSaved.provider || 'ollama';
+                document.getElementById('llm-model').value = llmSaved.model || 'mixtral';
+                document.getElementById('llm-endpoint').value = llmSaved.endpoint || 'http://localhost:11434';
+                document.getElementById('llm-apikey').value = llmSaved.api_key || '';
+                document.getElementById('llm-service-url').value = llmSaved.service_url || 'http://localhost:8000';
+                onLlmProviderChange();
+            }
+
+            document.getElementById('url-grafana').value = saved.grafana || defaults.grafana;
+            document.getElementById('url-prometheus').value = saved.prometheus || defaults.prometheus;
+            document.getElementById('url-alertmanager').value = saved.alertmanager || defaults.alertmanager;
+            document.getElementById('url-kibana').value = saved.kibana || defaults.kibana;
+            document.getElementById('url-elasticsearch').value = saved.elasticsearch || defaults.elasticsearch;
+
+            document.getElementById('snmp-target').value = saved.snmp_target || defaults.snmp_target;
+            document.getElementById('snmp-port').value = saved.snmp_port || defaults.snmp_port;
+            document.getElementById('snmp-community').value = saved.snmp_community || defaults.snmp_community;
+
+            document.getElementById('nnmi-host').value = saved.nnmi_host || defaults.nnmi_host;
+            document.getElementById('nnmi-port').value = saved.nnmi_port || defaults.nnmi_port;
+            document.getElementById('nnmi-user').value = saved.nnmi_user || defaults.nnmi_user;
+            document.getElementById('nnmi-password').value = saved.nnmi_password || defaults.nnmi_password;
+
+            document.getElementById('internal-hawkeye').value = saved.hawkeye_internal || defaults.hawkeye_internal;
+            document.getElementById('scrape-interval').value = saved.interval || defaults.interval;
+
+            updateBlueprints();
+        }
+
+        function onLlmProviderChange() {
+            const provider = document.getElementById('llm-provider').value;
+            const epGroup = document.getElementById('llm-endpoint-group');
+            const akGroup = document.getElementById('llm-apikey-group');
+            if (provider === 'ollama') {
+                epGroup.style.display = '';
+                akGroup.style.display = 'none';
+                document.getElementById('llm-endpoint').placeholder = 'http://localhost:11434';
+            } else {
+                epGroup.style.display = 'none';
+                akGroup.style.display = '';
+            }
+        }
+
+        function updateBlueprints() {
+            const grafana = document.getElementById('url-grafana').value;
+            const prom = document.getElementById('url-prometheus').value;
+            const hawkeye = document.getElementById('internal-hawkeye').value;
+            const interval = document.getElementById('scrape-interval').value;
+            const am = document.getElementById('url-alertmanager').value;
+            const es = document.getElementById('url-elasticsearch').value;
+
+            document.getElementById('bp-grafana').value = `apiVersion: 1
+datasources:
+  - name: Hawk-Eye-Prometheus
+    type: prometheus
+    url: ${hawkeye}
+    access: proxy
+    isDefault: true
+    editable: true`;
+
+            document.getElementById('bp-prometheus').value = `scrape_configs:
+  - job_name: 'hawkeye-telemetry'
+    scrape_interval: ${interval}
+    static_configs:
+      - targets: ['${window.location.host}']`;
+
+            document.getElementById('bp-alertmanager').value = `receivers:
+- name: 'hawkeye-snmp-trap'
+  webhook_configs:
+  - url: 'http://${window.location.host || 'hawkeye:8080'}/api/v1/notifications/snmp'
+    send_resolved: true`;
+
+            document.getElementById('bp-elastic').value = `filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /var/log/hawkeye.log
+output.elasticsearch:
+  hosts: ["${es}"]
+  index: "hawkeye-logs-%{+yyyy.MM.dd}"`;
+
+            const snmpTarget = document.getElementById('snmp-target').value;
+            const snmpPort = document.getElementById('snmp-port').value;
+            const snmpComm = document.getElementById('snmp-community').value;
+
+            document.getElementById('bp-snmp').value = `snmp_config:
+  target: "${snmpTarget}"
+  port: ${snmpPort}
+  community: "${snmpComm}"
+  version: "v2c"
+  trap_oid: "1.3.6.1.4.1.2021.251.1"`;
+
+            // LLM config YAML
+            const llmProvider = document.getElementById('llm-provider')?.value || 'ollama';
+            const llmModel = document.getElementById('llm-model')?.value || 'mixtral';
+            const llmEndpoint = document.getElementById('llm-endpoint')?.value || 'http://localhost:11434';
+            const llmApiKey = document.getElementById('llm-apikey')?.value || '';
+            const llmSvcUrl = document.getElementById('llm-service-url')?.value || 'http://localhost:8000';
+            const llmBp = document.getElementById('bp-llm');
+            if (llmBp) llmBp.value = `llm_config:
+  provider: "${llmProvider}"
+  model: "${llmModel}"
+  endpoint: "${llmProvider === 'ollama' ? llmEndpoint : ''}"
+  api_key: "${llmApiKey}"
+  service_url: "${llmSvcUrl}"`;
+
+            const nnmiHost = document.getElementById('nnmi-host').value || 'nnmi.example.com';
+            const nnmiPort = document.getElementById('nnmi-port').value || '9443';
+            const nnmiUser = document.getElementById('nnmi-user').value || 'ws-user';
+            document.getElementById('bp-nnmi').value = `nnmi_config:
+  host: "${nnmiHost}"
+  port: ${nnmiPort}
+  user: "${nnmiUser}"
+  password: "<stored-securely>"
+  tls: ${nnmiPort === '9443' ? 'true' : 'false'}
+  incident_category: "Application Failure"
+  severity_map:
+    critical: "Critical"
+    warning: "Major"
+    info: "Minor"`;
+        }
+
+        function saveConfig(app) {
+            if (app === 'llm') {
+                const llmObj = {
+                    provider: document.getElementById('llm-provider').value,
+                    model: document.getElementById('llm-model').value,
+                    endpoint: document.getElementById('llm-endpoint').value,
+                    api_key: document.getElementById('llm-apikey').value,
+                    service_url: document.getElementById('llm-service-url').value
+                };
+                localStorage.setItem('hawkeye_llm_config', JSON.stringify(llmObj));
+                const status = document.getElementById('saveAllStatus');
+                if (status) { status.style.display = 'block'; setTimeout(() => status.style.display = 'none', 3000); }
+                return;
+            }
+            const config = {
+                grafana: document.getElementById('url-grafana').value,
+                prometheus: document.getElementById('url-prometheus').value,
+                alertmanager: document.getElementById('url-alertmanager').value,
+                kibana: document.getElementById('url-kibana').value,
+                elasticsearch: document.getElementById('url-elasticsearch').value,
+                snmp_target: document.getElementById('snmp-target').value,
+                snmp_port: document.getElementById('snmp-port').value,
+                snmp_community: document.getElementById('snmp-community').value,
+                nnmi_host: document.getElementById('nnmi-host').value,
+                nnmi_port: document.getElementById('nnmi-port').value,
+                nnmi_user: document.getElementById('nnmi-user').value,
+                nnmi_password: document.getElementById('nnmi-password').value,
+                hawkeye_internal: document.getElementById('internal-hawkeye').value,
+                interval: document.getElementById('scrape-interval').value
+            };
+
+            localStorage.setItem('hawkeye_integrations_v2', JSON.stringify(config));
+
+            if (app === 'snmp') {
+                const snmpObj = {
+                    enabled: true,
+                    target: config.snmp_target,
+                    port: parseInt(config.snmp_port) || 162,
+                    community: config.snmp_community
+                };
+                fetch('/api/v1/config/snmp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(snmpObj)
+                });
+            }
+
+            if (app === 'nnmi') {
+                const nnmiObj = {
+                    enabled: true,
+                    host: config.nnmi_host,
+                    port: parseInt(config.nnmi_port) || 9443,
+                    user: config.nnmi_user,
+                    password: config.nnmi_password
+                };
+                fetch('/api/v1/config/nnmi', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(nnmiObj)
+                }).then(r => r.ok ? showNnmiResult(true, 'NNMi configuration saved.') : showNnmiResult(false, 'Failed to save NNMi config.'));
+            }
+
+            const status = document.getElementById('saveAllStatus');
+            if (status) {
+                status.style.display = 'block';
+                setTimeout(() => status.style.display = 'none', 3000);
+            }
+        }
+
+        function testNnmi() {
+            const host = document.getElementById('nnmi-host').value;
+            const port = document.getElementById('nnmi-port').value;
+            const user = document.getElementById('nnmi-user').value;
+            const password = document.getElementById('nnmi-password').value;
+            if (!host || !user || !password) {
+                showNnmiResult(false, 'Please fill in all NNMi fields before testing.');
+                return;
+            }
+            showNnmiResult(null, 'Testing connection to NNMi...');
+            fetch('/api/v1/config/nnmi/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ host, port: parseInt(port) || 9443, user, password })
+            }).then(r => r.json()).then(data => {
+                showNnmiResult(data.success, data.message || (data.success ? 'Connection successful!' : 'Connection failed.'));
+            }).catch(() => {
+                showNnmiResult(false, 'Could not reach NNMi server. Check host/port.');
+            });
+        }
+
+        function showNnmiResult(success, msg) {
+            const el = document.getElementById('nnmi-test-result');
+            el.style.display = 'block';
+            if (success === null) {
+                el.style.background = 'rgba(59,130,246,0.1)';
+                el.style.border = '1px solid rgba(59,130,246,0.3)';
+                el.style.color = '#93c5fd';
+            } else if (success) {
+                el.style.background = 'rgba(16,185,129,0.1)';
+                el.style.border = '1px solid rgba(16,185,129,0.3)';
+                el.style.color = '#6ee7b7';
+            } else {
+                el.style.background = 'rgba(239,68,68,0.1)';
+                el.style.border = '1px solid rgba(239,68,68,0.3)';
+                el.style.color = '#fca5a5';
+            }
+            el.innerHTML = `<i class="fa-solid fa-${success === null ? 'spinner fa-spin' : success ? 'check-circle' : 'times-circle'}"></i> ${msg}`;
+        }
+
+        function copyCode(id) {
+            const el = document.getElementById(id);
+            el.select();
+            document.execCommand('copy');
+            alert('Copied to clipboard!');
+        }
+
+        window.onload = loadSaved;
+    </script>
+</body>
+
+</html>

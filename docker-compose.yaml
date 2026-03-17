@@ -1,0 +1,173 @@
+services:
+  hawkeye:
+    build: .
+    container_name: hawkeye
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./checks.yaml:/checks.yaml
+      - ./live_dashboard.html:/live_dashboard.html
+      - ./inventory.html:/inventory.html
+      - ./alerts_config.html:/alerts_config.html
+      - ./polling_config.html:/polling_config.html
+      - ./incidents.html:/incidents.html
+      - ./integrations.html:/integrations.html
+      - ./integrations_config.html:/integrations_config.html
+      - ./integrations_guide.html:/integrations_guide.html
+      - ./snmp_config.yaml:/snmp_config.yaml
+      - ./login.html:/login.html
+      - ./installation.html:/installation.html
+      - ./requirements.html:/requirements.html
+      - ./capabilities.html:/capabilities.html
+      - ./usermanual.html:/usermanual.html
+      - ./admindoc.html:/admindoc.html
+      - ./about.html:/about.html
+      - ./architecture.html:/architecture.html
+      - ./prometheus_rules.yaml:/prometheus_rules.yaml
+      - ./prometheus.yaml:/prometheus.yaml
+      - ./grafana:/grafana
+      - ./alertmanager:/alertmanager
+      - ./chart:/chart
+      - ./scripts:/scripts
+      - ./troubleshooting.html:/troubleshooting.html
+      - ./device_reachability.html:/device_reachability.html
+      - ./users_config.html:/users_config.html
+      - ./target_detail.html:/target_detail.html
+    command: ["run", "--hawkeyeName", "hawkeye.local", "--loaderType", "file", "--loaderFilePath", "/checks.yaml", "--loaderInterval", "10s"]
+    environment:
+      - HAWKEYE_ENV=production
+      - LOG_LEVEL=info
+    user: "0:0"
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+    networks:
+      - monitoring
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+      - ./prometheus_rules.yaml:/etc/prometheus/prometheus_rules.yaml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning/datasources/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
+      - ./grafana/provisioning/dashboards/provider.yaml:/etc/grafana/provisioning/dashboards/provider.yaml
+      - ./grafana/dashboards/enhanced_dashboard.json:/etc/grafana/provisioning/dashboards/hawkeye_dashboard.json
+      - ./grafana/dashboards/site_drilldown.json:/etc/grafana/provisioning/dashboards/site_drilldown.json
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/config.yml:/etc/alertmanager/config.yml
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  thanos-sidecar:
+    image: thanosio/thanos:v0.36.1
+    container_name: thanos-sidecar
+    command:
+      - 'sidecar'
+      - '--tsdb.path=/prometheus'
+      - '--prometheus.url=http://prometheus:9090'
+      - '--grpc-address=0.0.0.0:10901'
+      - '--http-address=0.0.0.0:10902'
+    volumes:
+      - prometheus_data:/prometheus
+    networks:
+      - monitoring
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  thanos-query:
+    image: thanosio/thanos:v0.36.1
+    container_name: thanos-query
+    command:
+      - 'query'
+      - '--http-address=0.0.0.0:10904'
+      - '--store=thanos-sidecar:10901'
+    ports:
+      - "10904:10904"
+    networks:
+      - monitoring
+    restart: unless-stopped
+    depends_on:
+      - thanos-sidecar
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    volumes:
+      - elastic_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - monitoring
+    restart: unless-stopped
+    depends_on:
+      - elasticsearch
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  alertmanager_data:
+  elastic_data:

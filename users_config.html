@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Configuration - Hawk-Eye</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --bg-dark: #0f1115;
+            --surface-color: #1a1d24;
+            --border-color: #2a2d35;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-purple: #8b5cf6;
+            --info-color: #3b82f6;
+            --error-color: #f43f5e;
+            --success-color: #10b981;
+        }
+
+        body.light-theme {
+            --bg-dark: #f8fafc;
+            --surface-color: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        .app-window {
+            display: flex;
+            width: 100%;
+        }
+
+        .main-sidebar {
+            width: 260px;
+            background-color: var(--surface-color);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .app-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .top-navbar {
+            height: 70px;
+            background-color: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .page-scroll-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header-section h1 {
+            margin: 0;
+            font-size: 1.75rem;
+        }
+
+        .header-section p {
+            margin: 0.5rem 0 0 0;
+            color: var(--text-secondary);
+        }
+
+        .user-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: var(--surface-color);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .user-table th {
+            text-align: left;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .user-table td {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .role-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .role-admin {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--accent-purple);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .role-operator {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--info-color);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .btn-primary {
+            background: var(--accent-purple);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #7c3aed;
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: var(--error-color);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+        }
+
+        .btn-danger:hover {
+            background: rgba(244, 63, 94, 0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--surface-color);
+            padding: 2rem;
+            border-radius: 12px;
+            width: 400px;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        /* Sidebar & Shared Styles copied for consistency before rebuild_nav syncs it */
+        .nav-item {
+            padding: 12px 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item.active {
+            background: rgba(139, 92, 246, 0.1);
+            color: #fff;
+            border-left-color: var(--accent-purple);
+        }
+
+        .nav-category {
+            padding: 0 1.5rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin: 1.5rem 0 0.5rem 0;
+            letter-spacing: 0.05em;
+        }
+
+        .help-dropbtn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        .help-dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            background: transparent;
+        }
+        .nav-category {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-right: 1.5rem !important;
+            user-select: none;
+        }
+        .nav-category i {
+            font-size: 0.6rem;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-category.collapsed i {
+            transform: rotate(-90deg);
+        }
+        .nav-category.collapsed + .nav-group {
+            display: none;
+        }
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .nav-item {
+            background: transparent !important;
+            border: none !important;
+            width: 100% !important;
+            cursor: pointer !important;
+            text-align: left !important;
+            outline: none !important;
+        }
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+        .nav-item.active {
+            background: rgba(139, 92, 246, 0.1) !important;
+        }
+        .nav-category {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-right: 1.5rem !important;
+            user-select: none;
+        }
+        .nav-category i {
+            font-size: 0.6rem;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-category.collapsed i {
+            transform: rotate(-90deg);
+        }
+        .nav-category.collapsed + .nav-group {
+            display: none;
+        }
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .nav-item {
+            background: transparent !important;
+            border: none !important;
+            width: 100% !important;
+            cursor: pointer !important;
+            text-align: left !important;
+            outline: none !important;
+        }
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+        .nav-item.active {
+            background: rgba(139, 92, 246, 0.1) !important;
+        }
+        .nav-category {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-right: 1.5rem !important;
+            user-select: none;
+        }
+        .nav-category i {
+            font-size: 0.6rem;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-category.collapsed i {
+            transform: rotate(-90deg);
+        }
+        .nav-category.collapsed + .nav-group {
+            display: none;
+        }
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .nav-item {
+            background: transparent !important;
+            border: none !important;
+            width: 100% !important;
+            cursor: pointer !important;
+            text-align: left !important;
+            outline: none !important;
+        }
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+        .nav-item.active {
+            background: rgba(139, 92, 246, 0.1) !important;
+        }
+        .nav-category {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-right: 1.5rem !important;
+            user-select: none;
+        }
+        .nav-category i {
+            font-size: 0.6rem;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-category.collapsed i {
+            transform: rotate(-90deg);
+        }
+        .nav-category.collapsed + .nav-group {
+            display: none;
+        }
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .nav-item {
+            background: transparent !important;
+            border: none !important;
+            width: 100% !important;
+            cursor: pointer !important;
+            text-align: left !important;
+            outline: none !important;
+        }
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+        .nav-item.active {
+            background: rgba(139, 92, 246, 0.1) !important;
+        }
+        .nav-category {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-right: 1.5rem !important;
+            user-select: none;
+        }
+        .nav-category i {
+            font-size: 0.6rem;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-category.collapsed i {
+            transform: rotate(-90deg);
+        }
+        .nav-category.collapsed + .nav-group {
+            display: none;
+        }
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .nav-item {
+            background: transparent !important;
+            border: none !important;
+            width: 100% !important;
+            cursor: pointer !important;
+            text-align: left !important;
+            outline: none !important;
+        }
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+        .nav-item.active {
+            background: rgba(139, 92, 246, 0.1) !important;
+        }
+        .nav-category {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-right: 1.5rem !important;
+            user-select: none;
+        }
+        .nav-category i {
+            font-size: 0.6rem;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-category.collapsed i {
+            transform: rotate(-90deg);
+        }
+        .nav-category.collapsed + .nav-group {
+            display: none;
+        }
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .nav-item {
+            background: transparent !important;
+            border: none !important;
+            width: 100% !important;
+            cursor: pointer !important;
+            text-align: left !important;
+            outline: none !important;
+        }
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+        .nav-item.active {
+            background: rgba(139, 92, 246, 0.1) !important;
+        }
+        .nav-category {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-right: 1.5rem !important;
+            user-select: none;
+        }
+        .nav-category i {
+            font-size: 0.6rem;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-category.collapsed i {
+            transform: rotate(-90deg);
+        }
+        .nav-category.collapsed + .nav-group {
+            display: none;
+        }
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .nav-item {
+            background: transparent !important;
+            border: none !important;
+            width: 100% !important;
+            cursor: pointer !important;
+            text-align: left !important;
+            outline: none !important;
+        }
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+        .nav-item.active {
+            background: rgba(139, 92, 246, 0.1) !important;
+        }
+        .nav-category {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-right: 1.5rem !important;
+            user-select: none;
+        }
+        .nav-category i {
+            font-size: 0.6rem;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-category.collapsed i {
+            transform: rotate(-90deg);
+        }
+        .nav-category.collapsed + .nav-group {
+            display: none;
+        }
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-window">
+        <!-- Sidebar placeholder, will be synced by rebuild_nav.py -->
+        <aside class="main-sidebar">
+                                                                                                                                                                                                            <div class="main-sidebar-header" style="height: 70px; display: flex; align-items: center; padding: 0 1.5rem; border-bottom: 1px solid var(--border-color); background: var(--surface-color); gap: 12px;">
+                <span style="font-size: 1.5rem;">🦅</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                    <span style="font-weight: 700; font-size: 1.25rem; color: #fff;">Hawk-Eye</span>
+                    <span style="font-size: 0.65rem; color: #ff00ff; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
+                </div>
+            </div>
+
+
+
+
+
+
+
+
+
+
+                                                                                                                                                                                                            <nav class="main-sidebar-nav">
+                <div class="nav-category">Monitoring</div>
+                <a href="/dashboard" class="nav-item">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </a>
+                <a href="/inventory" class="nav-item">
+                    <i class="fa-solid fa-list"></i> Target Inventory
+                </a>
+
+                <div class="nav-item tree-parent" onclick="this.classList.toggle('open')" style="margin-top: 15px;">
+                    <div style="display: flex; align-items: center; gap: 14px;"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
+                    <i class="fa-solid fa-chevron-down tree-chevron"></i>
+                </div>
+                <div class="tree-children">
+                    <a href="/incidents" class="nav-item child-item">
+                        <i class="fa-solid fa-table-cells"></i> All Incidents
+                    </a>
+                </div>
+
+                <div class="nav-category">Management</div>
+                <button class="nav-item" onclick="if(document.getElementById('addTargetModal')) { document.getElementById('addTargetModal').style.display='flex'; } else { window.location.href='/dashboard?add=true'; }">
+                    <i class="fa-solid fa-plus" style="color: var(--info-color);"></i> Add New Target
+                </button>
+                <button class="nav-item" onclick="if(typeof deleteSelectedTargets === 'function') { deleteSelectedTargets(); } else { window.location.href='/dashboard'; }">
+                    <i class="fa-solid fa-trash" style="color: var(--error-color);"></i> Delete Target
+                </button>
+
+                <div class="nav-category" style="margin-top: 15px;">Integrations</div>
+                <a href="/integrations" class="nav-item">
+                    <i class="fa-solid fa-link"></i> External Apps Links
+                </a>
+                <a href="/integrations_config" class="nav-item">
+                    <i class="fa-solid fa-gears"></i> External Apps Integration Config
+                </a>
+
+                <div class="nav-category" style="margin-top: 15px;">Configuration</div>
+                <a href="/alerts" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Alerts Config
+                </a>
+                <a href="/polling" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Polling Config
+                </a>
+                <a href="/users_config" class="nav-item active">
+                    <i class="fa-solid fa-user-gear"></i> User Configuration
+                </a>
+                <button class="nav-item" onclick="if(typeof exportConfig === 'function') { exportConfig(); } else { window.location.href='/dashboard?export=true'; }">
+                    <i class="fa-solid fa-file-export"></i> Export Snapshot
+                </button>
+                <button class="nav-item" onclick="if(document.getElementById('importFile')) { document.getElementById('importFile').click(); } else { window.location.href='/dashboard?import=true'; }">
+                    <i class="fa-solid fa-file-import"></i> Import Snapshot
+                </button>
+
+                <div class="nav-category">Operations</div>
+                <a href="/troubleshooting" class="nav-item">
+                    <i class="fa-solid fa-microchip"></i> Troubleshooting
+                </a>
+                <a href="/device_reachability" class="nav-item">
+                    <i class="fa-solid fa-satellite-dish"></i> Device Reachability
+                </a>
+            </nav>
+        </aside>
+
+        <main class="app-content">
+            <header class="top-navbar">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button id="theme-toggle-btn" class="help-dropbtn">
+                        <i id="theme-toggle-icon" class="fa-solid fa-sun"></i>
+                    </button>
+                    <div
+                        style="display: flex; align-items: center; gap: 10px; padding: 6px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <i class="fa-solid fa-user-circle" style="color: var(--accent-purple); font-size: 1.1rem;"></i>
+                        <span id="displayUser" style="font-size: 0.85rem; font-weight: 600;">User</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-scroll-container">
+                <div class="container">
+                    <div class="header-section">
+                        <div>
+                            <h1>User Configuration</h1>
+                            <p>Manage application users and their access levels.</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="showAddUserModal()">
+                            <i class="fa-solid fa-user-plus"></i> Create New User
+                        </button>
+                    </div>
+
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Permissions</th>
+                                <th>Created On</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                            <!-- Users will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top: 0;">Create New User</h3>
+            <form id="addUserForm">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="newUsername" class="form-control" required placeholder="e.g. operator1">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="newPassword" class="form-control" required placeholder="••••••••">
+                </div>
+                <div class="form-group">
+                    <label>User Type</label>
+                    <select id="userRole" class="form-control">
+                        <option value="Admin">Admin (Full Access)</option>
+                        <option value="Operator">Operator (Read-Only)</option>
+                    </select>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn" onclick="hideAddUserModal()"
+                        style="color: var(--text-secondary);">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/scripts/hawk-ui.js"></script>
+    <script>
+        // User data management
+        function getUsers() {
+            let users = JSON.parse(localStorage.getItem('hawkeye_users')) || [
+                { username: 'admin', role: 'Admin', created: '2025-01-01 10:00:00' }
+            ];
+            return users;
+        }
+
+        function saveUsers(users) {
+            localStorage.setItem('hawkeye_users', JSON.stringify(users));
+        }
+
+        function renderUsers() {
+            const users = getUsers();
+            const tbody = document.getElementById('userTableBody');
+            tbody.innerHTML = '';
+
+            users.forEach(user => {
+                const tr = document.createElement('tr');
+                const isSystemAdmin = user.username === 'admin';
+
+                tr.innerHTML = `
+                    <td style="font-weight: 600;">${user.username}</td>
+                    <td>
+                        <span class="role-badge role-${user.role.toLowerCase()}">${user.role}</span>
+                    </td>
+                    <td style="color: var(--text-secondary); font-size: 0.8rem;">
+                        ${user.role === 'Admin' ? 'All Permissions' : 'Read-Only Access'}
+                    </td>
+                    <td style="color: var(--text-secondary); font-size: 0.8rem;">${user.created}</td>
+                    <td style="text-align: right;">
+                        ${!isSystemAdmin ? `
+                            <button class="btn btn-danger" onclick="deleteUser('${user.username}')">
+                                <i class="fa-solid fa-trash-can"></i> Delete
+                            </button>
+                        ` : '<span style="color: var(--text-secondary); font-style: italic; font-size: 0.8rem;">Protected</span>'}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function showAddUserModal() {
+            document.getElementById('addUserModal').style.display = 'flex';
+        }
+
+        function hideAddUserModal() {
+            document.getElementById('addUserModal').style.display = 'none';
+        }
+
+        document.getElementById('addUserForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const username = document.getElementById('newUsername').value.trim();
+            const password = document.getElementById('newPassword').value;
+            const role = document.getElementById('userRole').value;
+
+            if (!username) return;
+
+            let users = getUsers();
+            if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+                alert('User already exists!');
+                return;
+            }
+
+            users.push({
+                username: username,
+                password: password,
+                role: role,
+                created: new Date().toLocaleString()
+            });
+
+            saveUsers(users);
+            renderUsers();
+            hideAddUserModal();
+            this.reset();
+        });
+
+        function deleteUser(username) {
+            if (!confirm(`Are you sure you want to delete user "${username}"?`)) return;
+
+            let users = getUsers();
+            users = users.filter(u => u.username !== username);
+            saveUsers(users);
+            renderUsers();
+        }
+
+        // Initialize user display from cookie
+        function initDisplay() {
+            if (typeof HawkUI !== 'undefined') {
+                HawkUI.updateUserDisplay();
+            }
+        }
+
+        renderUsers();
+        initDisplay();
+    </script>
+</body>
+
+</html>

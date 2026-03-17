@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hawk-Eye | Installation Procedure</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg-dark: #0a0c10;
+            --surface: #13161d;
+            --surface2: #1a1d26;
+            --border: #252832;
+            --text: #e8eaf0;
+            --muted: #7c8496;
+            --purple: #8b5cf6;
+            --blue: #3b82f6;
+            --green: #10b981;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar TOC */
+        .toc {
+            width: 260px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .toc-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            text-decoration: none;
+        }
+
+        .toc-brand span {
+            font-size: 1.5rem;
+        }
+
+        .toc-brand p {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--purple);
+        }
+
+        .toc h3 {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--muted);
+            margin-bottom: 12px;
+            margin-top: 20px;
+        }
+
+        .toc a {
+            display: block;
+            font-size: 0.82rem;
+            color: var(--muted);
+            text-decoration: none;
+            padding: 6px 10px;
+            border-radius: 5px;
+            margin-bottom: 2px;
+            transition: all 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .toc a.active {
+            color: var(--purple);
+            background: rgba(139, 92, 246, 0.1);
+            font-weight: 600;
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 0.8rem;
+            text-decoration: none;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .back-link:hover {
+            color: var(--purple);
+        }
+
+        /* Main Content */
+        .content {
+            flex: 1;
+            padding: 50px 60px;
+            max-width: 900px;
+        }
+
+        h1 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: var(--muted);
+            font-size: 1.05rem;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 50px 0 15px 0;
+            padding-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h2 i {
+            color: var(--purple);
+            font-size: 1.2rem;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin: 25px 0 10px 0;
+        }
+
+        p {
+            color: #b0b8cc;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        ul,
+        ol {
+            padding-left: 20px;
+            color: #b0b8cc;
+            font-size: 0.95rem;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .code-header {
+            background: var(--surface2);
+            padding: 8px 16px;
+            font-size: 0.75rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-header .lang {
+            color: var(--purple);
+            font-weight: 600;
+        }
+
+        pre {
+            padding: 20px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        code {
+            font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+            color: #e2e8f0;
+        }
+
+        .inline-code {
+            background: rgba(139, 92, 246, 0.1);
+            padding: 2px 7px;
+            border-radius: 4px;
+            color: #c4b5fd;
+            font-family: 'Monaco', monospace;
+            font-size: 0.85rem;
+        }
+
+        /* Callouts */
+        .callout {
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 20px 0;
+            display: flex;
+            gap: 14px;
+            font-size: 0.9rem;
+        }
+
+        .callout i {
+            font-size: 1rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .callout.info {
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+        }
+
+        .callout.info i {
+            color: var(--blue);
+        }
+
+        .callout.warn {
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+        }
+
+        .callout.warn i {
+            color: var(--yellow);
+        }
+
+        .callout.success {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+
+        .callout.success i {
+            color: var(--green);
+        }
+
+        .callout p {
+            margin: 0;
+            color: var(--text);
+        }
+
+        /* Back button */
+        .back-dashboard-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 20px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.35);
+            color: var(--purple);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-bottom: 30px;
+        }
+
+        .back-dashboard-btn:hover {
+            background: rgba(139, 92, 246, 0.2);
+            transform: translateX(-2px);
+        }
+
+        /* Step badges */
+        .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: var(--purple);
+            color: #fff;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-right: 8px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 0;
+        }
+
+        .tab-btn {
+            padding: 10px 22px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--muted);
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--purple);
+            border-bottom-color: var(--purple);
+        }
+
+        .tab-content {
+            display: none;
+            background: #000;
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+
+
+
+
+
+        .help-dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            background: transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout">
+        <!-- Sidebar -->
+        <nav class="toc">
+            <a href="/" class="toc-brand">
+                <span>🦅</span>
+                <p>Hawk-Eye Docs</p>
+            </a>
+            <a href="/" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+            <h3>On This Page</h3>
+            <a href="#overview">Overview</a>
+            <a href="#prereqs">Prerequisites</a>
+            <a href="#docker">Docker (Recommended)</a>
+            <a href="#binary">Binary (No Docker)</a>
+            <a href="#systemd" style="padding-left:22px; font-size:0.77rem;">→ systemd Service</a>
+            <a href="#prometheus-connect" style="padding-left:22px; font-size:0.77rem;">→ Connect Prometheus</a>
+            <a href="#helm">Helm / Kubernetes</a>
+            <a href="#verify">Verify Installation</a>
+            <a href="#ports">Service Ports</a>
+            <a href="#troubleshoot">Troubleshooting</a>
+            <h3>Other Docs</h3>
+            <a href="/requirements.html">Software Requirements</a>
+            <a href="/architecture.html">Architecture</a>
+            <a href="/usermanual.html">User Manual</a>
+            <a href="/admindoc.html">Admin Document</a>
+            <a href="/about.html">About</a>
+        </nav>
+
+        <!-- Content -->
+        <main class="content">
+            <a href="/dashboard" class="back-dashboard-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+            <h1>Installation Procedure</h1>
+            <p class="page-subtitle">A complete, step-by-step guide to deploying Hawk-Eye in development, staging, or
+                production environments.</p>
+
+            <h2 id="overview"><i class="fa-solid fa-circle-info"></i> Overview</h2>
+            <p>Hawk-Eye is a distributed infrastructure monitoring suite built on the <strong>Hawk-Eye Engine</strong>.
+                It supports three deployment methods:</p>
+            <ul>
+                <li><strong>Docker Compose</strong> (recommended for most teams — spins up the full stack with one
+                    command)</li>
+                <li><strong>Binary</strong> (lightweight, for embedded or CI/CD use)</li>
+                <li><strong>Helm Chart</strong> (production Kubernetes clusters)</li>
+            </ul>
+            <div class="callout info"><i class="fa-solid fa-circle-info"></i>
+                <p>For a first-time setup, the Docker Compose method is strongly recommended as it includes Prometheus,
+                    Grafana, Alertmanager, Elasticsearch, and Kibana preconfigured.</p>
+            </div>
+
+            <h2 id="prereqs"><i class="fa-solid fa-list-check"></i> Prerequisites</h2>
+            <p>Before proceeding, ensure the following tools are installed and accessible from your shell:</p>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span><span>Check installed versions</span></div>
+                <pre><code># Verify Docker
+docker --version          # Minimum: Docker 20.10.0
+
+# Verify Docker Compose
+docker compose version    # Minimum: v2.0.0
+
+# Verify Go (only needed for building from source)
+go version                # Minimum: go1.22
+
+# Verify Git
+git --version</code></pre>
+            </div>
+
+            <div class="callout warn"><i class="fa-solid fa-triangle-exclamation"></i>
+                <p><strong>Architecture Note:</strong> If you are on an Apple Silicon Mac (M1/M2/M3), build with <span
+                        class="inline-code">GOARCH=arm64</span>. For Linux servers and Intel Macs, use <span
+                        class="inline-code">GOARCH=amd64</span>.</p>
+            </div>
+
+            <h2 id="docker"><i class="fa-brands fa-docker"></i> Option 1: Docker Compose (Recommended)</h2>
+            <p>This method launches the full Hawk-Eye observability stack including the monitoring engine, Prometheus,
+                Grafana, Alertmanager, Elasticsearch, and Kibana.</p>
+
+            <h3><span class="step-num">1</span>Clone the Repository</h3>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span></div>
+                <pre><code>git clone https://github.com/Bharath-MR-007/hawk-eye.git
+cd hawkeye</code></pre>
+            </div>
+
+            <h3><span class="step-num">2</span>Build the Binary for Linux</h3>
+            <p>The Docker image uses a <span class="inline-code">scratch</span> base, so the binary must be pre-compiled
+                for Linux before building the image.</p>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab(this,'arm64')">Apple Silicon (arm64)</button>
+                <button class="tab-btn" onclick="switchTab(this,'amd64')">Linux / Intel (amd64)</button>
+            </div>
+            <div class="tab-content active" id="tab-arm64">
+                <pre><code>CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o hawkeye .</code></pre>
+            </div>
+            <div class="tab-content" id="tab-amd64">
+                <pre><code>CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o hawkeye .</code></pre>
+            </div>
+
+            <h3><span class="step-num">3</span>Configure Monitoring Targets</h3>
+            <p>Edit <span class="inline-code">checks.yaml</span> in the project root to define the endpoints Hawk-Eye
+                should monitor:</p>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">YAML</span><span>checks.yaml</span></div>
+                <pre><code>health:
+  interval: 30s
+  timeout: 10s
+  retry:
+    count: 3
+    delay: 2s
+  targets:
+    - https://google.com
+    - https://aws.amazon.com
+    - http://your-internal-service:8080/health
+
+latency:
+  interval: 60s
+  timeout: 10s
+  targets:
+    - https://api.example.com
+
+dns:
+  interval: 60s
+  targets:
+    - your-domain.internal</code></pre>
+            </div>
+
+            <h3><span class="step-num">4</span>Start the Stack</h3>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span></div>
+                <pre><code>docker compose up -d --build</code></pre>
+            </div>
+            <p>Docker will pull all required images (~2-3 minutes on first run) and start all services in the
+                background.</p>
+
+            <h3><span class="step-num">5</span>Access the Application</h3>
+            <p>Once started, open your browser and navigate to:</p>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">URL</span></div>
+                <pre><code>http://localhost:8080       → Hawk-Eye Dashboard (admin / admin)
+http://localhost:3000       → Grafana
+http://localhost:9090       → Prometheus
+http://localhost:9093       → Alertmanager
+http://localhost:5601       → Kibana</code></pre>
+            </div>
+            <div class="callout success"><i class="fa-solid fa-check-circle"></i>
+                <p>Default login for Hawk-Eye Dashboard: Username: <strong>admin</strong> / Password:
+                    <strong>admin</strong>
+                </p>
+            </div>
+
+            <h2 id="binary"><i class="fa-solid fa-cube"></i> Option 2: Binary Installation (No Docker Required)</h2>
+            <p>Run Hawk-Eye as a standalone process on any Linux server, macOS machine, or VM — no container runtime
+                needed. This is ideal for environments with an existing observability stack (Prometheus, Grafana) or for
+                lightweight CI/CD integration.</p>
+
+            <div class="callout info"><i class="fa-solid fa-circle-info"></i>
+                <p>This method deploys <strong>only the Hawk-Eye monitoring engine</strong>. For metrics visualization,
+                    point your existing Prometheus and Grafana instances at Hawk-Eye's <span
+                        class="inline-code">/metrics</span> endpoint.</p>
+            </div>
+
+            <h3><span class="step-num">1</span>Download the Repository</h3>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span></div>
+                <pre><code>git clone https://github.com/Bharath-MR-007/hawk-eye.git
+cd hawkeye</code></pre>
+            </div>
+
+            <h3><span class="step-num">2</span>Build the Binary</h3>
+            <p>Build a native binary for your current OS and architecture:</p>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab(this,'native-linux')">Linux (amd64)</button>
+                <button class="tab-btn" onclick="switchTab(this,'native-arm64')">Linux (arm64)</button>
+                <button class="tab-btn" onclick="switchTab(this,'native-mac')">macOS</button>
+            </div>
+            <div class="tab-content active" id="tab-native-linux">
+                <pre><code>CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o hawkeye .</code></pre>
+            </div>
+            <div class="tab-content" id="tab-native-arm64">
+                <pre><code>CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o hawkeye .</code></pre>
+            </div>
+            <div class="tab-content" id="tab-native-mac">
+                <pre><code>CGO_ENABLED=0 go build -o hawkeye .</code></pre>
+            </div>
+            <div class="callout warn"><i class="fa-solid fa-triangle-exclamation"></i>
+                <p>For <strong>ICMP / traceroute checks</strong> to work, the binary needs raw socket access. On Linux,
+                    either run as <span class="inline-code">root</span> or grant capabilities with: <span
+                        class="inline-code">sudo setcap cap_net_raw+ep ./hawkeye</span></p>
+            </div>
+
+            <h3><span class="step-num">3</span>Create checks.yaml</h3>
+            <p>Define what Hawk-Eye should monitor in <span class="inline-code">checks.yaml</span>:</p>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">YAML</span><span>checks.yaml</span></div>
+                <pre><code>health:
+  interval: 30s
+  timeout: 10s
+  retry:
+    count: 3
+    delay: 2s
+  targets:
+    - https://example.com
+    - https://your-internal-service/health
+
+latency:
+  interval: 60s
+  timeout: 10s
+  targets:
+    - https://api.example.com
+
+dns:
+  interval: 60s
+  targets:
+    - your-domain.internal</code></pre>
+            </div>
+
+            <h3><span class="step-num">4</span>Run the Binary</h3>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span></div>
+                <pre><code># Basic run
+./hawkeye run --hawkeyeName hawkeye.prod --loaderType file --loaderFilePath ./checks.yaml
+
+# With custom API port
+./hawkeye run --hawkeyeName hawkeye.prod --apiAddress :9000 --loaderType file --loaderFilePath ./checks.yaml</code></pre>
+            </div>
+
+            <h3 id="systemd"><span class="step-num">5</span>Run as a systemd Service (Production Linux)</h3>
+            <p>To make Hawk-Eye start automatically on boot and restart on failure, install it as a systemd unit:</p>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span><span>Copy binary to system path</span></div>
+                <pre><code>sudo cp hawkeye /usr/local/bin/hawkeye
+sudo chmod +x /usr/local/bin/hawkeye
+sudo setcap cap_net_raw+ep /usr/local/bin/hawkeye</code></pre>
+            </div>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">INI</span><span>/etc/systemd/system/hawkeye.service</span>
+                </div>
+                <pre><code>[Unit]
+Description=Hawk-Eye Monitoring Engine
+After=network.target
+
+[Service]
+Type=simple
+User=nobody
+ExecStart=/usr/local/bin/hawkeye run \
+  --hawkeyeName hawkeye.prod \
+  --loaderType file \
+  --loaderFilePath /etc/hawkeye/checks.yaml \
+  --apiAddress :8080
+Restart=always
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+AmbientCapabilities=CAP_NET_RAW
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+            </div>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span><span>Enable and start</span></div>
+                <pre><code>sudo mkdir -p /etc/hawkeye
+sudo cp checks.yaml /etc/hawkeye/checks.yaml
+
+sudo systemctl daemon-reload
+sudo systemctl enable hawkeye
+sudo systemctl start hawkeye
+
+# Check status
+sudo systemctl status hawkeye
+sudo journalctl -u hawkeye -f</code></pre>
+            </div>
+
+            <h3 id="prometheus-connect"><span class="step-num">6</span>Connect to Existing Prometheus &amp; Grafana</h3>
+            <p>Hawk-Eye exposes Prometheus metrics at <span class="inline-code">http://&lt;host&gt;:8080/metrics</span>.
+                Add it as a scrape target in your existing <span class="inline-code">prometheus.yaml</span>:</p>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">YAML</span><span>prometheus.yaml — add scrape job</span>
+                </div>
+                <pre><code>scrape_configs:
+  - job_name: 'hawkeye'
+    static_configs:
+      - targets: ['hawkeye-host:8080']
+    scrape_interval: 15s</code></pre>
+            </div>
+            <p>Then import the Hawk-Eye Grafana dashboards (located in <span
+                    class="inline-code">grafana/dashboards/</span> in the repository) into your existing Grafana
+                instance via <strong>Dashboards → Import → Upload JSON</strong>.</p>
+
+            <div class="callout success"><i class="fa-solid fa-check-circle"></i>
+                <p>Once Prometheus is scraping <span class="inline-code">/metrics</span>, all monitoring data (uptime,
+                    latency, DNS, SSL) will appear in your Grafana dashboards automatically — no Docker needed!</p>
+            </div>
+
+            <h2 id="helm"><i class="fa-solid fa-dharmachakra"></i> Option 3: Helm (Production Kubernetes)</h2>
+
+            <h3><span class="step-num">1</span>Add the Helm repository</h3>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span></div>
+                <pre><code>helm repo add hawkeye oci://ghcr.io/Bharath-MR-007/charts/hawk-eye
+helm repo update</code></pre>
+            </div>
+
+            <h3><span class="step-num">2</span>Create a values override file</h3>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">YAML</span><span>values-prod.yaml</span></div>
+                <pre><code>startupConfig:
+  name: hawkeye.mycompany.com
+  loader:
+    type: file
+    interval: 30s
+
+checksConfig:
+  health:
+    interval: 30s
+    targets:
+      - https://api.example.com/health</code></pre>
+            </div>
+
+            <h3><span class="step-num">3</span>Install into Kubernetes</h3>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span></div>
+                <pre><code>kubectl create namespace monitoring
+helm upgrade -i hawkeye oci://ghcr.io/Bharath-MR-007/charts/hawk-eye \
+  --namespace monitoring \
+  -f values-prod.yaml</code></pre>
+            </div>
+
+            <h2 id="verify"><i class="fa-solid fa-stethoscope"></i> Verify Installation</h2>
+            <p>After starting, run these commands to confirm all services are healthy:</p>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span></div>
+                <pre><code># Check running containers
+docker compose ps
+
+# Confirm hawkeye API is responding
+curl -s http://localhost:8080/metrics | head -20
+
+# Check logs for errors
+docker compose logs hawkeye --tail=50</code></pre>
+            </div>
+
+            <h2 id="ports"><i class="fa-solid fa-network-wired"></i> Service Port Reference</h2>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">TEXT</span><span>Port Map</span></div>
+                <pre><code>Service          Port    Protocol    Description
+─────────────────────────────────────────────────────────
+Hawk-Eye         8080    HTTP        Main dashboard + API
+Prometheus       9090    HTTP        Metrics storage + query
+Alertmanager     9093    HTTP        Alert routing
+Grafana          3000    HTTP        Metric visualization
+Elasticsearch    9200    HTTP        Log storage (REST API)
+Kibana           5601    HTTP        Log visualization
+Thanos Query     10902   HTTP        Cross-cluster queries</code></pre>
+            </div>
+
+            <h2 id="troubleshoot"><i class="fa-solid fa-wrench"></i> Troubleshooting</h2>
+            <h3>Container exits immediately</h3>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span></div>
+                <pre><code>docker compose logs hawkeye
+# Look for: "failed to parse config" or "permission denied"</code></pre>
+            </div>
+            <p>Ensure <span class="inline-code">checks.yaml</span> is valid YAML and the binary was built for the
+                correct architecture (<span class="inline-code">linux/arm64</span> vs <span
+                    class="inline-code">linux/amd64</span>).</p>
+
+            <h3>Kibana fails to start (manifest unknown)</h3>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span></div>
+                <pre><code>docker compose pull kibana
+docker compose up -d kibana</code></pre>
+            </div>
+            <p>Ensure you are using a valid image version. Check <a style="color:var(--purple)"
+                    href="https://www.elastic.co/downloads/kibana" target="_blank">elastic.co</a> for the latest
+                available tags.</p>
+
+            <div class="callout info"><i class="fa-solid fa-circle-info"></i>
+                <p>For more assistance, check the server logs at <span class="inline-code">hawkeye.log</span> in the
+                    project root during local development.</p>
+            </div>
+        </main>
+    </div>
+    <script>
+        function switchTab(btn, id) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('tab-' + id).classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

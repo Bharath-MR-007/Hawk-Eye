@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hawk-Eye | Alert Config</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg-dark: #0f1115;
+            --sidebar-bg: #15181e;
+            --surface-color: #1a1d24;
+            --border-color: #2a2d35;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-purple: #8b5cf6;
+            --info-color: #3b82f6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --sidebar-width: 280px;
+        }
+
+        .app-window {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+        }
+
+        /* App Main Sidebar */
+        .main-sidebar {
+            width: 260px;
+            background-color: #12141c;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 50;
+        }
+
+        .main-sidebar-header {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--surface-color);
+            gap: 12px;
+        }
+
+        .main-sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-category {
+            padding: 0 1.5rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin: 1.5rem 0 0.5rem 0;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-category:first-of-type {
+            margin-top: 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            gap: 14px;
+            cursor: pointer;
+            background: transparent;
+            border-top: none;
+            border-right: none;
+            border-bottom: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .nav-item i {
+            width: 16px;
+            font-size: 1.1rem;
+            text-align: center;
+            transition: color 0.2s;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: rgba(139, 92, 246, 0.1);
+            color: #fff;
+            border-left-color: var(--accent-purple, #8b5cf6);
+        }
+
+        .nav-item.active i {
+            color: var(--accent-purple, #8b5cf6);
+        }
+
+        .main-sidebar-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Target List Sidebar */
+        .target-sidebar {
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-brand {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-purple);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            text-decoration: none;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 10px 12px 10px 36px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            box-sizing: border-box;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .target-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .target-item {
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .target-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .target-item.active {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--accent-purple);
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #090a0d;
+        }
+
+        .top-bar {
+            height: 70px;
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-dark);
+        }
+
+        .selected-target-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Help Dropdown */
+        .help-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .help-dropbtn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .help-dropbtn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .help-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #1a1b26;
+            min-width: 220px;
+            box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            top: 100%;
+            margin-top: 10px;
+            overflow: visible;
+            backdrop-filter: blur(10px);
+        }
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        .help-dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            background: transparent;
+        }
+
+        .help-dropdown-content a {
+            position: relative;
+            z-index: 2;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background-color: #1a1b26;
+        }
+
+        .help-dropdown-content a:last-child {
+            border-bottom: none;
+        }
+
+        .help-dropdown-content a:hover {
+            background-color: rgba(139, 92, 246, 0.2);
+            color: #fff;
+            padding-left: 20px;
+        }
+
+        .help-dropdown-content a i {
+            margin-right: 10px;
+            width: 16px;
+            text-align: center;
+        }
+
+        .help-dropdown:hover .help-dropdown-content {
+            display: block;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            border: none;
+            font-size: 0.85rem;
+        }
+
+        .btn-primary {
+            background: var(--accent-purple);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #7c3aed;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        /* Table Styles */
+        .table-container {
+            flex: 1;
+            overflow: auto;
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            background: var(--surface-color);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.03);
+            text-align: left;
+            padding: 12px 16px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .input-cell {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid transparent;
+            color: white;
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .input-cell:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .code-font {
+            font-family: 'Monaco', 'Consolas', monospace;
+            color: #a7f3d0;
+        }
+
+        .severity-select {
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            border: 1px solid transparent;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .severity-select:focus {
+            border-color: var(--accent-purple);
+            outline: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 100px 20px;
+            color: var(--text-secondary);
+        }
+
+        #notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 600;
+            transform: translateY(100px);
+            transition: transform 0.3s;
+            z-index: 1000;
+            font-size: 0.9rem;
+        }
+
+        #notification.show {
+            transform: translateY(0);
+        }
+    
+        .tree-parent {
+            justify-content: space-between !important;
+        }
+
+        .tree-parent .tree-chevron {
+            font-size: 0.7rem;
+            transition: transform 0.2s;
+            width: auto !important;
+        }
+
+        .tree-parent.open .tree-chevron {
+            transform: rotate(180deg);
+        }
+
+        .tree-children {
+            display: none;
+            flex-direction: column;
+            gap: 2px;
+            background: rgba(0, 0, 0, 0.15);
+            border-left: 2px solid rgba(139, 92, 246, 0.3);
+            margin-left: 24px;
+            padding-left: 4px;
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        .tree-parent.open + .tree-children {
+            display: flex;
+        }
+
+        .child-item {
+            padding: 8px 1rem !important;
+            font-size: 0.8rem !important;
+        }
+</style>
+</head>
+
+<body>
+    <div class="app-window">
+        <!-- Main Left Sidebar -->
+        <aside class="main-sidebar">
+                                                                                                                                                                                                <div class="main-sidebar-header">
+                <span style="font-size: 1.5rem;">🦅</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                    <span style="font-weight: 700; font-size: 1.25rem;">Hawk-Eye</span>
+                    <span
+                        style="font-size: 0.65rem; color: #ff00ff; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
+                </div>
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                                                                                                                                                                                                                                                                                    <nav class="main-sidebar-nav">
+                <div class="nav-category">Monitoring</div>
+                <a href="/dashboard" class="nav-item">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </a>
+                <a href="/inventory" class="nav-item">
+                    <i class="fa-solid fa-list"></i> Target Inventory
+                </a>
+
+                <div class="nav-item tree-parent" onclick="this.classList.toggle('open')" style="margin-top: 15px;">
+                    <div style="display: flex; align-items: center; gap: 14px;"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
+                    <i class="fa-solid fa-chevron-down tree-chevron"></i>
+                </div>
+                <div class="tree-children">
+                    <a href="/incidents" class="nav-item child-item">
+                        <i class="fa-solid fa-table-cells"></i> All Incidents
+                    </a>
+                </div>
+
+                <div class="nav-category">Management</div>
+                <button class="nav-item" onclick="if(document.getElementById('addTargetModal')) { document.getElementById('addTargetModal').style.display='flex'; } else { window.location.href='/dashboard?add=true'; }">
+                    <i class="fa-solid fa-plus" style="color: var(--info-color);"></i> Add New Target
+                </button>
+                <button class="nav-item" onclick="if(typeof deleteSelectedTargets === 'function') { deleteSelectedTargets(); } else { window.location.href='/dashboard'; }">
+                    <i class="fa-solid fa-trash" style="color: var(--error-color);"></i> Delete Target
+                </button>
+
+                <div class="nav-category" style="margin-top: 15px;">Integrations</div>
+                <a href="/integrations" class="nav-item">
+                    <i class="fa-solid fa-link"></i> External Apps Links
+                </a>
+                <a href="/integrations_config" class="nav-item">
+                    <i class="fa-solid fa-gears"></i> External Apps Integration Config
+                </a>
+
+                <div class="nav-category" style="margin-top: 15px;">Configuration</div>
+                <a href="/alerts" class="nav-item active">
+                    <i class="fa-solid fa-folder"></i> Alerts Config
+                </a>
+                <a href="/polling" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Polling Config
+                </a>
+                <a href="/users_config" class="nav-item">
+                    <i class="fa-solid fa-user-gear"></i> User Configuration
+                </a>
+                <button class="nav-item" onclick="if(typeof exportConfig === 'function') { exportConfig(); } else { window.location.href='/dashboard?export=true'; }">
+                    <i class="fa-solid fa-file-export"></i> Export Snapshot
+                </button>
+                <button class="nav-item" onclick="if(document.getElementById('importFile')) { document.getElementById('importFile').click(); } else { window.location.href='/dashboard?import=true'; }">
+                    <i class="fa-solid fa-file-import"></i> Import Snapshot
+                </button>
+
+                <div class="nav-category">Operations</div>
+                <a href="/troubleshooting" class="nav-item">
+                    <i class="fa-solid fa-microchip"></i> Troubleshooting
+                </a>
+                <a href="/device_reachability" class="nav-item">
+                    <i class="fa-solid fa-satellite-dish"></i> Device Reachability
+                </a>
+            </nav>
+
+            <div class="main-sidebar-footer">
+            </div>
+        </aside>
+
+        <!-- Target Sidebar Inner Pane -->
+        <div class="target-sidebar">
+            <div style="padding: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="margin: 0; color: var(--text-primary); font-size: 1.1rem;"><i
+                            class="fa-solid fa-bullseye"></i>
+                        Targets</h3>
+                </div>
+                <div class="search-container">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" class="search-input" id="targetSearch" placeholder="Filter targets..."
+                        onkeyup="filterTargets()">
+                </div>
+                <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span
+                            style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Group
+                            By</span>
+                        <select id="groupBySelect" onchange="renderSidebar()"
+                            style="background: transparent; color: white; border: none; font-size: 0.7rem; font-weight: 600; cursor: pointer; outline: none;">
+                            <option value="none">None</option>
+                            <option value="tags">Tags</option>
+                            <option value="regex">Name (Regex)</option>
+                        </select>
+                    </div>
+                    <input type="text" id="groupRegexInput" placeholder="Regex (e.g. ^[^-]+)"
+                        style="display: none; background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 4px; padding: 6px 10px; color: white; font-size: 0.75rem; width: 100%; box-sizing: border-box;"
+                        oninput="renderSidebar()">
+                </div>
+            </div>
+
+            <div class="target-list" id="targetList">
+                <div style="text-align: center; color: var(--text-secondary); padding: 20px;">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> Loading...
+                </div>
+            </div>
+        </div>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <h1 class="selected-target-title" id="selectedTitle">Global Configuration</h1>
+                        <div class="actions">
+                            <button class="btn btn-outline" onclick="location.reload()"><i
+                                    class="fa-solid fa-rotate"></i>
+                                Reset</button>
+                            <button class="btn btn-primary" onclick="saveConfiguration()" id="saveBtn"><i
+                                    class="fa-solid fa-cloud-arrow-up"></i> Push to Prometheus</button>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center;">
+                        <div class="help-dropdown" style="margin-right: 12px;">
+                            <button class="help-dropbtn"
+                                style="border-radius: 8px; padding: 6px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color);">
+                                <i class="fa-solid fa-circle-question"></i> Help Menu <i
+                                    class="fa-solid fa-chevron-down" style="font-size: 0.6rem;"></i>
+                            </button>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="help-dropdown-content">
+                            <a href="/installation.html"><i class="fa-solid fa-book"></i> Installation Procedure</a>
+                            <a href="/requirements.html"><i class="fa-solid fa-list-check"></i> Software Requirements</a>
+                            <a href="/capabilities.html"><i class="fa-solid fa-bolt"></i> Capabilities of Hawk-Eye</a>
+                            <a href="/integrations_guide"><i class="fa-solid fa-layer-group"></i> Integration Guide</a>
+                            <a href="/architecture.html"><i class="fa-solid fa-diagram-project"></i> Product Architecture</a>
+                            <a href="/usermanual.html"><i class="fa-solid fa-file-lines"></i> User Manual</a>
+                            <a href="/admindoc.html"><i class="fa-solid fa-user-shield"></i> Admin Document</a>
+                            <a href="/about.html"><i class="fa-solid fa-circle-info"></i> About - Overview</a>
+                        </div>
+                        </div>
+
+                        <div
+                            style="display: flex; align-items: center; padding: 6px; background: transparent; border-radius: 50%;">
+                            <i class="fa-solid fa-user-circle"
+                                style="color: var(--accent-purple); font-size: 1.5rem;"></i>
+                        </div>
+                    </div>
+
+                </div>
+            </header>
+
+            <section class="table-container">
+                <table id="configTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 140px;">Alert Name</th>
+                            <th style="width: 140px;">Metric</th>
+                            <th>PROMQL Expression</th>
+                            <th style="width: 70px;">Duration</th>
+                            <th style="width: 180px;">Message Definition</th>
+                            <th style="width: 90px;">Severity</th>
+                            <th>Detailed Description</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ruleBody">
+                        <!-- Table rows injected here -->
+                    </tbody>
+                </table>
+                <div id="emptyMessage"></div>
+            </section>
+        </main>
+
+        <div id="notification"></div>
+
+        <script>
+            let configData = null;
+            let targets = [];
+            let currentlySelected = 'Global (All)';
+
+            async function loadTargets() {
+                try {
+                    const targetsRes = await fetch('/api/v1/targets');
+                    if (targetsRes.ok) {
+                        targets = await targetsRes.json();
+                    }
+                    renderSidebar();
+                    initAlerts(); // Call initAlerts after targets are loaded and sidebar rendered
+                } catch (e) {
+                    console.error("Failed to load targets:", e);
+                    const list = document.getElementById('targetList');
+                    list.innerHTML = `<div style="text-align: center; color: var(--error-color); padding: 20px;">Failed to load targets.</div>`;
+                }
+            }
+
+            async function initAlerts() {
+                try {
+                    const alertsRes = await fetch('/api/v1/alerts');
+                    if (!alertsRes.ok) throw new Error('Alerts fetch failed');
+                    configData = await alertsRes.json();
+                    renderAlerts();
+                } catch (e) {
+                    console.error("Failed to load alerts:", e);
+                    document.getElementById('ruleBody').innerHTML = `<tr><td colspan="7" class="empty-state">Failed to load alerts.</td></tr>`;
+                }
+            }
+
+            function getTagsMap() {
+                try { return JSON.parse(localStorage.getItem('hawkeye_tags')) || {}; } catch { return {}; }
+            }
+
+            function renderSidebar() {
+                const list = document.getElementById('targetList');
+                const groupBy = document.getElementById('groupBySelect').value;
+                const regexInput = document.getElementById('groupRegexInput');
+                const query = document.getElementById('targetSearch').value.toLowerCase();
+
+                if (groupBy === 'regex') regexInput.style.display = 'block';
+                else regexInput.style.display = 'none';
+
+                list.innerHTML = '';
+
+                // Re-add Global item always at top
+                const global = document.createElement('div');
+                global.className = 'target-item' + (currentlySelected === 'Global (All)' ? ' active' : '');
+                global.onclick = () => selectTarget('Global (All)');
+                global.innerHTML = `<i class="fa-solid fa-globe"></i> Global (All Config)`;
+                list.appendChild(global);
+
+                const filteredTargets = targets.filter(t => t.toLowerCase().includes(query));
+                const tagMap = getTagsMap();
+                const groups = {};
+
+                filteredTargets.forEach(t => {
+                    let groupName = "Others";
+                    if (groupBy === 'tags') {
+                        const tags = tagMap[t] || [];
+                        groupName = tags.length > 0 ? tags[0] : "No Tags";
+                    } else if (groupBy === 'regex') {
+                        const pattern = regexInput.value;
+                        if (pattern) {
+                            try {
+                                const re = new RegExp(pattern);
+                                const match = t.match(re);
+                                groupName = match ? (match[1] || match[0]) : "No Match";
+                            } catch (e) {
+                                groupName = "Invalid Regex";
+                            }
+                        } else {
+                            groupName = "Enter Regex";
+                        }
+                    } else {
+                        groupName = "_ungrouped";
+                    }
+
+                    if (!groups[groupName]) groups[groupName] = [];
+                    groups[groupName].push(t);
+                });
+
+                Object.keys(groups).sort().forEach(groupName => {
+                    if (groupName !== "_ungrouped") {
+                        const header = document.createElement('div');
+                        header.style.padding = '12px 16px 4px 16px';
+                        header.style.fontSize = '0.65rem';
+                        header.style.color = 'var(--accent-purple)';
+                        header.style.textTransform = 'uppercase';
+                        header.style.fontWeight = '700';
+                        header.style.letterSpacing = '0.5px';
+                        header.textContent = groupName;
+                        list.appendChild(header);
+                    }
+
+                    groups[groupName].sort().forEach(t => {
+                        const item = document.createElement('div');
+                        item.className = 'target-item' + (currentlySelected === t ? ' active' : '');
+                        item.onclick = () => selectTarget(t);
+                        item.innerHTML = `<i class="fa-solid fa-server"></i> ${t}`;
+                        list.appendChild(item);
+                    });
+                });
+            }
+
+            function filterTargets() {
+                renderSidebar();
+            }
+
+            function selectTarget(target) {
+                currentlySelected = target;
+                renderSidebar();
+                document.getElementById('selectedTitle').textContent = target === 'Global (All)' ? 'Global Configuration' : target;
+                renderAlerts();
+            }
+
+            function extractBaseMetric(expr) {
+                const match = expr.match(/^([a-z_0-9]+)/);
+                return match ? match[1] : 'unknown_metric';
+            }
+
+            function renderAlerts() {
+                const body = document.getElementById('ruleBody');
+                body.innerHTML = '';
+
+                if (!configData || !configData.groups) {
+                    body.innerHTML = `<tr><td colspan="7" class="empty-state">No alert configuration data available.</td></tr>`;
+                    return;
+                }
+
+                // 1. Collect all "Global" alerts to use as templates
+                const globalTemplates = [];
+                configData.groups.forEach(group => {
+                    group.rules.forEach(rule => {
+                        if (!rule.expr.includes('target="')) {
+                            globalTemplates.push({ ...rule, groupName: group.name });
+                        }
+                    });
+                });
+
+                // 2. Identify rules belonging to the currently selected target
+                const targetSpecificRules = [];
+                configData.groups.forEach(group => {
+                    group.rules.forEach(rule => {
+                        const match = rule.expr.match(/target="([^"]+)"/);
+                        if (match && match[1] === currentlySelected) {
+                            targetSpecificRules.push({ ...rule, groupName: group.name });
+                        }
+                    });
+                });
+
+                // 3. Determine what to show in the table
+                let tableData = [];
+                if (currentlySelected === 'Global (All)') {
+                    tableData = globalTemplates.map(t => ({ ...t, isOverride: false }));
+                } else {
+                    globalTemplates.forEach(tpl => {
+                        const override = targetSpecificRules.find(r => r.alert === tpl.alert);
+                        tableData.push(override ? { ...override, isOverride: true } : { ...tpl, isOverride: false });
+                    });
+
+                    targetSpecificRules.forEach(r => {
+                        if (!globalTemplates.find(tpl => tpl.alert === r.alert)) {
+                            tableData.push({ ...r, isOverride: true });
+                        }
+                    });
+                }
+
+                if (tableData.length === 0) {
+                    body.innerHTML = `<tr><td colspan="7" class="empty-state">No alerts configured for this target.</td></tr>`;
+                    document.getElementById('configTable').style.display = 'none';
+                    return;
+                }
+
+                tableData.forEach((rule, idx) => {
+                    const sev = rule.labels ? rule.labels.severity : 'warning';
+                    const baseMetric = extractBaseMetric(rule.expr);
+                    const tr = document.createElement('tr');
+                    const fieldId = `${rule.groupName}-${rule.alert}`;
+
+                    tr.innerHTML = `
+                    <td>
+                        <div style="font-weight:700;">${rule.alert}</div>
+                        ${rule.isOverride ? '<span style="font-size:0.6rem; color:var(--info-color); text-transform:uppercase;">[Target Specific]</span>' :
+                            (currentlySelected !== 'Global (All)' ? '<span style="font-size:0.6rem; color:var(--text-secondary); text-transform:uppercase;">[Global Default]</span>' : '')}
+                    </td>
+                    <td><div class="code-font">${baseMetric}</div></td>
+                    <td><textarea class="input-cell code-font" id="expr-${fieldId}" rows="2">${rule.expr}</textarea></td>
+                    <td><input type="text" class="input-cell" id="for-${fieldId}" value="${rule.for}"></td>
+                    <td><input type="text" class="input-cell" id="sum-${fieldId}" value="${escapeHtml(rule.annotations?.summary || '')}"></td>
+                    <td>
+                        <select class="severity-select" id="sev-${fieldId}">
+                            <option value="warning" ${sev === 'warning' ? 'selected' : ''}>Warning</option>
+                            <option value="critical" ${sev === 'critical' ? 'selected' : ''}>Critical</option>
+                        </select>
+                    </td>
+                    <td><textarea class="input-cell" id="desc-${fieldId}" rows="2">${escapeHtml(rule.annotations?.description || '')}</textarea></td>
+                `;
+                    body.appendChild(tr);
+                });
+
+                document.getElementById('configTable').style.display = 'table';
+            }
+
+            async function saveConfiguration() {
+                const btn = document.getElementById('saveBtn');
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+                btn.disabled = true;
+
+                configData.groups.forEach(group => {
+                    const updatedRules = [];
+                    group.rules.forEach(rule => {
+                        const fieldId = `${group.name}-${rule.alert}`;
+                        const exprEl = document.getElementById(`expr-${fieldId}`);
+                        const match = rule.expr.match(/target="([^"]+)"/);
+                        const ruleTarget = match ? match[1] : 'Global (All)';
+
+                        if (exprEl && ruleTarget === currentlySelected) {
+                            rule.expr = exprEl.value;
+                            rule.for = document.getElementById(`for-${fieldId}`).value;
+                            if (!rule.labels) rule.labels = {};
+                            rule.labels.severity = document.getElementById(`sev-${fieldId}`).value;
+                            if (!rule.annotations) rule.annotations = {};
+                            rule.annotations.summary = document.getElementById(`sum-${fieldId}`).value;
+                            rule.annotations.description = document.getElementById(`desc-${fieldId}`).value;
+
+                            // Sync expression with current target if not global
+                            if (currentlySelected !== 'Global (All)' && !rule.expr.includes(`target="${currentlySelected}"`)) {
+                                rule.expr = rule.expr.replace(/^([a-z_0-9]+)/, `$1{target="${currentlySelected}"}`);
+                            }
+                        }
+                        updatedRules.push(rule);
+                    });
+
+                    if (currentlySelected !== 'Global (All)') {
+                        group.rules.forEach(rule => {
+                            const isGlobal = !rule.expr.includes('target="');
+                            if (isGlobal) {
+                                const fieldId = `${group.name}-${rule.alert}`;
+                                const exprEl = document.getElementById(`expr-${fieldId}`);
+                                const userExpr = exprEl ? exprEl.value : null;
+                                const overrideExists = group.rules.some(r => r.alert === rule.alert && r.expr.includes(`target="${currentlySelected}"`));
+
+                                if (userExpr && userExpr !== rule.expr && !overrideExists) {
+                                    const newRule = JSON.parse(JSON.stringify(rule));
+                                    newRule.expr = userExpr.includes(`target="${currentlySelected}"`) ? userExpr : userExpr.replace(/^([a-z_0-9]+)/, `$1{target="${currentlySelected}"}`);
+                                    newRule.for = document.getElementById(`for-${fieldId}`).value;
+                                    if (!newRule.labels) newRule.labels = {};
+                                    newRule.labels.severity = document.getElementById(`sev-${fieldId}`).value;
+                                    if (!newRule.annotations) newRule.annotations = {};
+                                    newRule.annotations.summary = document.getElementById(`sum-${fieldId}`).value;
+                                    newRule.annotations.description = document.getElementById(`desc-${fieldId}`).value;
+                                    updatedRules.push(newRule);
+                                }
+                            }
+                        });
+                    }
+                    group.rules = updatedRules;
+                });
+
+                try {
+                    const res = await fetch('/api/v1/alerts', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(configData)
+                    });
+                    if (res.ok) notify('Configuration saved and reloaded!', 'success');
+                    else notify('Failed to save configuration.', 'error');
+                } catch (e) {
+                    notify('Network error.', 'error');
+                } finally {
+                    btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Push to Prometheus';
+                    btn.disabled = false;
+                }
+            }
+            async function exportConfig() {
+                const tags = localStorage.getItem('hawkeye_tags') || '{}';
+                try {
+                    const res = await fetch('/api/v1/config/export', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ tags })
+                    });
+                    if (res.ok) {
+                        const blob = await res.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'hawk-eye-config-' + new Date().toISOString().split('T')[0] + '.zip';
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        notify('System configuration exported successfully!', 'success');
+                    } else {
+                        notify('Failed to export configuration.', 'error');
+                    }
+                } catch (e) {
+                    notify('Network error during export.', 'error');
+                }
+            }
+
+            async function importConfig(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                if (!confirm('Warning: Importing configuration will overwrite all current Targets, Alerts, and Dashboard settings. Continue?')) {
+                    event.target.value = '';
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('config', file);
+
+                try {
+                    notify('Importing configuration... please wait.', 'info');
+                    const res = await fetch('/api/v1/config/import', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.tags) {
+                            localStorage.setItem('hawkeye_tags', data.tags);
+                        }
+                        notify('Configuration imported successfully! Reloading...', 'success');
+                        setTimeout(() => location.reload(), 2000);
+                    } else {
+                        notify('Failed to import configuration zip.', 'error');
+                    }
+                } catch (e) {
+                    notify('Network error during import.', 'error');
+                } finally {
+                    event.target.value = '';
+                }
+            }
+
+
+            function notify(msg, type) {
+                const n = document.getElementById('notification');
+                n.textContent = msg;
+                n.style.background = type === 'success' ? '#10b981' : (type === 'info' ? '#3b82f6' : '#ef4444');
+                n.className = 'show';
+                setTimeout(() => n.classList.remove('show'), 3000);
+            }
+
+            function escapeHtml(s) {
+                if (!s) return '';
+                return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            }
+
+            // Initialize App
+            loadTargets();
+        </script>
+    </div>
+</body>
+
+</html>

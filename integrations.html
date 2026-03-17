@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrations | Hawk-Eye Monitoring</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --bg-dark: #0f1115;
+            --surface-color: #1a1d24;
+            --border-color: #2a2d35;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --info-color: #3b82f6;
+            --header-bg: #1e2128;
+            --card-hover: #232730;
+            --accent-purple: #8b5cf6;
+            --success-color: #10b981;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        .app-window {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Sidebar Styles */
+        .main-sidebar {
+            width: 260px;
+            background-color: #12141c;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 50;
+        }
+
+        .main-sidebar-header {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--surface-color);
+            gap: 12px;
+        }
+
+        .main-sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-category {
+            padding: 0 1.5rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin: 1.5rem 0 0.5rem 0;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-category:first-of-type {
+            margin-top: 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            gap: 14px;
+            cursor: pointer;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            border: none;
+            font-family: inherit;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: rgba(139, 92, 246, 0.1);
+            color: #fff;
+            border-left-color: var(--accent-purple);
+        }
+
+        .nav-item i {
+            width: 16px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        /* Content Area */
+        .app-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow-y: auto;
+            padding: 2.5rem;
+        }
+
+        .header-section {
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 2rem;
+        }
+
+        .header-section h1 {
+            font-size: 2rem;
+            margin: 0 0 0.75rem 0;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-section p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            max-width: 800px;
+        }
+
+        .integrations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .integration-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .integration-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-purple);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .icon-box {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .card-title h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-top: 4px;
+            display: inline-block;
+        }
+
+        .status-badge.active {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success-color);
+        }
+
+        .card-body {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .btn-link {
+            padding: 10px 20px;
+            border-radius: 8px;
+            background: var(--accent-purple);
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+            margin-top: auto;
+        }
+
+        .btn-link:hover {
+            filter: brightness(1.2);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+        }
+
+        .url-box {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            opacity: 0.6;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Top Navbar */
+        .top-navbar {
+            height: 70px;
+            background-color: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 0 2rem;
+            flex-shrink: 0;
+        }
+
+        /* Help Dropdown */
+        .help-dropdown {
+            position: relative;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .help-dropbtn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .help-dropbtn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .help-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #1a1b26;
+            min-width: 220px;
+            box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            top: 100%;
+            margin-top: 10px;
+            overflow: visible;
+            backdrop-filter: blur(10px);
+        }
+
+        .help-dropdown-content a {
+            position: relative;
+            z-index: 2;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background-color: #1a1b26;
+        }
+
+        .help-dropdown:hover .help-dropdown-content {
+            display: block;
+        }
+
+        .help-dropdown-content a:hover {
+            background-color: rgba(139, 92, 246, 0.2);
+            color: #fff;
+            padding-left: 20px;
+        }
+
+        .help-dropdown-content a i {
+            margin-right: 10px;
+            width: 16px;
+            text-align: center;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        .help-dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            background: transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-window">
+        <!-- Sidebar -->
+        <aside class="main-sidebar">
+            <div class="main-sidebar-header">
+                <span style="font-size: 1.5rem;">🦅</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                    <span style="font-weight: 700; font-size: 1.25rem;">Hawk-Eye</span>
+                    <span
+                        style="font-size: 0.65rem; color: #ff00ff; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
+                </div>
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <nav class="main-sidebar-nav">
+                <div class="nav-category">Monitoring</div>
+                <a href="/dashboard" class="nav-item">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </a>
+                <a href="/inventory" class="nav-item">
+                    <i class="fa-solid fa-list"></i> Target Inventory
+                </a>
+
+                <div class="nav-item tree-parent" onclick="this.classList.toggle('open')" style="margin-top: 15px;">
+                    <div style="display: flex; align-items: center; gap: 14px;"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
+                    <i class="fa-solid fa-chevron-down tree-chevron"></i>
+                </div>
+                <div class="tree-children">
+                    <a href="/incidents" class="nav-item child-item">
+                        <i class="fa-solid fa-table-cells"></i> All Incidents
+                    </a>
+                </div>
+
+                <div class="nav-category">Management</div>
+                <button class="nav-item" onclick="if(document.getElementById('addTargetModal')) { document.getElementById('addTargetModal').style.display='flex'; } else { window.location.href='/dashboard?add=true'; }">
+                    <i class="fa-solid fa-plus" style="color: var(--info-color);"></i> Add New Target
+                </button>
+                <button class="nav-item" onclick="if(typeof deleteSelectedTargets === 'function') { deleteSelectedTargets(); } else { window.location.href='/dashboard'; }">
+                    <i class="fa-solid fa-trash" style="color: var(--error-color);"></i> Delete Target
+                </button>
+
+                <div class="nav-category" style="margin-top: 15px;">Integrations</div>
+                <a href="/integrations" class="nav-item active">
+                    <i class="fa-solid fa-link"></i> External Apps Links
+                </a>
+                <a href="/integrations_config" class="nav-item">
+                    <i class="fa-solid fa-gears"></i> External Apps Integration Config
+                </a>
+
+                <div class="nav-category" style="margin-top: 15px;">Configuration</div>
+                <a href="/alerts" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Alerts Config
+                </a>
+                <a href="/polling" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Polling Config
+                </a>
+                <a href="/users_config" class="nav-item">
+                    <i class="fa-solid fa-user-gear"></i> User Configuration
+                </a>
+                <button class="nav-item" onclick="if(typeof exportConfig === 'function') { exportConfig(); } else { window.location.href='/dashboard?export=true'; }">
+                    <i class="fa-solid fa-file-export"></i> Export Snapshot
+                </button>
+                <button class="nav-item" onclick="if(document.getElementById('importFile')) { document.getElementById('importFile').click(); } else { window.location.href='/dashboard?import=true'; }">
+                    <i class="fa-solid fa-file-import"></i> Import Snapshot
+                </button>
+
+                <div class="nav-category">Operations</div>
+                <a href="/troubleshooting" class="nav-item">
+                    <i class="fa-solid fa-microchip"></i> Troubleshooting
+                </a>
+                <a href="/device_reachability" class="nav-item">
+                    <i class="fa-solid fa-satellite-dish"></i> Device Reachability
+                </a>
+            </nav>
+        </aside>
+
+        <main class="app-content">
+            <header class="top-navbar">
+                <div class="help-dropdown">
+                    <button class="help-dropbtn">
+                        <i class="fa-solid fa-circle-question"></i> Help Menu <i class="fa-solid fa-chevron-down"
+                            style="font-size: 0.6rem;"></i>
+                    </button>
+                    <div class="help-dropdown-content">
+                        <a href="/installation.html"><i class="fa-solid fa-book"></i> Installation Procedure</a>
+                        <a href="/requirements.html"><i class="fa-solid fa-list-check"></i> Software Requirements</a>
+                        <a href="/capabilities.html"><i class="fa-solid fa-bolt"></i> Capabilities of Hawk-Eye</a>
+                        <a href="/integrations_guide"><i class="fa-solid fa-layer-group"></i> Integration Guide</a>
+                        <a href="/architecture.html"><i class="fa-solid fa-diagram-project"></i> Product
+                            Architecture</a>
+                        <a href="/usermanual.html"><i class="fa-solid fa-file-lines"></i> User Manual</a>
+                        <a href="/admindoc.html"><i class="fa-solid fa-user-shield"></i> Admin Document</a>
+                        <a href="/about.html"><i class="fa-solid fa-circle-info"></i> About - Overview</a>
+                    </div>
+                </div>
+            </header>
+            <div class="header-section">
+                <h1>External Apps Links</h1>
+                <p>Quick access to your integrated monitoring platforms. URLs are synchronized with your configuration
+                    settings.</p>
+            </div>
+
+            <div class="integrations-grid">
+                <!-- Grafana -->
+                <div class="integration-card">
+                    <div class="card-header">
+                        <div class="icon-box" style="color: #f47b20;"><i class="fa-solid fa-chart-line"></i></div>
+                        <div>
+                            <h3>Grafana</h3>
+                            <span class="status-badge active">Active</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        Advanced data visualization. View Hawk-Eye metrics, latency heatmaps, and custom dashboards.
+                    </div>
+                    <div class="url-box" id="disp-grafana">http://localhost:3000</div>
+                    <a href="http://localhost:3000" id="lnk-grafana" target="_blank" class="btn-link">Open Grafana <i
+                            class="fa-solid fa-up-right-from-square"></i></a>
+                </div>
+
+                <!-- Prometheus -->
+                <div class="integration-card">
+                    <div class="card-header">
+                        <div class="icon-box" style="color: #e6522c;"><i class="fa-solid fa-database"></i></div>
+                        <div>
+                            <h3>Prometheus</h3>
+                            <span class="status-badge active">Active</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        Time-series database and alerting engine. Explore raw metrics and build custom PromQL queries.
+                    </div>
+                    <div class="url-box" id="disp-prometheus">http://localhost:9090</div>
+                    <a href="http://localhost:9090" id="lnk-prometheus" target="_blank" class="btn-link">Open Prometheus
+                        <i class="fa-solid fa-up-right-from-square"></i></a>
+                </div>
+
+                <!-- Alertmanager -->
+                <div class="integration-card">
+                    <div class="card-header">
+                        <div class="icon-box" style="color: #ef4444;"><i class="fa-solid fa-bell"></i></div>
+                        <div>
+                            <h3>Alertmanager</h3>
+                            <span class="status-badge active">Active</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        Alert routing and inhibition. Manage silences and notification pipelines.
+                    </div>
+                    <div class="url-box" id="disp-alertmanager">http://localhost:9093</div>
+                    <a href="http://localhost:9093" id="lnk-alertmanager" target="_blank" class="btn-link">Open
+                        Alertmanager <i class="fa-solid fa-up-right-from-square"></i></a>
+                </div>
+
+                <!-- Kibana -->
+                <div class="integration-card">
+                    <div class="card-header">
+                        <div class="icon-box" style="color: #00bfb3;"><i class="fa-solid fa-magnifying-glass-chart"></i>
+                        </div>
+                        <div>
+                            <h3>Kibana</h3>
+                            <span class="status-badge active">Active</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        Visual interface for Elasticsearch. Search log streams and visualize application events.
+                    </div>
+                    <div class="url-box" id="disp-kibana">http://localhost:5601</div>
+                    <a href="http://localhost:5601" id="lnk-kibana" target="_blank" class="btn-link">Open Kibana <i
+                            class="fa-solid fa-up-right-from-square"></i></a>
+                </div>
+
+                <!-- Elasticsearch -->
+                <div class="integration-card">
+                    <div class="card-header">
+                        <div class="icon-box" style="color: #feb100;"><i class="fa-solid fa-server"></i></div>
+                        <div>
+                            <h3>Elasticsearch</h3>
+                            <span class="status-badge active">Active</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        Core search engine. Query the log API or check cluster health status.
+                    </div>
+                    <div class="url-box" id="disp-elasticsearch">http://localhost:9200</div>
+                    <a href="http://localhost:9200" id="lnk-elasticsearch" target="_blank" class="btn-link">Open API <i
+                            class="fa-solid fa-code"></i></a>
+                </div>
+
+                <!-- Thanos -->
+                <div class="integration-card">
+                    <div class="card-header">
+                        <div class="icon-box" style="color: #3b82f6;"><i class="fa-solid fa-infinity"></i></div>
+                        <div>
+                            <h3>Thanos Query</h3>
+                            <span class="status-badge active">Active</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        Scalable metric storage. View historical telemetry across multiple Prometheus nodes.
+                    </div>
+                    <div class="url-box">http://localhost:10904</div>
+                    <a href="http://localhost:10904" target="_blank" class="btn-link">Open Thanos <i
+                            class="fa-solid fa-up-right-from-square"></i></a>
+                </div>
+
+                <!-- SNMP -->
+                <div class="integration-card">
+                    <div class="card-header">
+                        <div class="icon-box" style="color: #6366f1;"><i class="fa-solid fa-tower-broadcast"></i></div>
+                        <div>
+                            <h3>SNMP Trap Server</h3>
+                            <span class="status-badge active" id="status-snmp">Active</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        Enterprise NMS Integration. Hawk-Eye sends SNMP v2c traps for all firing incidents.
+                    </div>
+                    <div class="url-box" id="disp-snmp">UDP: localhost:162</div>
+                    <a href="/integrations_config#block-snmp" class="btn-link">Configure SNMP <i
+                            class="fa-solid fa-gears"></i></a>
+                </div>
+
+                <!-- NNMi -->
+                <div class="integration-card">
+                    <div class="card-header">
+                        <div class="icon-box" style="color: #f59e0b;"><i class="fa-solid fa-diagram-project"></i></div>
+                        <div>
+                            <h3>HPE NNMi</h3>
+                            <span class="status-badge" id="status-nnmi"
+                                style="background:rgba(245,158,11,0.15);color:#f59e0b;">Configurable</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        Forward Hawk-Eye incidents into HPE Network Node Manager i (NNMi) as management events via the
+                        NNMi Web Services API.
+                    </div>
+                    <div class="url-box" id="disp-nnmi">Not configured</div>
+                    <a href="/integrations_config#block-nnmi" class="btn-link">Configure NNMi <i
+                            class="fa-solid fa-gears"></i></a>
+                </div>
+
+                <!-- SMTP -->
+                <div class="integration-card">
+                    <div class="card-header">
+                        <div class="icon-box" style="color: #22c55e;"><i class="fa-solid fa-envelope"></i></div>
+                        <div>
+                            <h3>SMTP Server</h3>
+                            <span class="status-badge" id="status-smtp" style="background:rgba(34,197,94,0.15);color:#22c55e;">Configurable</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        Configure email notifications for alerts and system reports using an external SMTP relay.
+                    </div>
+                    <div class="url-box" id="disp-smtp">Not configured</div>
+                    <a href="/integrations_config" onclick="event.preventDefault();window.location.href='/integrations_config';setTimeout(()=>{const el=document.querySelector('[onclick*=smtp]');if(el)el.click();},600);" class="btn-link">Configure SMTP <i class="fa-solid fa-gears"></i></a>
+                </div>
+
+                <!-- LDAP / Active Directory -->
+                <div class="integration-card">
+                    <div class="card-header">
+                        <div class="icon-box" style="color: #38bdf8;"><i class="fa-solid fa-users-gear"></i></div>
+                        <div>
+                            <h3>LDAP / Active Directory</h3>
+                            <span class="status-badge" id="status-ldap" style="background:rgba(56,189,248,0.15);color:#38bdf8;">Configurable</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        Enterprise authentication. Map user roles to LDAP groups or Active Directory teams.
+                    </div>
+                    <div class="url-box" id="disp-ldap">Not configured</div>
+                    <a href="/integrations_config" onclick="event.preventDefault();window.location.href='/integrations_config';setTimeout(()=>{const el=document.querySelector('[onclick*=ldap]');if(el)el.click();},600);" class="btn-link">Configure LDAP <i class="fa-solid fa-gears"></i></a>
+                </div>
+
+                <!-- ServiceNow -->
+                <div class="integration-card">
+                    <div class="card-header">
+                        <div class="icon-box" style="color: #818cf8;"><i class="fa-solid fa-ticket"></i></div>
+                        <div>
+                            <h3>ServiceNow</h3>
+                            <span class="status-badge" id="status-snow" style="background:rgba(129,140,248,0.15);color:#818cf8;">Configurable</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        ITSM Integration. Automatically create and update tickets in ServiceNow for Hawk-Eye incidents.
+                    </div>
+                    <div class="url-box" id="disp-snow">Not configured</div>
+                    <a href="/integrations_config" onclick="event.preventDefault();window.location.href='/integrations_config';setTimeout(()=>{const el=document.querySelector('[onclick*=snow]');if(el)el.click();},600);" class="btn-link">Configure SNOW <i class="fa-solid fa-gears"></i></a>
+                </div>
+
+                <!-- CA Certificates -->
+                <div class="integration-card">
+                    <div class="card-header">
+                        <div class="icon-box" style="color: #f43f5e;"><i class="fa-solid fa-certificate"></i></div>
+                        <div>
+                            <h3>CA Certificates</h3>
+                            <span class="status-badge" id="status-ca" style="background:rgba(244,63,94,0.15);color:#f43f5e;">Configurable</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        Trusted HTTPS communication. Import trusted CA certificates for secure API and dashboard access.
+                    </div>
+                    <div class="url-box" id="disp-ca">Default: system trust</div>
+                    <a href="/integrations_config" onclick="event.preventDefault();window.location.href='/integrations_config';setTimeout(()=>{const el=document.querySelector('[onclick*=ca]');if(el)el.click();},600);" class="btn-link">Manage Certs <i class="fa-solid fa-certificate"></i></a>
+                </div>
+
+                <!-- AI Assistant (LLM) -->
+                <div class="integration-card" style="border-color: rgba(167,139,250,0.3); background: linear-gradient(135deg, #1a1d24 60%, rgba(167,139,250,0.04));">
+                    <div class="card-header">
+                        <div class="icon-box" style="color: #a78bfa; background: rgba(167,139,250,0.08); border-color: rgba(167,139,250,0.2);"><i class="fa-solid fa-robot"></i></div>
+                        <div>
+                            <h3>AI Assistant (LLM)</h3>
+                            <span class="status-badge" id="status-llm" style="background:rgba(167,139,250,0.15);color:#a78bfa;">Configurable</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        Conversational AI for observability. Connect Ollama, OpenAI, or Claude. Includes MCP tool support for querying Prometheus, incidents, and Grafana dashboards.
+                    </div>
+                    <div class="url-box" id="disp-llm">Not configured</div>
+                    <a href="/integrations_config" onclick="event.preventDefault();window.location.href='/integrations_config';setTimeout(()=>{const el=document.querySelector('[onclick*=llm]');if(el)el.click();},600);" class="btn-link" style="background: rgba(167,139,250,0.8);">Configure AI <i class="fa-solid fa-robot"></i></a>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function loadSettings() {
+            const saved = JSON.parse(localStorage.getItem('hawkeye_integrations_v2')) || {};
+            const llmSaved = JSON.parse(localStorage.getItem('hawkeye_llm_config')) || {};
+
+            const apps = {
+                grafana: saved.grafana || 'http://localhost:3000',
+                prometheus: saved.prometheus || 'http://localhost:9090',
+                alertmanager: saved.alertmanager || 'http://localhost:9093',
+                kibana: saved.kibana || 'http://localhost:5601',
+                elasticsearch: saved.elasticsearch || 'http://localhost:9200',
+                snmp: `UDP: ${saved.snmp_target || 'localhost'}:${saved.snmp_port || '162'}`
+            };
+
+            for (const [app, url] of Object.entries(apps)) {
+                const lnk = document.getElementById(`lnk-${app}`);
+                const disp = document.getElementById(`disp-${app}`);
+                if (lnk) lnk.href = url;
+                if (disp) disp.innerText = url;
+            }
+
+            // NNMi display
+            if (saved.nnmi_host) {
+                const nnmiDisp = document.getElementById('disp-nnmi');
+                const nnmiStatus = document.getElementById('status-nnmi');
+                if (nnmiDisp) nnmiDisp.innerText = `${saved.nnmi_host}:${saved.nnmi_port || '9443'}`;
+                if (nnmiStatus) { nnmiStatus.innerText = 'Configured'; nnmiStatus.style.background = 'rgba(16,185,129,0.15)'; nnmiStatus.style.color = '#10b981'; }
+            }
+
+            // SMTP display
+            if (saved.smtp_host) {
+                const d = document.getElementById('disp-smtp');
+                const s = document.getElementById('status-smtp');
+                if (d) d.innerText = `${saved.smtp_host}:${saved.smtp_port || '587'}`;
+                if (s) { s.innerText = 'Configured'; s.style.background = 'rgba(16,185,129,0.15)'; s.style.color = '#10b981'; }
+            }
+
+            // LDAP display
+            if (saved.ldap_host) {
+                const d = document.getElementById('disp-ldap');
+                const s = document.getElementById('status-ldap');
+                if (d) d.innerText = `${saved.ldap_host}:${saved.ldap_port || '389'}`;
+                if (s) { s.innerText = 'Configured'; s.style.background = 'rgba(16,185,129,0.15)'; s.style.color = '#10b981'; }
+            }
+
+            // ServiceNow display
+            if (saved.snow_instance) {
+                const d = document.getElementById('disp-snow');
+                const s = document.getElementById('status-snow');
+                if (d) d.innerText = `${saved.snow_instance}.service-now.com`;
+                if (s) { s.innerText = 'Configured'; s.style.background = 'rgba(16,185,129,0.15)'; s.style.color = '#10b981'; }
+            }
+
+            // LLM display
+            if (llmSaved.provider) {
+                const d = document.getElementById('disp-llm');
+                const s = document.getElementById('status-llm');
+                const providerLabel = { ollama: 'Local (Ollama)', openai: 'OpenAI', anthropic: 'Anthropic', gemini: 'Google Gemini' };
+                if (d) d.innerText = `${providerLabel[llmSaved.provider] || llmSaved.provider} · ${llmSaved.model || 'mixtral'}`;
+                if (s) { s.innerText = 'Configured'; s.style.background = 'rgba(16,185,129,0.15)'; s.style.color = '#10b981'; }
+            }
+        }
+
+        window.onload = loadSettings;
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,54 @@
+global:
+  resolve_timeout: 5m
+  # Uncomment and fill in for Slack notifications:
+  # slack_api_url: 'https://hooks.slack.com/services/YOUR/WEBHOOK/URL'
+
+route:
+  group_by: ['alertname', 'target']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 12h
+  receiver: 'default-receiver'
+  routes:
+    # SSL expiry critical (< 7 days) — send immediately
+    - matchers:
+        - alertname="SslCertificateCritical"
+      receiver: 'critical-receiver'
+      group_wait: 10s
+      repeat_interval: 1h
+    # Site down alerts
+    - matchers:
+        - alertname="SiteDown"
+      receiver: 'critical-receiver'
+      group_wait: 10s
+      repeat_interval: 30m
+    # Warning level (e.g. SSL < 30 days)
+    - matchers:
+        - severity="warning"
+      receiver: 'warning-receiver'
+      repeat_interval: 24h
+
+receivers:
+  - name: 'default-receiver'
+    # Default: log only (add webhook/email below to activate)
+
+  - name: 'critical-receiver'
+    webhook_configs:
+      # Replace with your actual webhook (Slack, PagerDuty, Telegram bot, etc.)
+      # - url: 'http://your-webhook-endpoint/alert'
+      #   send_resolved: true
+    # Example: Telegram via webhook proxy
+    # - url: 'https://api.telegram.org/bot<TOKEN>/sendMessage?chat_id=<CHAT_ID>&text={{ .CommonAnnotations.summary }}'
+
+  - name: 'warning-receiver'
+    webhook_configs:
+      # - url: 'http://your-webhook-endpoint/warning'
+      #   send_resolved: true
+
+inhibit_rules:
+  # Don't send warning if critical already firing for same target
+  - source_matchers:
+      - severity="critical"
+    target_matchers:
+      - severity="warning"
+    equal: ['target']

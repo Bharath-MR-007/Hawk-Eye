@@ -1,0 +1,76 @@
+# SPDX-FileCopyrightText: 2025 Deutsche Telekom IT GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+"
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  main:
+    name: Release Hawk-Eye
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: docker/login-action@v3
+        name: Login to GHCR
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/login-action@v3
+        name: Login to MTR
+        with:
+          registry: mtr.devops.telekom.de
+          username: ${{ secrets.MTR_USERNAME }}
+          password: ${{ secrets.MTR_PASSWORD }}
+      
+      - name: Install syft for sbom generation
+        uses: anchore/sbom-action/download-syft@v0.20.4
+
+      - name: Build, push & release
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+  helm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Registry login
+        run: |
+          helm registry login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+          helm registry login mtr.devops.telekom.de -u ${{ secrets.MTR_USERNAME }} -p ${{ secrets.MTR_PASSWORD }}
+
+      - name: Helm lint
+        run: helm lint ./chart
+
+      - name: Helm package
+        run: helm package ./chart -d ./chart
+
+      - name: Push helm package
+        run: |
+          helm push $(ls ./chart/*.tgz| head -1) oci://ghcr.io/${{ github.repository_owner }}/charts
+          helm push $(ls ./chart/*.tgz| head -1) oci://mtr.devops.telekom.de/hawkeye/charts

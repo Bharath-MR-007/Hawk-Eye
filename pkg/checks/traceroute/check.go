@@ -1,0 +1,284 @@
+// SPDX-FileCopyrightText: 2025 Deutsche Telekom IT GmbH
+//
+// SPDX-License-Identifier: Apache-2.0
+
+package traceroute
+
+import (
+	"context"
+	"fmt"
+	"slices"
+	"sync"
+	"time"
+
+	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/Bharath-MR-007/hawk-eye/internal/helper"
+	"github.com/Bharath-MR-007/hawk-eye/internal/logger"
+	"github.com/Bharath-MR-007/hawk-eye/internal/nnmi"
+	"github.com/Bharath-MR-007/hawk-eye/pkg/checks"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
+)
+
+var _ checks.Check = (*Traceroute)(nil)
+
+const CheckName = "traceroute"
+
+type Target struct {
+	// The address of the target to traceroute to. Can be a DNS name or an IP address
+	Addr string `json:"addr" yaml:"addr" mapstructure:"addr"`
+	// The port to traceroute to
+	Port int `json:"port" yaml:"port" mapstructure:"port"`
+}
+
+func (t Target) String() string {
+	return fmt.Sprintf("%s:%d", t.Addr, t.Port)
+}
+
+func NewCheck() checks.Check {
+	c := &Traceroute{
+		CheckBase: checks.CheckBase{
+			Mu:       sync.Mutex{},
+			DoneChan: make(chan struct{}, 1),
+		},
+		config:     Config{},
+		traceroute: TraceRoute,
+		metrics:    newMetrics(),
+		nnmiClient: nil, // Will be initialized if config is provided
+	}
+	c.tracer = otel.Tracer(c.Name())
+	return c
+}
+
+type Traceroute struct {
+	checks.CheckBase
+	config     Config
+	traceroute tracerouteFactory
+	metrics    metrics
+	tracer     trace.Tracer
+	nnmiClient *nnmi.NNMIClient
+}
+
+type TracerouteConfig struct {
+	Dest       string
+	Port       int
+	Timeout    time.Duration
+	MaxHops    int
+	Method     string
+	Rc         helper.RetryConfig
+	NNMiClient *nnmi.NNMIClient
+}
+
+type tracerouteFactory func(ctx context.Context, cfg TracerouteConfig) (map[int][]Hop, error)
+
+type Result struct {
+	// The minimum number of hops required to reach the target
+	MinHops int `json:"min_hops" yaml:"min_hops" mapstructure:"min_hops"`
+	// The path taken to the destination
+	Hops map[int][]Hop `json:"hops" yaml:"hops" mapstructure:"hops"`
+	// PacketLoss is the percentage of hops that did not respond (0.0-100.0)
+	PacketLoss float64 `json:"packet_loss_pct" yaml:"packet_loss_pct" mapstructure:"packet_loss_pct"`
+}
+
+// Run runs the check in a loop sending results to the provided channel
+func (tr *Traceroute) Run(ctx context.Context, cResult chan checks.ResultDTO) error {
+	ctx, cancel := logger.NewContextWithLogger(ctx)
+	defer cancel()
+	log := logger.FromContext(ctx)
+
+	log.InfoContext(ctx, "Starting traceroute check", "interval", tr.config.Interval.String())
+	for {
+		select {
+		case <-ctx.Done():
+			log.ErrorContext(ctx, "Context canceled", "error", ctx.Err())
+			return ctx.Err()
+		case <-tr.DoneChan:
+			return nil
+		case <-time.After(tr.config.Interval):
+			res := tr.check(ctx)
+			tr.metrics.MinHops(res)
+			cResult <- checks.ResultDTO{
+				Name: tr.Name(),
+				Result: &checks.Result{
+					Data:      res,
+					Timestamp: time.Now(),
+				},
+			}
+			log.DebugContext(ctx, "Successfully finished traceroute check run")
+		}
+	}
+}
+
+// GetConfig returns the current configuration of the check
+func (tr *Traceroute) GetConfig() checks.Runtime {
+	tr.Mu.Lock()
+	defer tr.Mu.Unlock()
+	return &tr.config
+}
+
+func (tr *Traceroute) check(ctx context.Context) map[string]Result {
+	res := make(map[string]Result)
+	log := logger.FromContext(ctx)
+
+	type internalResult struct {
+		addr string
+		res  Result
+	}
+
+	cResult := make(chan internalResult, len(tr.config.Targets))
+	var wg sync.WaitGroup
+	start := time.Now()
+	wg.Add(len(tr.config.Targets))
+
+	for _, t := range tr.config.Targets {
+		go func(t Target) {
+			defer wg.Done()
+			l := log.With("target", t.String())
+			l.DebugContext(ctx, "Running traceroute")
+
+			c, span := tr.tracer.Start(ctx, t.String(), trace.WithAttributes(
+				attribute.String("target.addr", t.Addr),
+				attribute.Int("target.port", t.Port),
+				attribute.Stringer("config.interval", tr.config.Interval),
+				attribute.Stringer("config.timeout", tr.config.Timeout),
+				attribute.Int("config.max_hops", tr.config.MaxHops),
+				attribute.Int("config.retry.count", tr.config.Retry.Count),
+				attribute.Stringer("config.retry.delay", tr.config.Retry.Delay),
+			))
+			defer span.End()
+
+			method := tr.config.Method
+			if method == "" {
+				method = "tcp"
+			}
+
+			s := time.Now()
+			hops, err := tr.traceroute(c, TracerouteConfig{
+				Dest:       t.Addr,
+				Port:       t.Port,
+				Timeout:    tr.config.Timeout,
+				MaxHops:    tr.config.MaxHops,
+				Method:     method,
+				Rc:         tr.config.Retry,
+				NNMiClient: tr.nnmiClient,
+			})
+			elapsed := time.Since(s)
+
+			if err != nil {
+				l.ErrorContext(ctx, "Error running traceroute", "error", err)
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
+			} else {
+				span.SetStatus(codes.Ok, "success")
+			}
+
+			tr.metrics.CheckDuration(t.Addr, elapsed)
+			l.DebugContext(ctx, "Ran traceroute", "result", hops, "duration", elapsed)
+
+			res := Result{
+				Hops:    hops,
+				MinHops: tr.config.MaxHops,
+			}
+			totalAttempts := 0
+			droppedCount := 0
+			for ttl, hopList := range hops {
+				for _, attempt := range hopList {
+					totalAttempts++
+					// A truly dropped probe has no IP response at all (Addr.IP == "")
+					// Intermediate ICMP Time-Exceeded hops are healthy — they just aren't the dest
+					if attempt.Addr.IP == "" {
+						droppedCount++
+					}
+					if attempt.Reached && attempt.Ttl < res.MinHops {
+						res.MinHops = ttl
+					}
+				}
+			}
+			if totalAttempts > 0 {
+				res.PacketLoss = float64(droppedCount) / float64(totalAttempts) * 100.0
+			}
+
+			span.AddEvent("Traceroute completed", trace.WithAttributes(
+				attribute.Int("result.min_hops", res.MinHops),
+				attribute.Int("result.hop_count", len(hops)),
+				attribute.Stringer("result.elapsed_time", elapsed),
+			))
+
+			cResult <- internalResult{addr: t.Addr, res: res}
+		}(t)
+	}
+
+	wg.Wait()
+	close(cResult)
+
+	for r := range cResult {
+		res[r.addr] = r.res
+	}
+
+	elapsed := time.Since(start)
+	log.InfoContext(ctx, "Finished traceroute check", "duration", elapsed)
+	return res
+}
+
+// Shutdown is called once when the check is unregistered or hawkeye shuts down
+func (tr *Traceroute) Shutdown() {
+	tr.DoneChan <- struct{}{}
+	close(tr.DoneChan)
+}
+
+// UpdateConfig is called once when the check is registered
+// This is also called while the check is running, if the remote config is updated
+// This should return an error if the config is invalid
+func (tr *Traceroute) UpdateConfig(cfg checks.Runtime) error {
+	if c, ok := cfg.(*Config); ok {
+		tr.Mu.Lock()
+		defer tr.Mu.Unlock()
+
+		for _, target := range tr.config.Targets {
+			if !slices.Contains(c.Targets, target) {
+				err := tr.metrics.Remove(target.Addr)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		tr.config = *c
+
+		// Initialize/Update NNMi client if enabled
+		if tr.config.Nnmi.Enabled {
+			tr.nnmiClient = nnmi.NewClient(tr.config.Nnmi)
+		} else {
+			tr.nnmiClient = nil
+		}
+		return nil
+	}
+
+	return checks.ErrConfigMismatch{
+		Expected: CheckName,
+		Current:  cfg.For(),
+	}
+}
+
+func (tr *Traceroute) Schema() (*openapi3.SchemaRef, error) {
+	return checks.OpenapiFromPerfData(map[string]Result{})
+}
+
+// GetMetricCollectors allows the check to provide prometheus metric collectors
+func (tr *Traceroute) GetMetricCollectors() []prometheus.Collector {
+	return tr.metrics.List()
+}
+
+// Name returns the name of the check
+func (tr *Traceroute) Name() string {
+	return CheckName
+}
+
+// RemoveLabelledMetrics removes the metrics which have the passed
+// target as a label
+func (tr *Traceroute) RemoveLabelledMetrics(target string) error {
+	return tr.metrics.Remove(target)
+}

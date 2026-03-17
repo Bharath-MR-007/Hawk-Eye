@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Target Inventory - TOSI Monitoring</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --bg-dark: #0f1115;
+            --surface-color: #1a1d24;
+            --border-color: #2a2d35;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --info-color: #3b82f6;
+            --header-bg: #1e2128;
+            --card-hover: #232730;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            /* will be overridden by app-window */
+        }
+
+        .app-window {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+        }
+
+        /* Sidebar Styles */
+        .main-sidebar {
+            width: 260px;
+            background-color: #12141c;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 50;
+        }
+
+        .main-sidebar-header {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--surface-color);
+            gap: 12px;
+        }
+
+        .main-sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-category {
+            padding: 0 1.5rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin: 1.5rem 0 0.5rem 0;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-category:first-of-type {
+            margin-top: 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            gap: 14px;
+            cursor: pointer;
+            background: transparent;
+            border-top: none;
+            border-right: none;
+            border-bottom: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .nav-item i {
+            width: 16px;
+            font-size: 1.1rem;
+            text-align: center;
+            transition: color 0.2s;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: rgba(139, 92, 246, 0.1);
+            color: #fff;
+            border-left-color: var(--accent-purple, #8b5cf6);
+        }
+
+        .nav-item.active i {
+            color: var(--accent-purple, #8b5cf6);
+        }
+
+        .main-sidebar-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .app-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .top-navbar {
+            height: 70px;
+            background-color: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 0 2rem;
+            flex-shrink: 0;
+        }
+
+        .page-scroll-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 2rem;
+        }
+
+        .navbar {
+            display: none;
+        }
+
+        /* Legacy cleanup */
+
+        .navbar-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--info-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .container {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header-section h1 {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+
+        .header-section p {
+            margin: 0.5rem 0 0 0;
+            color: var(--text-secondary);
+        }
+
+        .btn-back {
+            background: var(--surface-color);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-back:hover {
+            background: var(--card-hover);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+            margin-top: 1.5rem;
+        }
+
+        .target-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            padding: 1.25rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .target-card:hover {
+            background: var(--card-hover);
+            transform: translateY(-2px);
+        }
+
+        .target-card i {
+            color: var(--info-color);
+            font-size: 1.2rem;
+        }
+
+        .target-card .target-name {
+            font-family: monospace;
+            font-size: 1rem;
+            word-break: break-all;
+        }
+
+        .loader {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .loader i {
+            margin-right: 8px;
+            color: var(--info-color);
+        }
+
+        /* Help Dropdown */
+        .help-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .help-dropbtn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .help-dropbtn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .help-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #1a1b26;
+            min-width: 220px;
+            box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            top: 100%;
+            margin-top: 10px;
+            overflow: visible;
+            backdrop-filter: blur(10px);
+        }
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        .help-dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            background: transparent;
+        }
+
+        .help-dropdown-content a {
+            position: relative;
+            z-index: 2;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background-color: #1a1b26;
+        }
+
+        .help-dropdown-content a:last-child {
+            border-bottom: none;
+        }
+
+        .help-dropdown-content a:hover {
+            background-color: rgba(139, 92, 246, 0.2);
+            color: #fff;
+            padding-left: 20px;
+        }
+
+        .help-dropdown-content a i {
+            margin-right: 10px;
+            width: 16px;
+            text-align: center;
+        }
+
+        .help-dropdown:hover .help-dropdown-content {
+            display: block;
+        }
+
+        .tree-parent {
+            justify-content: space-between !important;
+        }
+
+        .tree-parent .tree-chevron {
+            font-size: 0.7rem;
+            transition: transform 0.2s;
+            width: auto !important;
+        }
+
+        .tree-parent.open .tree-chevron {
+            transform: rotate(180deg);
+        }
+
+        .tree-children {
+            display: none;
+            flex-direction: column;
+            gap: 2px;
+            background: rgba(0, 0, 0, 0.15);
+            border-left: 2px solid rgba(139, 92, 246, 0.3);
+            margin-left: 24px;
+            padding-left: 4px;
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        .tree-parent.open+.tree-children {
+            display: flex;
+        }
+
+        .child-item {
+            padding: 8px 1rem !important;
+            font-size: 0.8rem !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-window">
+        <!-- Left Sidebar -->
+        <aside class="main-sidebar">
+                                                                                                                                                                                                <div class="main-sidebar-header">
+                <span style="font-size: 1.5rem;">🦅</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                    <span style="font-weight: 700; font-size: 1.25rem;">Hawk-Eye</span>
+                    <span
+                        style="font-size: 0.65rem; color: #ff00ff; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
+                </div>
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                                                                                                                                                                                                                                                <nav class="main-sidebar-nav">
+                <div class="nav-category">Monitoring</div>
+                <a href="/dashboard" class="nav-item">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </a>
+                <a href="/inventory" class="nav-item active">
+                    <i class="fa-solid fa-list"></i> Target Inventory
+                </a>
+
+                <div class="nav-item tree-parent" onclick="this.classList.toggle('open')" style="margin-top: 15px;">
+                    <div style="display: flex; align-items: center; gap: 14px;"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
+                    <i class="fa-solid fa-chevron-down tree-chevron"></i>
+                </div>
+                <div class="tree-children">
+                    <a href="/incidents" class="nav-item child-item">
+                        <i class="fa-solid fa-table-cells"></i> All Incidents
+                    </a>
+                </div>
+
+                <div class="nav-category">Management</div>
+                <button class="nav-item" onclick="if(document.getElementById('addTargetModal')) { document.getElementById('addTargetModal').style.display='flex'; } else { window.location.href='/dashboard?add=true'; }">
+                    <i class="fa-solid fa-plus" style="color: var(--info-color);"></i> Add New Target
+                </button>
+                <button class="nav-item" onclick="if(typeof deleteSelectedTargets === 'function') { deleteSelectedTargets(); } else { window.location.href='/dashboard'; }">
+                    <i class="fa-solid fa-trash" style="color: var(--error-color);"></i> Delete Target
+                </button>
+
+                <div class="nav-category" style="margin-top: 15px;">Integrations</div>
+                <a href="/integrations" class="nav-item">
+                    <i class="fa-solid fa-link"></i> External Apps Links
+                </a>
+                <a href="/integrations_config" class="nav-item">
+                    <i class="fa-solid fa-gears"></i> External Apps Integration Config
+                </a>
+
+                <div class="nav-category" style="margin-top: 15px;">Configuration</div>
+                <a href="/alerts" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Alerts Config
+                </a>
+                <a href="/polling" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Polling Config
+                </a>
+                <a href="/users_config" class="nav-item">
+                    <i class="fa-solid fa-user-gear"></i> User Configuration
+                </a>
+                <button class="nav-item" onclick="if(typeof exportConfig === 'function') { exportConfig(); } else { window.location.href='/dashboard?export=true'; }">
+                    <i class="fa-solid fa-file-export"></i> Export Snapshot
+                </button>
+                <button class="nav-item" onclick="if(document.getElementById('importFile')) { document.getElementById('importFile').click(); } else { window.location.href='/dashboard?import=true'; }">
+                    <i class="fa-solid fa-file-import"></i> Import Snapshot
+                </button>
+
+                <div class="nav-category">Operations</div>
+                <a href="/troubleshooting" class="nav-item">
+                    <i class="fa-solid fa-microchip"></i> Troubleshooting
+                </a>
+                <a href="/device_reachability" class="nav-item">
+                    <i class="fa-solid fa-satellite-dish"></i> Device Reachability
+                </a>
+            </nav>
+
+            <div class="main-sidebar-footer">
+            </div>
+        </aside>
+
+        <main class="app-content">
+            <!-- Top Navbar -->
+            <header class="top-navbar">
+                <div
+                    style="display: flex; align-items: center; gap: 12px; width: 100%; justify-content: space-between;">
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <div id="searchControl"
+                            style="background:var(--bg-dark); padding:6px 14px; border-radius:6px; border:1px solid var(--border-color); display:flex; align-items:center; gap:8px;">
+                            <i class="fa-solid fa-search" style="font-size:0.85rem; color:var(--text-secondary);"></i>
+                            <input type="text" id="inventorySearch" placeholder="Filter targets..."
+                                style="background:transparent; color:white; border:none; outline:none; font-size:0.85rem; width:200px;"
+                                oninput="loadInventory()">
+                        </div>
+                        <div id="groupControls"
+                            style="display:flex; align-items:center; gap:8px; background:var(--bg-dark); padding:6px 14px; border-radius:6px; border:1px solid var(--border-color);">
+                            <span
+                                style="font-size:0.75rem; color:var(--text-secondary); font-weight:600; text-transform:uppercase;">Group
+                                By:</span>
+                            <select id="groupBySelect" onchange="loadInventory()"
+                                style="background:transparent; color:#fff; border:none; padding:0; cursor:pointer; font-weight:600; font-family:'Inter',sans-serif; outline:none; font-size:0.85rem;">
+                                <option value="none">None</option>
+                                <option value="tags">Tags</option>
+                                <option value="regex">Name (Regex)</option>
+                            </select>
+                            <input type="text" id="groupRegexInput" placeholder="Regex (e.g. ^[^-]+)"
+                                style="display:none; background:rgba(0,0,0,0.3); color:white; border:1px solid rgba(255,255,255,0.1); border-radius:4px; padding:4px 8px; font-size:0.75rem; width:120px;"
+                                oninput="loadInventory()">
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <div class="help-dropdown" style="margin-right: 12px;">
+                            <button class="help-dropbtn"
+                                style="border-radius: 8px; padding: 6px 14px;  background: rgba(255,255,255,0.05);">
+                                <i class="fa-solid fa-circle-question"></i> Help Menu <i
+                                    class="fa-solid fa-chevron-down" style="font-size: 0.6rem;"></i>
+                            </button>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="help-dropdown-content">
+                            <a href="/installation.html"><i class="fa-solid fa-book"></i> Installation Procedure</a>
+                            <a href="/requirements.html"><i class="fa-solid fa-list-check"></i> Software Requirements</a>
+                            <a href="/capabilities.html"><i class="fa-solid fa-bolt"></i> Capabilities of Hawk-Eye</a>
+                            <a href="/integrations_guide"><i class="fa-solid fa-layer-group"></i> Integration Guide</a>
+                            <a href="/architecture.html"><i class="fa-solid fa-diagram-project"></i> Product Architecture</a>
+                            <a href="/usermanual.html"><i class="fa-solid fa-file-lines"></i> User Manual</a>
+                            <a href="/admindoc.html"><i class="fa-solid fa-user-shield"></i> Admin Document</a>
+                            <a href="/about.html"><i class="fa-solid fa-circle-info"></i> About - Overview</a>
+                        </div>
+                        </div>
+
+                        <div
+                            style="display: flex; align-items: center; padding: 6px; background: transparent; border-radius: 50%;">
+                            <i class="fa-solid fa-user-circle"
+                                style="color: var(--accent-purple); font-size: 1.5rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const getCookie = (name) => {
+                        const value = `; ${document.cookie}`;
+                        const parts = value.split(`; ${name}=`);
+                        if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+                    };
+                    const user = getCookie('hawk_user');
+                });
+            </script>
+
+            <div class="page-scroll-container">
+                <div class="container" style="padding: 20px 40px; width: 100%; box-sizing: border-box;">
+                    <div class="header-section">
+                        <div>
+                            <h1>Target Inventory</h1>
+                            <p>All unique active domains being monitored across layers.</p>
+                        </div>
+                        <div>
+                            <a href="/dashboard" class="btn-back">
+                                <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+
+                    <style>
+                        table.inventory-table {
+                            width: 100%;
+                            border-collapse: separate;
+                            border-spacing: 0;
+                            font-size: 0.85rem;
+                            color: var(--text-primary);
+                            background: var(--surface-color);
+                            border-radius: 8px;
+                            overflow: hidden;
+                            border: 1px solid var(--border-color);
+                            margin-bottom: 2rem;
+                        }
+
+                        .inventory-table th {
+                            background: rgba(255, 255, 255, 0.03);
+                            text-align: left;
+                            padding: 12px 16px;
+                            color: var(--text-secondary);
+                            font-weight: 600;
+                            text-transform: uppercase;
+                            letter-spacing: 0.05em;
+                            border-bottom: 2px solid var(--border-color);
+                        }
+
+                        .inventory-table td {
+                            padding: 12px 16px;
+                            border-bottom: 1px solid var(--border-color);
+                            vertical-align: middle;
+                        }
+
+                        .inventory-table tr:last-child td {
+                            border-bottom: none;
+                        }
+
+                        .inventory-table tr:hover {
+                            background: rgba(255, 255, 255, 0.02);
+                        }
+
+                        .tag-badge {
+                            display: inline-block;
+                            padding: 2px 8px;
+                            border-radius: 4px;
+                            background: rgba(139, 92, 246, 0.15);
+                            color: var(--accent-purple);
+                            font-size: 0.75rem;
+                            font-weight: 600;
+                            margin-right: 4px;
+                            border: 1px solid rgba(139, 92, 246, 0.3);
+                        }
+
+                        .tree-parent {
+                            justify-content: space-between !important;
+                        }
+
+                        .tree-parent .tree-chevron {
+                            font-size: 0.7rem;
+                            transition: transform 0.2s;
+                            width: auto !important;
+                        }
+
+                        .tree-parent.open .tree-chevron {
+                            transform: rotate(180deg);
+                        }
+
+                        .tree-children {
+                            display: none;
+                            flex-direction: column;
+                            gap: 2px;
+                            background: rgba(0, 0, 0, 0.15);
+                            border-left: 2px solid rgba(139, 92, 246, 0.3);
+                            margin-left: 24px;
+                            padding-left: 4px;
+                            margin-top: 4px;
+                            margin-bottom: 4px;
+                        }
+
+                        .tree-parent.open+.tree-children {
+                            display: flex;
+                        }
+
+                        .child-item {
+                            padding: 8px 1rem !important;
+                            font-size: 0.8rem !important;
+                        }
+
+                        th.sortable {
+                            cursor: pointer;
+                            position: relative;
+                            padding-right: 25px !important;
+                            transition: background 0.2s;
+                        }
+
+                        th.sortable:hover {
+                            background: rgba(255, 255, 255, 0.05);
+                        }
+
+                        th.sortable::after {
+                            content: '\f0dc';
+                            font-family: 'Font Awesome 6 Free';
+                            font-weight: 900;
+                            position: absolute;
+                            right: 10px;
+                            top: 50%;
+                            transform: translateY(-50%);
+                            opacity: 0.3;
+                            font-size: 0.7rem;
+                        }
+
+                        th.sortable.asc::after {
+                            content: '\f0de';
+                            opacity: 1;
+                            color: var(--accent-purple);
+                        }
+
+                        th.sortable.desc::after {
+                            content: '\f0dd';
+                            opacity: 1;
+                            color: var(--accent-purple);
+                        }
+                    </style>
+
+                    <div id="inventoryContainer">
+                        <div class="loader">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i> Loading inventory...
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    function getTagsMap() {
+                        try { return JSON.parse(localStorage.getItem('hawkeye_tags')) || {}; } catch { return {}; }
+                    }
+
+                    async function loadInventory() {
+                        const container = document.getElementById('inventoryContainer');
+                        const groupBy = document.getElementById('groupBySelect').value;
+                        const regexInput = document.getElementById('groupRegexInput');
+
+                        if (groupBy === 'regex') regexInput.style.display = 'block';
+                        else regexInput.style.display = 'none';
+
+                        try {
+                            const res = await fetch('/api/v1/targets');
+                            if (res.ok) {
+                                const targets = await res.json();
+                                if (!targets || targets.length === 0) {
+                                    container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); padding: 3rem;"><i class="fa-solid fa-box-open" style="font-size:2rem; margin-bottom:1rem; display:block;"></i>No targets found. Add targets in the dashboard.</div>';
+                                    return;
+                                }
+
+                                const tagMap = getTagsMap();
+                                const groups = {};
+                                const query = document.getElementById('inventorySearch').value.toLowerCase();
+
+                                targets.filter(t => t.toLowerCase().includes(query)).forEach(t => {
+                                    let groupName = "Others";
+                                    if (groupBy === 'tags') {
+                                        const tags = tagMap[t] || [];
+                                        groupName = tags.length > 0 ? tags[0] : "No Tags";
+                                    } else if (groupBy === 'regex') {
+                                        const pattern = regexInput.value;
+                                        if (pattern) {
+                                            try {
+                                                const re = new RegExp(pattern);
+                                                const match = t.match(re);
+                                                groupName = match ? (match[1] || match[0]) : "No Match";
+                                            } catch (e) {
+                                                groupName = "Invalid Regex";
+                                            }
+                                        } else {
+                                            groupName = "Enter Regex";
+                                        }
+                                    } else {
+                                        groupName = "_ungrouped";
+                                    }
+
+                                    if (!groups[groupName]) groups[groupName] = [];
+                                    groups[groupName].push(t);
+                                });
+
+                                container.innerHTML = '';
+
+                                const table = document.createElement('table');
+                                table.className = 'inventory-table';
+
+                                const thead = document.createElement('thead');
+                                thead.innerHTML = `
+                                    <tr>
+                                        <th class="sortable" style="vertical-align: top; width: 35%;" onclick="sortTable(0, 'inventoryTable')">
+                                            <div style="margin-bottom: 6px;">Target</div>
+                                            <input type="text" id="colTarget" placeholder="Filter Target..." style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: white; padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; box-sizing: border-box;" oninput="applyColFilters()" onclick="event.stopPropagation()">
+                                        </th>
+                                        <th class="sortable" style="vertical-align: top; width: 20%;" onclick="sortTable(1, 'inventoryTable')">
+                                            <div style="margin-bottom: 6px;">Added Time</div>
+                                            <input type="text" id="colAdded" placeholder="Filter Time..." style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: white; padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; box-sizing: border-box;" oninput="applyColFilters()" onclick="event.stopPropagation()">
+                                        </th>
+                                        <th class="sortable" style="vertical-align: top; width: 20%;" onclick="sortTable(2, 'inventoryTable')">
+                                            <div style="margin-bottom: 6px;">Modified Time</div>
+                                            <input type="text" id="colModified" placeholder="Filter Time..." style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: white; padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; box-sizing: border-box;" oninput="applyColFilters()" onclick="event.stopPropagation()">
+                                        </th>
+                                        <th class="sortable" style="vertical-align: top; width: 25%;" onclick="sortTable(3, 'inventoryTable')">
+                                            <div style="margin-bottom: 6px;">Tags</div>
+                                            <input type="text" id="colTags" placeholder="Filter Tags..." style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: white; padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; box-sizing: border-box;" oninput="applyColFilters()" onclick="event.stopPropagation()">
+                                        </th>
+                                    </tr>
+                                `;
+                                table.appendChild(thead);
+
+                                const tbody = document.createElement('tbody');
+                                tbody.id = 'inventoryBody';
+
+                                // To mock added/modified time, check if local storage has metadata, else initialize it
+                                let targetMeta = {};
+                                try { targetMeta = JSON.parse(localStorage.getItem('hawkeye_target_meta')) || {}; } catch (e) { }
+                                let metaUpdated = false;
+
+                                Object.keys(groups).sort().forEach(groupName => {
+                                    if (groups[groupName].length > 0 && groupName !== "_ungrouped") {
+                                        const groupTr = document.createElement('tr');
+                                        groupTr.className = 'group-header';
+                                        groupTr.innerHTML = `<td colspan="4" style="background: rgba(139, 92, 246, 0.05); color: var(--accent-purple); font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px;"><i class="fa-solid fa-layer-group"></i> ${groupName} (${groups[groupName].length})</td>`;
+                                        tbody.appendChild(groupTr);
+                                    }
+
+                                    groups[groupName].sort().forEach(t => {
+                                        // Metadata logic
+                                        if (!targetMeta[t]) {
+                                            const now = new Date().toLocaleString();
+                                            targetMeta[t] = { added: now, modified: now };
+                                            metaUpdated = true;
+                                        }
+
+                                        const tags = tagMap[t] || [];
+                                        const tagsHtml = tags.length > 0
+                                            ? tags.map(tag => `<span class="tag-badge">${tag}</span>`).join('')
+                                            : `<span style="color: var(--text-secondary); font-size: 0.8rem; font-style: italic;">No tags</span>`;
+
+                                        const tr = document.createElement('tr');
+                                        tr.className = 'data-row';
+                                        tr.setAttribute('data-target', t);
+                                        tr.setAttribute('data-added', targetMeta[t].added);
+                                        tr.setAttribute('data-modified', targetMeta[t].modified);
+                                        tr.setAttribute('data-tags', tags.join(' '));
+
+                                        tr.innerHTML = `
+                                            <td>
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    <i class="fa-solid fa-globe" style="color: var(--info-color);"></i>
+                                                    <span style="font-weight: 600; font-family: 'Monaco', 'Consolas', monospace; font-size: 0.8rem;">${t}</span>
+                                                </div>
+                                            </td>
+                                            <td style="color: var(--text-secondary); font-size: 0.8rem;">${targetMeta[t].added}</td>
+                                            <td style="color: var(--text-secondary); font-size: 0.8rem;">${targetMeta[t].modified}</td>
+                                            <td>${tagsHtml}</td>
+                                        `;
+                                        tbody.appendChild(tr);
+                                    });
+                                });
+
+                                if (metaUpdated) {
+                                    localStorage.setItem('hawkeye_target_meta', JSON.stringify(targetMeta));
+                                }
+
+                                table.appendChild(tbody);
+                                container.appendChild(table);
+                            } else {
+                                container.innerHTML = '<div style="text-align:center; color:var(--error-color); padding: 3rem;">Failed to load targets.</div>';
+                            }
+                        } catch (e) {
+                            container.innerHTML = '<div style="color:var(--error-color); text-align:center;">Failed to load targets. Make sure the server is running.</div>';
+                        }
+                    }
+
+                    function sortTable(n, tableId) {
+                        const table = document.getElementById(tableId) || document.querySelector('.inventory-table');
+                        const tbody = table.querySelector('tbody');
+                        const rows = Array.from(tbody.querySelectorAll('tr.data-row'));
+                        const headers = table.querySelectorAll('th');
+                        const header = headers[n];
+
+                        let dir = "asc";
+                        if (header.classList.contains("asc")) dir = "desc";
+
+                        headers.forEach(h => h.classList.remove("asc", "desc"));
+                        header.classList.add(dir);
+
+                        rows.sort((a, b) => {
+                            let x = a.getElementsByTagName("TD")[n].textContent.trim();
+                            let y = b.getElementsByTagName("TD")[n].textContent.trim();
+
+                            // Specific check for Status column (index 0 might have hidden text)
+                            if (tableId === 'incidentTable' && n === 0) {
+                                // For status column, sort by icon name or state
+                                x = a.querySelector('.fa-solid')?.className || x;
+                                y = b.querySelector('.fa-solid')?.className || y;
+                            }
+
+                            if (dir === "asc") {
+                                return x.localeCompare(y, undefined, { numeric: true, sensitivity: 'base' });
+                            } else {
+                                return y.localeCompare(x, undefined, { numeric: true, sensitivity: 'base' });
+                            }
+                        });
+
+                        rows.forEach(row => tbody.appendChild(row));
+
+                        // If grouped, we might need to re-apply grouping headers, but for simple sorting 
+                        // within a flattened view (like Incidents) this works.
+                        // For inventory with groups, this flattens the view.
+                    }
+
+                    function applyColFilters() {
+                        const termTarget = document.getElementById('colTarget')?.value.toLowerCase() || '';
+                        const termAdded = document.getElementById('colAdded')?.value.toLowerCase() || '';
+                        const termModified = document.getElementById('colModified')?.value.toLowerCase() || '';
+                        const termTags = document.getElementById('colTags')?.value.toLowerCase() || '';
+
+                        const rows = document.querySelectorAll('#inventoryBody tr.data-row');
+                        rows.forEach(tr => {
+                            const t = tr.getAttribute('data-target').toLowerCase();
+                            const a = tr.getAttribute('data-added').toLowerCase();
+                            const m = tr.getAttribute('data-modified').toLowerCase();
+                            const tg = tr.getAttribute('data-tags').toLowerCase();
+
+                            if (t.includes(termTarget) && a.includes(termAdded) && m.includes(termModified) && tg.includes(termTags)) {
+                                tr.style.display = '';
+                            } else {
+                                tr.style.display = 'none';
+                            }
+                        });
+
+                        const groups = document.querySelectorAll('#inventoryBody tr.group-header');
+                        groups.forEach(g => {
+                            let hasVisibleChild = false;
+                            let next = g.nextElementSibling;
+                            while (next && next.classList.contains('data-row')) {
+                                if (next.style.display !== 'none') {
+                                    hasVisibleChild = true;
+                                    break;
+                                }
+                                next = next.nextElementSibling;
+                            }
+                            g.style.display = hasVisibleChild ? '' : 'none';
+                        });
+                    }
+
+                    loadInventory();
+                </script>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

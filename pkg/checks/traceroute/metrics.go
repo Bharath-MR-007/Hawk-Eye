@@ -1,0 +1,74 @@
+// SPDX-FileCopyrightText: 2025 Deutsche Telekom IT GmbH
+//
+// SPDX-License-Identifier: Apache-2.0
+
+package traceroute
+
+import (
+	"time"
+
+	"github.com/Bharath-MR-007/hawk-eye/pkg/checks"
+
+	"github.com/prometheus/client_golang/prometheus"
+)
+
+const (
+	labelTarget = "target"
+)
+
+type metrics struct {
+	minHops       *prometheus.GaugeVec
+	packetLoss    *prometheus.GaugeVec
+	checkDuration *prometheus.GaugeVec
+}
+
+func (m metrics) List() []prometheus.Collector {
+	return []prometheus.Collector{
+		m.minHops,
+		m.packetLoss,
+		m.checkDuration,
+	}
+}
+
+func (m metrics) MinHops(data map[string]Result) {
+	for target, result := range data {
+		m.minHops.With(prometheus.Labels{labelTarget: target}).Set(float64(result.MinHops))
+		m.packetLoss.With(prometheus.Labels{labelTarget: target}).Set(result.PacketLoss)
+	}
+}
+
+func (m metrics) CheckDuration(target string, n time.Duration) {
+	m.checkDuration.With(prometheus.Labels{labelTarget: target}).Set(float64(n.Milliseconds()))
+}
+
+func newMetrics() metrics {
+	return metrics{
+		minHops: prometheus.NewGaugeVec(prometheus.GaugeOpts{
+			Namespace: "hawkeye_traceroute",
+			Name:      "minimum_hops",
+		}, []string{labelTarget}),
+		packetLoss: prometheus.NewGaugeVec(prometheus.GaugeOpts{
+			Namespace: "hawkeye_traceroute",
+			Name:      "packet_loss_pct",
+			Help:      "Percentage of hops that did not respond (0-100)",
+		}, []string{labelTarget}),
+		checkDuration: prometheus.NewGaugeVec(prometheus.GaugeOpts{
+			Namespace: "hawkeye_traceroute",
+			Name:      "check_duration_ms",
+		}, []string{labelTarget}),
+	}
+}
+
+// Remove removes a metric with a specific label
+func (m metrics) Remove(label string) error {
+	if !m.minHops.DeleteLabelValues(label) {
+		return checks.ErrMetricNotFound{Label: label}
+	}
+	if !m.packetLoss.DeleteLabelValues(label) {
+		return checks.ErrMetricNotFound{Label: label}
+	}
+	if !m.checkDuration.DeleteLabelValues(label) {
+		return checks.ErrMetricNotFound{Label: label}
+	}
+	return nil
+}

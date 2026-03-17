@@ -1,0 +1,8 @@
+fastmcp
+ollama
+requests
+pydantic
+python-dotenv
+rich
+fastapi
+uvicorn

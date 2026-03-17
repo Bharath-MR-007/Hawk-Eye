@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 10s
+  evaluation_interval: 15s
+  external_labels:
+    site: 'hawk-eye-local'
+    instance: 'primary'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+
+rule_files:
+  - "prometheus_rules.yaml"
+
+scrape_configs:
+  - job_name: 'hawkeye'
+    static_configs:
+      - targets: ['hawkeye:8080']
+
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['alertmanager:9093']
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
