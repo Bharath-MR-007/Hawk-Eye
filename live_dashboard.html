@@ -4,9 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hawk-Eye</title>
+    <title>Hawk-Eye · NOC Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="/scripts/hawk-ui.js"></script>
     <style>
         :root {
             --bg-dark: #09090b;
@@ -24,6 +25,21 @@
             --warning-bg: rgba(245, 158, 11, 0.1);
             --info-color: #3b82f6;
             --info-bg: rgba(59, 130, 246, 0.1);
+            --header-bg: #1e2128;
+            --hover-row: #232730;
+            --even-row: #14161B;
+        }
+
+        body.light-theme {
+            --bg-dark: #f8fafc;
+            --surface-color: #ffffff;
+            --surface-highlight: #f1f5f9;
+            --border-color: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --header-bg: #f1f5f9;
+            --hover-row: #E0E7FF;
+            --even-row: #F8FAFC;
         }
 
         body {
@@ -47,97 +63,134 @@
 
         /* Sidebar Styles */
         .main-sidebar {
-            width: 260px;
-            background-color: #12141c;
-            border-right: 1px solid var(--border-color);
+            width: 230px;
+            min-width: 230px;
+            background: linear-gradient(175deg, #0b1a2e, #0f2744, #122f52);
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
-            z-index: 50;
+            z-index: 200;
+            border-right: 1px solid rgba(255,255,255,0.08);
+            overflow: hidden;
+            transition: background 0.3s;
+        }
+
+        body.light-theme .main-sidebar {
+            background: linear-gradient(175deg, #1a3a6c, #1e4487, #1d4ed8);
         }
 
         .main-sidebar-header {
-            height: 70px;
+            height: 62px;
             display: flex;
             align-items: center;
-            padding: 0 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            background: var(--surface-color);
+            padding: 0 1.2rem;
             gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+        }
+
+        .main-sidebar-logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .hawk-name {
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: #e0f0ff;
+            letter-spacing: -0.01em;
+        }
+
+        .hawk-sub {
+            font-size: 0.58rem;
+            color: #ff6ef7;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
         }
 
         .main-sidebar-nav {
             flex: 1;
             overflow-y: auto;
-            padding: 1.5rem 0;
+            padding: 0.8rem 0;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 1px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.1) transparent;
         }
 
         .nav-category {
-            padding: 0 1.5rem;
-            font-size: 0.7rem;
+            padding: 0.9rem 1rem 0.3rem;
+            font-size: 0.6rem;
+            font-weight: 800;
             text-transform: uppercase;
-            font-weight: 700;
-            color: var(--text-secondary);
-            margin: 1.5rem 0 0.5rem 0;
-            letter-spacing: 0.05em;
-        }
-
-        .nav-category:first-of-type {
-            margin-top: 0;
+            letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.4);
         }
 
         .nav-item {
             display: flex;
             align-items: center;
-            padding: 12px 1.5rem;
-            color: var(--text-secondary);
+            padding: 9px 1.2rem;
+            color: rgba(200,220,255,0.75);
             text-decoration: none;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
-            transition: all 0.2s;
+            transition: all 0.15s;
             border-left: 3px solid transparent;
-            gap: 14px;
+            gap: 11px;
             cursor: pointer;
             background: transparent;
-            border-top: none;
-            border-right: none;
-            border-bottom: none;
+            border: none;
             width: 100%;
             text-align: left;
             font-family: inherit;
+            box-sizing: border-box;
         }
 
         .nav-item i {
             width: 16px;
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             text-align: center;
-            transition: color 0.2s;
+            color: rgba(160,200,255,0.6);
+            transition: color 0.15s;
+            flex-shrink: 0;
         }
 
         .nav-item:hover {
-            background: rgba(255, 255, 255, 0.04);
-            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.07);
+            color: #e0f0ff;
+            border-left-color: rgba(96, 165, 250, 0.5);
         }
 
         .nav-item.active {
-            background: rgba(139, 92, 246, 0.1);
-            color: #fff;
-            border-left-color: var(--accent-purple, #8b5cf6);
+            background: rgba(59, 130, 246, 0.2);
+            color: #e0f0ff;
+            border-left-color: #60a5fa;
+            font-weight: 700;
         }
 
         .nav-item.active i {
-            color: var(--accent-purple, #8b5cf6);
+            color: #93c5fd;
         }
 
-        .main-sidebar-footer {
-            padding: 1.5rem;
-            border-top: 1px solid var(--border-color);
-            display: flex;
+        .tree-children {
+            display: none;
             flex-direction: column;
-            gap: 10px;
+            background: rgba(0,0,0,0.15);
+            border-left: 2px solid rgba(96,165,250,0.25);
+            margin-left: 22px;
+        }
+
+        .tree-parent.open + .tree-children {
+            display: flex;
+        }
+
+        .child-item {
+            padding: 7px 1rem !important;
+            font-size: 0.76rem !important;
         }
 
         .app-content {
@@ -145,17 +198,24 @@
             display: flex;
             flex-direction: column;
             min-width: 0;
+            background-color: var(--bg-dark);
+            overflow: hidden;
         }
 
         .top-navbar {
-            height: 70px;
-            background-color: var(--surface-color);
-            border-bottom: 1px solid var(--border-color);
+            height: 62px;
+            background-color: rgba(0,0,0,0.15);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
             display: flex;
             justify-content: flex-end;
             align-items: center;
-            padding: 0 2rem;
+            padding: 0 1.5rem;
             flex-shrink: 0;
+        }
+
+        body.light-theme .top-navbar {
+            background-color: rgba(255,255,255,0.6);
+            border-bottom-color: rgba(0,0,0,0.08);
         }
 
         .page-scroll-container {
@@ -274,46 +334,51 @@
             font-size: 0.875rem;
         }
 
-        /* Unified Data Table */
+        /* Unified Data Table NNMi Dense Grid */
         .data-table-wrapper {
             background-color: var(--surface-color);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 0;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: none;
+            margin-bottom: 2rem;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
+            font-size: 0.75rem;
+            color: var(--text-primary);
         }
 
         th {
-            background-color: #1f1f22;
-            padding: 1rem 1.5rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-secondary);
-            border-bottom: 1px solid var(--border-color);
+            background-color: var(--header-bg);
+            padding: 6px 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: none;
+            letter-spacing: 0;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            white-space: nowrap;
         }
 
         td {
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            vertical-align: middle;
+            padding: 6px 8px;
+            border: 1px solid var(--border-color);
+            vertical-align: top;
+            color: var(--text-primary);
+            line-height: 1.3;
         }
 
         tbody tr.main-row {
             cursor: pointer;
-            transition: background-color 0.2s ease;
+            transition: background-color 0.15s ease;
         }
 
-        tbody tr.main-row:hover {
-            background-color: var(--surface-highlight);
-        }
+        tbody tr.main-row:nth-child(even) { background: var(--even-row); }
+        tbody tr.main-row:hover { background: var(--hover-row); }
 
         /* Detail Drawer */
         .drawer-row {
@@ -653,103 +718,71 @@
             display: flex;
         }
 
-        .child-item {
-            padding: 8px 1rem !important;
-            font-size: 0.8rem !important;
+        .nav-item { color: rgba(186,219,255,0.72) !important; }
+        .nav-item i { color: rgba(147,197,253,0.55) !important; }
+        .nav-item:hover {
+            background: rgba(59,130,246,0.12) !important;
+            color: #e0f2ff !important;
+            border-left-color: rgba(96,165,250,0.6) !important;
         }
-    </style>
+        .nav-item:hover i { color: #93c5fd !important; }
+        .nav-item.active {
+            background: rgba(37,99,235,0.28) !important;
+            color: #bfdbfe !important;
+            border-left-color: #3b82f6 !important;
+        }
+        .nav-item.active i { color: #93c5fd !important; }
+        .tree-children { background: rgba(0,0,0,0.2) !important; border-left-color: rgba(59,130,246,0.3) !important; }
+        /* ═══════════════════════════════════════════════════════ */
+
+        </style>
 </head>
 
 <body>
     <div class="app-window">
         <!-- Left Sidebar -->
-        <aside class="main-sidebar">
-                                                                                                <div class="main-sidebar-header">
-                <span style="font-size: 1.5rem;">🦅</span>
-                <div style="display: flex; flex-direction: column; line-height: 1.1;">
-                    <span style="font-weight: 700; font-size: 1.25rem;">Hawk-Eye</span>
-                    <span
-                        style="font-size: 0.65rem; color: #ff00ff; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
-                </div>
+            <!-- ══ GLOBAL SIDEBAR (canonical — do not edit inline) ══ -->
+    <aside class="main-sidebar">
+        <div class="main-sidebar-header">
+            <span style="font-size:1.6rem;line-height:1">🦅</span>
+            <div class="main-sidebar-logo-text">
+                <span class="hawk-name">Hawk-Eye</span>
+                <span class="hawk-sub">T-Systems</span>
+            </div>
+        </div>
+        <nav class="main-sidebar-nav">
+            <div class="nav-category">Monitoring</div>
+            <a href="/dashboard" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Visual Dashboard</a>
+            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-table-list"></i> Live Table</a>
+            <a href="/inventory" class="nav-item"><i class="fa-solid fa-list"></i> Target Inventory</a>
+            <div class="nav-item tree-parent" onclick="this.classList.toggle('open')">
+                <div style="display:flex;align-items:center;gap:11px"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
+                <i class="fa-solid fa-chevron-down tree-chevron"></i>
+            </div>
+            <div class="tree-children">
+                <a href="/incidents" class="nav-item child-item"><i class="fa-solid fa-table-cells"></i> All Incidents</a>
             </div>
 
+            <div class="nav-category">Management</div>
+            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-plus" style="color:#60a5fa"></i> Add New Target</a>
+            <a href="/live_dashboard" class="nav-item" id="mainDeleteBtn"><i class="fa-solid fa-trash" style="color:#f87171"></i> Delete Target</a>
 
+            <div class="nav-category">Integrations</div>
+            <a href="/integrations" class="nav-item"><i class="fa-solid fa-link"></i> External Apps Links</a>
+            <a href="/integrations_config" class="nav-item"><i class="fa-solid fa-gears"></i> Integration Config</a>
 
+            <div class="nav-category">Configuration</div>
+            <a href="/alerts" class="nav-item"><i class="fa-solid fa-folder"></i> Alerts Config</a>
+            <a href="/polling" class="nav-item"><i class="fa-solid fa-folder"></i> Polling Config</a>
+            <a href="/users_config" class="nav-item"><i class="fa-solid fa-user-gear"></i> User Configuration</a>
+            <button class="nav-item" onclick="if(typeof exportConfig==='function'){exportConfig();}else{alert('Export not available here.');}"><i class="fa-solid fa-file-export"></i> Export Snapshot</button>
+            <button class="nav-item" onclick="if(document.getElementById('importFile')){document.getElementById('importFile').click();}else{alert('Import not available here.');}"><i class="fa-solid fa-file-import"></i> Import Snapshot</button>
 
-
-
-
-
-
-
-
-
-
-
-                                                                                                <nav class="main-sidebar-nav">
-                <div class="nav-category">Monitoring</div>
-                <a href="/dashboard" class="nav-item active">
-                    <i class="fa-solid fa-gauge-high"></i> Dashboard
-                </a>
-                <a href="/inventory" class="nav-item">
-                    <i class="fa-solid fa-list"></i> Target Inventory
-                </a>
-
-                <div class="nav-item tree-parent" onclick="this.classList.toggle('open')" style="margin-top: 15px;">
-                    <div style="display: flex; align-items: center; gap: 14px;"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
-                    <i class="fa-solid fa-chevron-down tree-chevron"></i>
-                </div>
-                <div class="tree-children">
-                    <a href="/incidents" class="nav-item child-item">
-                        <i class="fa-solid fa-table-cells"></i> All Incidents
-                    </a>
-                </div>
-
-                <div class="nav-category">Management</div>
-                <button class="nav-item" onclick="if(document.getElementById('addTargetModal')) { document.getElementById('addTargetModal').style.display='flex'; } else { window.location.href='/dashboard?add=true'; }">
-                    <i class="fa-solid fa-plus" style="color: var(--info-color);"></i> Add New Target
-                </button>
-                <button class="nav-item" onclick="if(typeof deleteSelectedTargets === 'function') { deleteSelectedTargets(); } else { window.location.href='/dashboard'; }">
-                    <i class="fa-solid fa-trash" style="color: var(--error-color);"></i> Delete Target
-                </button>
-
-                <div class="nav-category" style="margin-top: 15px;">Integrations</div>
-                <a href="/integrations" class="nav-item">
-                    <i class="fa-solid fa-link"></i> External Apps Links
-                </a>
-                <a href="/integrations_config" class="nav-item">
-                    <i class="fa-solid fa-gears"></i> External Apps Integration Config
-                </a>
-
-                <div class="nav-category" style="margin-top: 15px;">Configuration</div>
-                <a href="/alerts" class="nav-item">
-                    <i class="fa-solid fa-folder"></i> Alerts Config
-                </a>
-                <a href="/polling" class="nav-item">
-                    <i class="fa-solid fa-folder"></i> Polling Config
-                </a>
-                <a href="/users_config" class="nav-item">
-                    <i class="fa-solid fa-user-gear"></i> User Configuration
-                </a>
-                <button class="nav-item" onclick="if(typeof exportConfig === 'function') { exportConfig(); } else { window.location.href='/dashboard?export=true'; }">
-                    <i class="fa-solid fa-file-export"></i> Export Snapshot
-                </button>
-                <button class="nav-item" onclick="if(document.getElementById('importFile')) { document.getElementById('importFile').click(); } else { window.location.href='/dashboard?import=true'; }">
-                    <i class="fa-solid fa-file-import"></i> Import Snapshot
-                </button>
-
-                <div class="nav-category">Operations</div>
-                <a href="/troubleshooting" class="nav-item">
-                    <i class="fa-solid fa-microchip"></i> Troubleshooting
-                </a>
-                <a href="/device_reachability" class="nav-item">
-                    <i class="fa-solid fa-satellite-dish"></i> Device Reachability
-                </a>
-            </nav>
-
-            <div class="main-sidebar-footer">
-            </div>
-        </aside>
+            <div class="nav-category">Operations</div>
+            <a href="/troubleshooting" class="nav-item"><i class="fa-solid fa-microchip"></i> Troubleshooting</a>
+            <a href="/device_reachability" class="nav-item"><i class="fa-solid fa-satellite-dish"></i> Device Reachability</a>
+        </nav>
+    </aside>
 
         <main class="app-content">
             <!-- Top Navbar -->
@@ -759,6 +792,12 @@
                         <div id="connectionDot" class="dot disconnected"></div>
                         <span id="connectionText">Connecting...</span>
                     </div>
+
+                    <button id="theme-toggle-btn"
+                        style="background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
+                        title="Toggle Dark / Light Mode">
+                        <i id="theme-toggle-icon" class="fa-solid fa-sun"></i>
+                    </button>
 
                     <div class="help-dropdown" style="margin-right: 0px;">
                         <button class="help-dropbtn"
@@ -778,6 +817,11 @@
                         </div>
                     </div>
 
+                    <button id="theme-toggle-btn" 
+                        style="background:none; color:var(--text-secondary); border:1px solid var(--border-color); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-right: 10px;"
+                        title="Toggle Dark / Light Mode">
+                        <i id="theme-toggle-icon" class="fa-solid fa-moon"></i>
+                    </button>
                     <div
                         style="display: flex; align-items: center; gap: 10px; padding: 6px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 8px;">
                         <i class="fa-solid fa-user-circle" style="color: var(--accent-purple); font-size: 1.1rem;"></i>
@@ -802,22 +846,227 @@
 
             <div class="page-scroll-container">
                 <div class="container">
-                    <div class="header-section"
-                        style="display:flex; justify-content:space-between; align-items:center;">
+
+                    <!-- ══ NOC WALL DASHBOARD ══════════════════════════════════════════ -->
+                    <div id="noc-dashboard" style="margin-bottom:1.5rem; display:flex; flex-direction:column; gap:12px;">
+
+                        <!-- System Status Banner -->
+                        <div id="noc-banner" class="noc-banner-wrap">
+                            <div style="display:flex; align-items:center; gap:16px;">
+                                <div id="noc-banner-icon" style="font-size:2.2rem; line-height:1;">✅</div>
+                                <div>
+                                    <div id="noc-banner-title" style="font-size:1.6rem; font-weight:800; letter-spacing:-0.02em; color:#10b981; line-height:1;">ALL SYSTEMS OPERATIONAL</div>
+                                    <div id="noc-banner-sub" class="noc-banner-sub">Hawk-Eye Synthetic Monitoring · Refreshes every 10s</div>
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:18px;">
+                                <div style="text-align:right;">
+                                    <div class="noc-banner-ts-label">Last Updated</div>
+                                    <div id="noc-last-updated" class="noc-banner-ts-val">--:--:--</div>
+                                </div>
+                                <div id="noc-pulse" style="width:14px; height:14px; border-radius:50%; background:#10b981; box-shadow:0 0 12px #10b981; animation:nocPulse 2s infinite;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Row 1: KPI Tiles + Right Panel wrapper -->
+                        <div style="display:grid; grid-template-columns:1fr 280px; gap:12px;">
+
+                            <!-- Left: KPI + Incidents + Timeline column -->
+                            <div style="display:flex; flex-direction:column; gap:12px;">
+
+                                <!-- KPI Tiles -->
+                                <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:10px;">
+                                    <div class="noc-kpi" id="kpi-total">
+                                        <div class="noc-kpi-label">Total Targets</div>
+                                        <div class="noc-kpi-value" id="kpi-total-val">–</div>
+                                    </div>
+                                    <div class="noc-kpi noc-kpi-green" id="kpi-healthy">
+                                        <div class="noc-kpi-label">Healthy</div>
+                                        <div class="noc-kpi-value" id="kpi-healthy-val">–</div>
+                                    </div>
+                                    <div class="noc-kpi noc-kpi-amber" id="kpi-degraded">
+                                        <div class="noc-kpi-label">Degraded</div>
+                                        <div class="noc-kpi-value" id="kpi-degraded-val">–</div>
+                                    </div>
+                                    <div class="noc-kpi noc-kpi-red" id="kpi-critical">
+                                        <div class="noc-kpi-label">Critical</div>
+                                        <div class="noc-kpi-value" id="kpi-critical-val">–</div>
+                                    </div>
+                                    <div class="noc-kpi" id="kpi-latency">
+                                        <div class="noc-kpi-label">Avg Latency</div>
+                                        <div class="noc-kpi-value" id="kpi-latency-val" style="font-size:1.5rem;">–</div>
+                                    </div>
+                                </div>
+
+                                <!-- Regional Network Health -->
+                                <div class="noc-panel">
+                                    <div class="noc-panel-hdr"><i class="fa-solid fa-globe" style="color:#60a5fa"></i> Regional Network Health</div>
+                                    <div id="noc-regions" style="display:flex; flex-direction:column; gap:8px; padding:12px 16px;">
+                                        <div style="color:rgba(255,255,255,0.3); font-size:0.78rem; text-align:center;">Waiting for telemetry…</div>
+                                    </div>
+                                </div>
+
+                                <!-- Top Incidents -->
+                                <div class="noc-panel">
+                                    <div class="noc-panel-hdr"><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b"></i> Active Incidents <span id="noc-inc-count" style="background:rgba(245,158,11,0.2); border:1px solid rgba(245,158,11,0.4); border-radius:12px; padding:1px 8px; font-size:0.7rem; margin-left:6px; font-weight:700;">0</span></div>
+                                    <div id="noc-incidents" style="padding:8px 0;">
+                                        <div style="color:rgba(255,255,255,0.3); font-size:0.78rem; text-align:center; padding:12px;">No active incidents — all systems normal</div>
+                                    </div>
+                                </div>
+
+                                <!-- Event Timeline -->
+                                <div class="noc-panel">
+                                    <div class="noc-panel-hdr"><i class="fa-solid fa-clock-rotate-left" style="color:#a78bfa"></i> Event Timeline <span style="font-size:0.7rem; color:rgba(255,255,255,0.35); font-weight:400; margin-left:6px;">Last 30 min</span></div>
+                                    <div id="noc-timeline" style="padding:8px 16px 12px; display:flex; flex-direction:column; gap:6px; max-height:130px; overflow-y:auto;">
+                                        <div style="color:rgba(255,255,255,0.3); font-size:0.78rem;">Collecting events…</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Panel: Service Status Grid -->
+                            <div class="noc-panel" style="overflow:hidden;">
+                                <div class="noc-panel-hdr"><i class="fa-solid fa-server" style="color:#34d399"></i> Service Status</div>
+                                <div id="noc-services" style="padding:8px; display:flex; flex-direction:column; gap:5px; overflow-y:auto; max-height:460px;">
+                                    <div style="color:rgba(255,255,255,0.3); font-size:0.78rem; text-align:center; padding:12px;">Loading…</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ════════════════════════════════════════════════════════════════ -->
+
+                    <style>
+                        /* ── NOC Dashboard — dark mode (default) ──────────── */
+                        .noc-banner-wrap {
+                            border-radius: 10px; padding: 20px 28px;
+                            display: flex; align-items: center; justify-content: space-between;
+                            background: rgba(5,40,20,0.7); border: 1px solid #10b981;
+                            transition: background 0.4s, border-color 0.4s;
+                        }
+                        .noc-banner-sub    { font-size:0.8rem; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:500; }
+                        .noc-banner-ts-label { font-size:0.7rem; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px; }
+                        .noc-banner-ts-val   { font-size:1rem; font-weight:700; color:rgba(255,255,255,0.8); font-variant-numeric:tabular-nums; }
+
+                        body.light-theme .noc-banner-wrap  { background: rgba(240,253,244,0.85); border-color: #10b981; }
+                        body.light-theme .noc-banner-sub   { color: #475569; }
+                        body.light-theme .noc-banner-ts-label { color: #94a3b8; }
+                        body.light-theme .noc-banner-ts-val   { color: #1e293b; }
+                        @keyframes nocPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.25)} }
+
+                        .noc-kpi {
+                            background: rgba(255,255,255,0.04);
+                            border: 1px solid rgba(255,255,255,0.09);
+                            border-radius: 10px;
+                            padding: 14px 16px;
+                            display: flex; flex-direction: column; gap: 4px;
+                        }
+                        .noc-kpi-green { background: rgba(16,185,129,0.10); border-color: rgba(16,185,129,0.30); }
+                        .noc-kpi-amber { background: rgba(245,158,11,0.10); border-color: rgba(245,158,11,0.30); }
+                        .noc-kpi-red   { background: rgba(244,63,94,0.10);  border-color: rgba(244,63,94,0.30);  }
+
+                        .noc-kpi-label {
+                            font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px;
+                            color: rgba(255,255,255,0.45); font-weight: 700;
+                        }
+                        .noc-kpi-value {
+                            font-size: 2rem; font-weight: 800; letter-spacing: -0.03em;
+                            color: #f4f4f5; line-height: 1.1; font-variant-numeric: tabular-nums;
+                        }
+                        .noc-kpi-green .noc-kpi-value { color: #34d399; }
+                        .noc-kpi-amber .noc-kpi-value { color: #fbbf24; }
+                        .noc-kpi-red   .noc-kpi-value { color: #f87171; }
+
+                        .noc-panel {
+                            background: rgba(255,255,255,0.03);
+                            border: 1px solid rgba(255,255,255,0.08);
+                            border-radius: 10px; overflow: hidden;
+                        }
+                        .noc-panel-hdr {
+                            padding: 10px 16px; font-size: 0.72rem; font-weight: 800;
+                            text-transform: uppercase; letter-spacing: 0.08em;
+                            color: rgba(255,255,255,0.55);
+                            border-bottom: 1px solid rgba(255,255,255,0.07);
+                            display: flex; align-items: center; gap: 8px;
+                        }
+                        .noc-svc-tile {
+                            display: flex; align-items: center; justify-content: space-between;
+                            padding: 7px 12px; border-radius: 6px;
+                            background: rgba(255,255,255,0.03);
+                            font-size: 0.75rem; font-weight: 600;
+                            color: rgba(255,255,255,0.75);
+                            border: 1px solid rgba(255,255,255,0.07);
+                        }
+                        .noc-svc-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+                        .noc-region-bar { height: 10px; border-radius: 3px; transition: width 0.6s ease; }
+                        .noc-inc-row {
+                            display: grid; grid-template-columns: auto 1fr auto auto;
+                            gap: 10px; align-items: center;
+                            padding: 8px 16px;
+                            border-bottom: 1px solid rgba(255,255,255,0.05);
+                            font-size: 0.75rem;
+                        }
+                        .noc-inc-row:last-child { border-bottom: none; }
+                        .noc-evt {
+                            display: flex; align-items: center; gap: 10px;
+                            font-size: 0.74rem; color: rgba(255,255,255,0.65);
+                        }
+                        .noc-evt-time {
+                            color: rgba(255,255,255,0.35); font-variant-numeric: tabular-nums;
+                            flex-shrink: 0; width: 50px;
+                        }
+
+                        /* ── NOC Dashboard — light theme overrides ────────── */
+                        body.light-theme .noc-kpi {
+                            background: #f8fafc;
+                            border-color: #e2e8f0;
+                        }
+                        body.light-theme .noc-kpi-green { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.35); }
+                        body.light-theme .noc-kpi-amber { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.35); }
+                        body.light-theme .noc-kpi-red   { background: rgba(244,63,94,0.08);  border-color: rgba(244,63,94,0.35);  }
+
+                        body.light-theme .noc-kpi-label { color: #64748b; }
+                        body.light-theme .noc-kpi-value { color: #0f172a; }
+                        body.light-theme .noc-kpi-green .noc-kpi-value { color: #059669; }
+                        body.light-theme .noc-kpi-amber .noc-kpi-value { color: #d97706; }
+                        body.light-theme .noc-kpi-red   .noc-kpi-value { color: #e11d48; }
+
+                        body.light-theme .noc-panel {
+                            background: #ffffff;
+                            border-color: #e2e8f0;
+                            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+                        }
+                        body.light-theme .noc-panel-hdr {
+                            color: #475569;
+                            background: #f8fafc;
+                            border-bottom-color: #e2e8f0;
+                        }
+                        body.light-theme .noc-svc-tile {
+                            background: #f8fafc;
+                            border-color: #e2e8f0;
+                            color: #1e293b;
+                        }
+                        body.light-theme .noc-inc-row {
+                            border-bottom-color: #f1f5f9;
+                        }
+                        body.light-theme .noc-evt {
+                            color: #334155;
+                        }
+                        body.light-theme .noc-evt-time { color: #94a3b8; }
+                    </style>
+
+                    <!-- Live table controls -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
                         <div>
-                            <h1>Unified Site Health</h1>
-                            <p>Real-time telemetry aggregated across all monitoring layers.</p>
+                            <h2 style="margin:0 0 2px 0; font-size:1rem; font-weight:700; color:var(--text-primary);">Live Target Table</h2>
+                            <p style="margin:0; font-size:0.78rem; color:var(--text-secondary);">Real-time telemetry aggregated across all monitoring layers.</p>
+                            <button id="contextDeleteBtn" onclick="deleteSelectedTargets()" style="display:none; position:fixed; bottom:30px; left:50%; transform:translateX(-50%); z-index:9999; box-shadow:0 10px 25px rgba(239,68,68,0.4); background:var(--error-color); color:white; border:none; padding:12px 24px; border-radius:30px; cursor:pointer; font-weight:700; font-size:1rem; transition:transform 0.2s;"><i class="fa-solid fa-trash" style="margin-right:8px;"></i> Delete Selected Targets</button>
                         </div>
                         <div style="display:flex; gap:12px; align-items:center;">
                             <select id="globalTagFilter" onchange="applyFilters()"
                                 style="background:var(--surface-color); color:#fff; border:1px solid rgba(255,255,255,0.2); padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:600; font-family:'Inter',sans-serif; outline:none;">
                                 <option value="">All Tags</option>
                             </select>
-
-                            <div
-                                style="display:flex; align-items:center; gap:8px; background:var(--surface-color); padding:8px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.1);">
-                                <span style="font-size:0.75rem; color:var(--text-secondary); font-weight:600;">GROUP
-                                    BY:</span>
+                            <div style="display:flex; align-items:center; gap:8px; background:var(--surface-color); padding:8px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.1);">
+                                <span style="font-size:0.75rem; color:var(--text-secondary); font-weight:600;">GROUP BY:</span>
                                 <select id="groupBySelect" onchange="renderTable()"
                                     style="background:transparent; color:#fff; border:none; cursor:pointer; font-weight:600; font-family:'Inter',sans-serif; outline:none; font-size:0.85rem;">
                                     <option value="none">None</option>
@@ -1046,6 +1295,15 @@
             }
         }
 
+        function updateDeleteBtnVisibility() {
+            const checkboxes = document.querySelectorAll('.target-checkbox:checked');
+            const btn = document.getElementById('contextDeleteBtn');
+            if (btn) {
+                btn.style.display = checkboxes.length > 0 ? 'flex' : 'none';
+                btn.innerHTML = `<i class="fa-solid fa-trash"></i> Delete Selected (${checkboxes.length})`;
+            }
+        }
+
         function toggleAllTargets(source) {
             const checkboxes = document.querySelectorAll('.target-checkbox');
             for (let i = 0; i < checkboxes.length; i++) {
@@ -1053,6 +1311,7 @@
                     checkboxes[i].checked = source.checked;
                 }
             }
+            updateDeleteBtnVisibility();
         }
 
         async function deleteSelectedTargets() {
@@ -1064,9 +1323,18 @@
             if (!confirm(`Are you sure you want to completely remove ${checkboxes.length} target(s)?`)) return;
 
             const btn = document.getElementById('mainDeleteBtn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
-            btn.disabled = true;
+            const contextBtn = document.getElementById('contextDeleteBtn');
+            const originalText = btn ? btn.innerHTML : '';
+            const originalContextText = contextBtn ? contextBtn.innerHTML : '';
+            
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
+                btn.disabled = true;
+            }
+            if (contextBtn) {
+                contextBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
+                contextBtn.disabled = true;
+            }
 
             let failed = 0;
             for (let i = 0; i < checkboxes.length; i++) {
@@ -1098,8 +1366,14 @@
 
             // Re-render immediately to reflect the memory wipe
             renderTable();
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+            if (btn) {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+            if (contextBtn) {
+                contextBtn.innerHTML = originalContextText;
+                contextBtn.disabled = false;
+            }
         }
 
         async function submitNewTarget() {
@@ -1296,6 +1570,10 @@
                 groups[groupName].push(target);
             });
 
+            // Preserve checked state
+            const checkedTargets = new Set();
+            document.querySelectorAll('.target-checkbox:checked').forEach(cb => checkedTargets.add(cb.value));
+
             // Clear current list of elements to avoid order issues when grouping changes
             tableBody.innerHTML = '';
 
@@ -1334,7 +1612,7 @@
                     tr.onclick = () => toggleDrawer(target.name);
                     tr.innerHTML = `
                         <td onclick="event.stopPropagation();" style="text-align:center;">
-                            <input type="checkbox" class="target-checkbox" value="${target.name}" style="cursor:pointer;" onclick="event.stopPropagation();">
+                            <input type="checkbox" class="target-checkbox" value="${target.name}" style="cursor:pointer;" onclick="event.stopPropagation(); updateDeleteBtnVisibility();" ${checkedTargets.has(target.name) ? 'checked' : ''}>
                         </td>
                         <td>
                             <div class="target-col">
@@ -1527,6 +1805,9 @@
 
             // Re-apply filters after grouping render
             applyFilters();
+            if (typeof updateDeleteBtnVisibility === 'function') {
+                updateDeleteBtnVisibility();
+            }
 
             // Re-wire filters
             const filterInputs = document.querySelectorAll('.col-filter');
@@ -2285,10 +2566,328 @@
             content.style.transform = 'scale(' + st.zoom + ')';
         }
 
+        // ══════════════════════════════════════════════════
+        // NOC DASHBOARD ENGINE — Optimizer v2
+        // ══════════════════════════════════════════════════
+
+        // Latency thresholds per NOC spec
+        const NOC_LAT_WARN = 200;   // ms — amber above this
+        const NOC_LAT_CRIT = 400;   // ms — red above this
+        const NOC_LAT_SCALE = 800;  // ms — 100% bar width reference
+
+        // Incident start tracking { targetName+cause: timestamp }
+        const nocIncidentStart = {};
+        // Event dedup per target+cause combo
+        const nocLastEvent = {};
+        const nocEventLog = []; // { time, msg, severity }
+
+        function nocAddEvent(key, msg, severity) {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            // Debounce: only log same event once per 5 minutes per key
+            if (nocLastEvent[key] && (now - nocLastEvent[key]) < 300000) return;
+            nocLastEvent[key] = now;
+            nocEventLog.push({ time: timeStr, msg, severity: severity || 'info' });
+            if (nocEventLog.length > 60) nocEventLog.shift();
+        }
+
+        function nocFormatDuration(startMs) {
+            const diff = Math.floor((Date.now() - startMs) / 1000);
+            if (diff < 60) return diff + 's';
+            if (diff < 3600) return Math.floor(diff / 60) + 'm';
+            return Math.floor(diff / 3600) + 'h ' + Math.floor((diff % 3600) / 60) + 'm';
+        }
+
+        function refreshNOC() {
+            const targets = Object.values(state.targets);
+            if (targets.length === 0) return;
+
+            const now = Date.now();
+            let total = targets.length;
+            let healthy = 0, degraded = 0, critical = 0;
+            let latencies = [];
+            let incidents = [];
+
+            targets.forEach(t => {
+                const h = t.health ? t.health.status : null;
+                const latencyMs = t.httpTrace ? t.httpTrace.total_ms : null;
+                const sslDays = (t.ssl !== undefined && t.ssl !== null) ? Math.floor(t.ssl) : null;
+                const packetLoss = t.traceroute ? t.traceroute.packet_loss_pct : null;
+                const dnsMs = t.dns ? t.dns.duration_ms : null;
+
+                // ── Severity classification (spec-compliant thresholds) ──
+                const isCritical = (h && h !== 'healthy')
+                    || (latencyMs && latencyMs > NOC_LAT_CRIT)
+                    || (sslDays !== null && sslDays < 7)
+                    || (packetLoss !== null && packetLoss > 20);
+
+                const isDegraded = !isCritical && (
+                    (latencyMs && latencyMs > NOC_LAT_WARN)
+                    || (sslDays !== null && sslDays < 30)
+                    || (packetLoss !== null && packetLoss > 5)
+                    || (dnsMs && dnsMs > 100)
+                );
+
+                if (isCritical)      critical++;
+                else if (isDegraded) degraded++;
+                else                 healthy++;
+
+                if (latencyMs) latencies.push(latencyMs);
+
+                // ── Incident builder with duration tracking ──
+                function pushIncident(cause, sev, label) {
+                    const ikey = t.name + '|' + cause;
+                    if (!nocIncidentStart[ikey]) nocIncidentStart[ikey] = now;
+                    const duration = nocFormatDuration(nocIncidentStart[ikey]);
+                    const color = sev === 'CRITICAL' ? '#f87171' : '#fbbf24';
+                    incidents.push({ name: t.name, cause, sev, color, duration });
+                }
+
+                if (h && h !== 'healthy') {
+                    pushIncident('HTTP health failure', 'CRITICAL');
+                    nocAddEvent(t.name + '|health', t.name + ' — health check down', 'critical');
+                } else if (latencyMs && latencyMs > NOC_LAT_CRIT) {
+                    pushIncident('Latency critical', 'CRITICAL');
+                    nocAddEvent(t.name + '|lat-crit', t.name + ' — latency critical', 'critical');
+                } else if (sslDays !== null && sslDays < 7) {
+                    pushIncident('SSL expiry ' + sslDays + 'd', 'CRITICAL');
+                    nocAddEvent(t.name + '|ssl-crit', t.name + ' — SSL expiring soon', 'critical');
+                } else if (packetLoss !== null && packetLoss > 20) {
+                    pushIncident('Packet loss ' + Math.round(packetLoss) + '%', 'CRITICAL');
+                    nocAddEvent(t.name + '|loss-crit', t.name + ' — packet loss critical', 'critical');
+                } else if (latencyMs && latencyMs > NOC_LAT_WARN) {
+                    pushIncident('Elevated latency', 'WARNING');
+                    nocAddEvent(t.name + '|lat-warn', t.name + ' — latency high', 'warning');
+                } else if (sslDays !== null && sslDays < 30) {
+                    pushIncident('SSL < 30 days', 'WARNING');
+                    nocAddEvent(t.name + '|ssl-warn', t.name + ' — SSL expiry warning', 'warning');
+                } else if (packetLoss !== null && packetLoss > 5) {
+                    pushIncident('Packet loss ' + Math.round(packetLoss) + '%', 'WARNING');
+                    nocAddEvent(t.name + '|loss-warn', t.name + ' — packet loss warning', 'warning');
+                } else if (dnsMs && dnsMs > 100) {
+                    pushIncident('DNS slow', 'WARNING');
+                    nocAddEvent(t.name + '|dns-warn', t.name + ' — DNS slow', 'warning');
+                } else {
+                    // Clear incident start if target is now healthy
+                    Object.keys(nocIncidentStart).filter(k => k.startsWith(t.name + '|')).forEach(k => {
+                        const dur = nocFormatDuration(nocIncidentStart[k]);
+                        nocAddEvent(t.name + '|rec-' + k, t.name + ' — recovered after ' + dur, 'info');
+                        delete nocIncidentStart[k];
+                    });
+                }
+            });
+
+            // Sort: CRITICAL → WARNING → highest latency
+            incidents.sort((a, b) => {
+                if (a.sev !== b.sev) return a.sev === 'CRITICAL' ? -1 : 1;
+                return a.name.localeCompare(b.name);
+            });
+            const topIncidents = incidents.slice(0, 5);
+            // Average latency — integer only per spec
+            const avgLatency = latencies.length > 0
+                ? Math.round(latencies.reduce((s, v) => s + v, 0) / latencies.length)
+                : null;
+
+            // ── Theme tokens ──────────────────────────────────────────
+            const isLightTheme = document.body.classList.contains('light-theme');
+            const T = {
+                // text
+                textPrimary   : isLightTheme ? '#0f172a'          : '#f1f5f9',
+                textSecondary : isLightTheme ? '#475569'          : 'rgba(255,255,255,0.45)',
+                textMuted     : isLightTheme ? '#94a3b8'          : 'rgba(255,255,255,0.3)',
+                // surfaces
+                surfaceBg     : isLightTheme ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)',
+                trackBg       : isLightTheme ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.06)',
+                divider       : isLightTheme ? '#e2e8f0'          : 'rgba(255,255,255,0.05)',
+                // timeline info event
+                infoBar       : isLightTheme ? '#94a3b8'          : 'rgba(255,255,255,0.2)',
+                infoText      : isLightTheme ? '#475569'          : 'rgba(255,255,255,0.45)',
+                // labels
+                regionLabel   : isLightTheme ? '#334155'          : 'rgba(255,255,255,0.65)',
+                emptyText     : isLightTheme ? '#94a3b8'          : 'rgba(255,255,255,0.3)',
+                // badge (incident count when zero)
+                badgeZeroBg   : isLightTheme ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)',
+                badgeZeroBd   : isLightTheme ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.1)',
+                badgeZeroCol  : isLightTheme ? '#94a3b8'          : 'rgba(255,255,255,0.4)',
+            };
+
+            // ── Banner ────────────────────────────────────────────────
+            const banner     = document.getElementById('noc-banner');
+            const bannerTitle = document.getElementById('noc-banner-title');
+            const bannerIcon  = document.getElementById('noc-banner-icon');
+            const bannerPulse = document.getElementById('noc-pulse');
+            if (critical > 0) {
+                banner.style.background  = isLightTheme ? 'rgba(255,220,220,0.85)' : 'rgba(100,10,20,0.45)';
+                banner.style.borderColor = '#f43f5e';
+                bannerTitle.style.color  = isLightTheme ? '#be123c' : '#f87171';
+                bannerTitle.textContent  = 'SERVICE OUTAGE DETECTED';
+                bannerIcon.textContent   = '🚨';
+                bannerPulse.style.background = '#f43f5e';
+                bannerPulse.style.boxShadow  = '0 0 18px #f43f5e';
+            } else if (degraded > 0) {
+                banner.style.background  = isLightTheme ? 'rgba(255,237,200,0.85)' : 'rgba(100,55,0,0.4)';
+                banner.style.borderColor = '#f59e0b';
+                bannerTitle.style.color  = isLightTheme ? '#b45309' : '#fbbf24';
+                bannerTitle.textContent  = 'DEGRADED PERFORMANCE';
+                bannerIcon.textContent   = '⚠️';
+                bannerPulse.style.background = '#f59e0b';
+                bannerPulse.style.boxShadow  = '0 0 14px #f59e0b';
+            } else {
+                banner.style.background  = isLightTheme ? 'rgba(240,253,244,0.85)' : 'rgba(5,40,20,0.7)';
+                banner.style.borderColor = '#10b981';
+                bannerTitle.style.color  = isLightTheme ? '#065f46' : '#34d399';
+                bannerTitle.textContent  = 'ALL SYSTEMS OPERATIONAL';
+                bannerIcon.textContent   = '✅';
+                bannerPulse.style.background = '#10b981';
+                bannerPulse.style.boxShadow  = '0 0 12px #10b981';
+            }
+            document.getElementById('noc-last-updated').textContent =
+                new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            // ── KPIs ──────────────────────────────────────────────────
+            document.getElementById('kpi-total-val').textContent   = total;
+            document.getElementById('kpi-healthy-val').textContent  = healthy;
+            document.getElementById('kpi-degraded-val').textContent = degraded;
+            document.getElementById('kpi-critical-val').textContent = critical;
+            document.getElementById('kpi-latency-val').textContent  =
+                avgLatency !== null ? avgLatency + ' ms' : 'NO DATA';
+            const latKpi = document.getElementById('kpi-latency');
+            if (avgLatency === null) latKpi.className = 'noc-kpi';
+            else if (avgLatency > NOC_LAT_CRIT) latKpi.className = 'noc-kpi noc-kpi-red';
+            else if (avgLatency > NOC_LAT_WARN)  latKpi.className = 'noc-kpi noc-kpi-amber';
+            else                                  latKpi.className = 'noc-kpi noc-kpi-green';
+
+            // ── Incident Count Badge ──────────────────────────────────
+            const incBadge = document.getElementById('noc-inc-count');
+            incBadge.textContent = incidents.length;
+            incBadge.style.background  = incidents.length > 0 ? 'rgba(244,63,94,0.15)' : T.badgeZeroBg;
+            incBadge.style.borderColor = incidents.length > 0 ? 'rgba(244,63,94,0.5)'  : T.badgeZeroBd;
+            incBadge.style.color       = incidents.length > 0 ? (isLightTheme ? '#be123c' : '#f87171') : T.badgeZeroCol;
+
+            // ── Top Incidents ─────────────────────────────────────────
+            const incEl = document.getElementById('noc-incidents');
+            if (topIncidents.length === 0) {
+                incEl.innerHTML = `<div style="color:${T.emptyText};font-size:0.78rem;text-align:center;padding:14px 16px;">No active incidents</div>`;
+            } else {
+                incEl.innerHTML = topIncidents.map(inc => `
+                    <div class="noc-inc-row">
+                        <div style="width:5px;height:36px;border-radius:2px;background:${inc.color};flex-shrink:0;"></div>
+                        <div style="min-width:0;">
+                            <div style="font-weight:700;color:${T.textPrimary};font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${inc.name}</div>
+                            <div style="color:${T.textSecondary};font-size:0.71rem;margin-top:2px;">${inc.cause}</div>
+                        </div>
+                        <div style="font-size:0.65rem;font-weight:800;color:${inc.color};background:${inc.sev==='CRITICAL'?'rgba(244,63,94,0.12)':'rgba(245,158,11,0.12)'};padding:3px 8px;border-radius:4px;border:1px solid ${inc.color}55;flex-shrink:0;">${inc.sev}</div>
+                        <div style="font-size:0.7rem;color:${T.textMuted};flex-shrink:0;text-align:right;">${inc.duration}</div>
+                    </div>`).join('');
+            }
+
+            // ── Service Status Grid ───────────────────────────────────
+            const svcEl = document.getElementById('noc-services');
+            function svcScore(t) {
+                const th = t.health ? t.health.status : null;
+                const tl = t.httpTrace ? t.httpTrace.total_ms : 0;
+                const ts = (t.ssl !== undefined && t.ssl !== null) ? Math.floor(t.ssl) : null;
+                const tp = t.traceroute ? t.traceroute.packet_loss_pct : null;
+                if ((th && th !== 'healthy') || tl > NOC_LAT_CRIT || (ts !== null && ts < 7) || (tp !== null && tp > 20)) return 10;
+                if (tl > NOC_LAT_WARN || (ts !== null && ts < 30) || (tp !== null && tp > 5)) return 5;
+                return 0;
+            }
+            svcEl.innerHTML = [...targets].sort((a, b) => svcScore(b) - svcScore(a)).map(t => {
+                const h  = t.health ? t.health.status : null;
+                const lm = t.httpTrace ? t.httpTrace.total_ms : null;
+                const sd = (t.ssl !== undefined && t.ssl !== null) ? Math.floor(t.ssl) : null;
+                const lp = t.traceroute ? t.traceroute.packet_loss_pct : null;
+                let dot = '#10b981', lbl = 'OK';
+                if ((h && h !== 'healthy') || (lm && lm > NOC_LAT_CRIT) || (sd !== null && sd < 7) || (lp !== null && lp > 20)) {
+                    dot = '#f43f5e'; lbl = 'CRIT';
+                } else if ((lm && lm > NOC_LAT_WARN) || (sd !== null && sd < 30) || (lp !== null && lp > 5)) {
+                    dot = '#f59e0b'; lbl = 'WARN';
+                }
+                return `<div class="noc-svc-tile">
+                    <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.name}">${t.name}</span>
+                    <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
+                        <div class="noc-svc-dot" style="background:${dot};box-shadow:0 0 5px ${dot}88;"></div>
+                        <span style="font-size:0.65rem;color:${dot};font-weight:800;letter-spacing:0.04em;">${lbl}</span>
+                    </div>
+                </div>`;
+            }).join('');
+
+            // ── Regional Health Bars (fixed 800ms scale) ───────────────
+            const regionMap = { Americas: [], Europe: [], Asia: [], 'Middle East': [], Other: [] };
+            targets.forEach(t => {
+                const n   = t.name.toLowerCase();
+                const lms = t.httpTrace ? t.httpTrace.total_ms : null;
+                if (!lms) return;
+                if (n.includes('us') || n.includes('amazon') || n.includes('aws') || n.includes('google') || n.includes('cloudflare') || n.includes('facebook') || n.includes('msn') || n.includes('microsoft')) regionMap.Americas.push(lms);
+                else if (n.includes('eu') || n.includes('de.') || n.includes('.uk') || n.includes('.fr') || n.includes('azure') || n.includes('t-systems') || n.includes('telekom')) regionMap.Europe.push(lms);
+                else if (n.includes('.ap') || n.includes('.sg') || n.includes('.in') || n.includes('.jp') || n.includes('.cn') || n.includes('alibaba') || n.includes('tata')) regionMap.Asia.push(lms);
+                else if (n.includes('.me') || n.includes('.ae') || n.includes('.sa') || n.includes('stc') || n.includes('etisalat')) regionMap['Middle East'].push(lms);
+                else regionMap.Other.push(lms);
+            });
+
+            const regEl = document.getElementById('noc-regions');
+            let activeRegions = Object.entries(regionMap).filter(([, arr]) => arr.length > 0);
+            if (activeRegions.length === 0) {
+                const allLms = targets.filter(t => t.httpTrace).map(t => t.httpTrace.total_ms);
+                if (allLms.length > 0) activeRegions = [['All Targets', allLms]];
+            }
+
+            if (activeRegions.length === 0) {
+                regEl.innerHTML = `<div style="color:${T.emptyText};font-size:0.78rem;text-align:center;padding:8px;">NO DATA</div>`;
+            } else {
+                const scale = NOC_LAT_SCALE;
+                const warnPct = (NOC_LAT_WARN / scale) * 100;
+                const critPct = (NOC_LAT_CRIT / scale) * 100;
+                regEl.innerHTML = `
+                    <div style="position:relative;height:14px;margin-bottom:4px;margin-top:2px;">
+                        <div style="position:absolute;left:${warnPct}%;top:0;height:100%;width:1px;background:rgba(245,158,11,0.5);"></div>
+                        <div style="position:absolute;left:${critPct}%;top:0;height:100%;width:1px;background:rgba(244,63,94,0.5);"></div>
+                        <div style="position:absolute;left:${warnPct}%;top:0;font-size:0.6rem;color:#d97706;transform:translateX(-50%);font-weight:700;">${NOC_LAT_WARN}ms</div>
+                        <div style="position:absolute;left:${critPct}%;top:0;font-size:0.6rem;color:#e11d48;transform:translateX(-50%);font-weight:700;">${NOC_LAT_CRIT}ms</div>
+                    </div>
+                ` + activeRegions.map(([region, arr]) => {
+                    const avg   = Math.round(arr.reduce((s, v) => s + v, 0) / arr.length);
+                    const pct   = Math.min((avg / scale) * 100, 100);
+                    const color = avg > NOC_LAT_CRIT ? '#e11d48' : avg > NOC_LAT_WARN ? '#d97706' : '#059669';
+                    return `<div style="display:grid;grid-template-columns:88px 1fr 58px;align-items:center;gap:10px;margin-bottom:6px;">
+                        <span style="font-size:0.74rem;font-weight:700;color:${T.regionLabel};">${region}</span>
+                        <div style="position:relative;background:${T.trackBg};border-radius:3px;height:9px;overflow:hidden;">
+                            <div style="position:absolute;left:${warnPct}%;top:0;height:100%;width:1px;background:rgba(245,158,11,0.4);z-index:1;"></div>
+                            <div style="position:absolute;left:${critPct}%;top:0;height:100%;width:1px;background:rgba(244,63,94,0.4);z-index:1;"></div>
+                            <div class="noc-region-bar" style="width:${pct}%;background:${color};height:100%;position:relative;z-index:0;"></div>
+                        </div>
+                        <span style="font-size:0.74rem;font-weight:700;color:${color};text-align:right;">${avg} ms</span>
+                    </div>`;
+                }).join('');
+            }
+
+            // ── Event Timeline ─────────────────────────────────────────
+            const tlEl = document.getElementById('noc-timeline');
+            if (nocEventLog.length === 0) {
+                tlEl.innerHTML = `<div style="color:${T.emptyText};font-size:0.77rem;">No events in last 30 min</div>`;
+            } else {
+                tlEl.innerHTML = [...nocEventLog].reverse().slice(0, 12).map(ev => {
+                    const col = ev.severity === 'critical' ? (isLightTheme ? '#be123c' : '#f87171')
+                              : ev.severity === 'warning'  ? (isLightTheme ? '#b45309' : '#fbbf24')
+                              : T.infoText;
+                    const bar = ev.severity === 'critical' ? '#f43f5e'
+                              : ev.severity === 'warning'  ? '#f59e0b'
+                              : T.infoBar;
+                    return `<div class="noc-evt" style="gap:8px;">
+                        <span class="noc-evt-time">${ev.time}</span>
+                        <div style="width:3px;height:14px;border-radius:1px;background:${bar};flex-shrink:0;"></div>
+                        <span style="color:${col};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ev.msg}</span>
+                    </div>`;
+                }).join('');
+            }
+        }
+
         // Initialize
         renderTable();
         fetchInitialState().then(() => {
             connectWS();
+            refreshNOC();
+            setInterval(refreshNOC, 10000);
         });
         async function exportConfig() {
             const tags = localStorage.getItem('hawkeye_tags') || '{}';
@@ -2384,6 +2983,8 @@
         });
     </script>
     <input type="file" id="importFile" style="display: none;" onchange="importConfig(event)" accept=".zip">
+
+    <script src="/scripts/ai-assistant.js"></script>
 </body>
 
 </html>

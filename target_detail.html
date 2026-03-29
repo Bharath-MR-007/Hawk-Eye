@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Path Trace | Hawk-Eye</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/scripts/hawk-ui.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
 
@@ -55,8 +56,102 @@
             background: var(--bg-dark);
             color: var(--text-primary);
             min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .app-window {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        /* ── Sidebar Styles (matches Hawk-Eye standard) ── */
+        .main-sidebar {
+            width: 230px;
+            min-width: 230px;
+            background: linear-gradient(175deg, #0b1a2e, #0f2744, #122f52);
             display: flex;
             flex-direction: column;
+            flex-shrink: 0;
+            z-index: 200;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            transition: background 0.3s;
+        }
+        body.light-theme .main-sidebar { background: linear-gradient(175deg, #1a3a6c, #1e4487, #1d4ed8); }
+
+        .main-sidebar-header {
+            height: 62px;
+            display: flex;
+            align-items: center;
+            padding: 0 1.2rem;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+        .main-sidebar-logo-text { display: flex; flex-direction: column; line-height: 1.1; }
+        .hawk-name { font-weight: 800; font-size: 1.05rem; color: #e0f0ff; letter-spacing: -0.01em; }
+        .hawk-sub { font-size: 0.58rem; color: #ff6ef7; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
+
+        .main-sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.8rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+        }
+        .nav-category {
+            padding: 0.9rem 1rem 0.3rem;
+            font-size: 0.6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 9px 1.2rem;
+            color: rgba(200, 220, 255, 0.75);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+            gap: 11px;
+            cursor: pointer;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+        .nav-item i { width: 16px; font-size: 0.9rem; text-align: center; color: rgba(160, 200, 255, 0.6); flex-shrink: 0; }
+        .nav-item:hover { background: rgba(255, 255, 255, 0.07); color: #e0f0ff; border-left-color: rgba(96, 165, 250, 0.5); }
+        .nav-item.active { background: rgba(59, 130, 246, 0.2); color: #e0f0ff; border-left-color: #60a5fa; font-weight: 700; }
+
+        /* ── Content Area ── */
+        .app-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow: hidden;
+            background: var(--bg-dark);
+        }
+
+        .main-scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
         }
 
         /* ── Top bar ── */
@@ -433,32 +528,33 @@
         table.hop-table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 0.75rem;
+            color: var(--text-primary);
         }
 
         .hop-table th {
-            padding: 10px 16px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: .06em;
-            color: var(--text-secondary);
+            background: var(--surface2);
+            color: var(--text-primary);
             font-weight: 700;
-            border-bottom: 1px solid var(--border);
+            font-size: 0.7rem;
+            text-transform: none;
+            letter-spacing: 0;
+            padding: 6px 8px;
             text-align: left;
+            border: 1px solid var(--border);
             white-space: nowrap;
         }
 
         .hop-table td {
-            padding: 12px 16px;
-            font-size: 0.85rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        }
-
-        .hop-table tr:last-child td {
-            border-bottom: none;
+            padding: 6px 8px;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            vertical-align: top;
+            line-height: 1.3;
         }
 
         .hop-table tr:hover td {
-            background: rgba(255, 255, 255, 0.02);
+            background: var(--surface2);
         }
 
         .hop-table tr.sev-critical td {
@@ -716,151 +812,261 @@
             height: 25px;
             background: transparent;
         }
-    </style>
+
+        /* ── Application Layer Strip ── */
+        .app-layer-strip {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.9rem 1.4rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .app-layer-strip .strip-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .app-layer-divider {
+            width: 1px;
+            height: 28px;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+
+        .app-metric {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .app-metric-label {
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 0.06em;
+        }
+
+        .app-metric-val {
+            font-size: 0.92rem;
+            font-weight: 800;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .app-layer-note {
+            margin-left: auto;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+    
+
+        </style>
 </head>
 
 <body>
-
-    <!-- Top bar -->
-    <div class="topbar">
-        <div class="topbar-left">
-            <a href="/inventory" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Inventory</a>
-            <div class="target-title">Path Trace — <span id="hostTitle">…</span></div>
-        </div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <div class="method-selector"
-                style="display: flex; align-items: center; gap: 8px; margin-right: 15px; background: var(--bg-secondary); padding: 5px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.9rem;">
-                <span style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 500;">METHOD:</span>
-                <select id="traceMethod"
-                    style="background: none; border: none; color: var(--text-primary); cursor: pointer; font-weight: 600; outline: none;"
-                    onchange="loadTrace()">
-                    <option value="tcp">TCP (Standard Web)</option>
-                    <option value="udp">UDP (Linux Style)</option>
-                    <option value="icmp">ICMP (Windows Style)</option>
-                </select>
+<div class="app-window">
+    <!-- ══ GLOBAL SIDEBAR (canonical — do not edit inline) ══ -->
+    <aside class="main-sidebar">
+        <div class="main-sidebar-header">
+            <span style="font-size:1.6rem;line-height:1">🦅</span>
+            <div class="main-sidebar-logo-text">
+                <span class="hawk-name">Hawk-Eye</span>
+                <span class="hawk-sub">T-Systems</span>
             </div>
-            <button class="refresh-btn" id="theme-toggle-btn"
-                style="background:none; color:var(--text-secondary); border:1px solid var(--border-color); margin-right:10px;"
-                title="Toggle Theme">
-                <i id="theme-toggle-icon" class="fa-solid fa-moon"></i>
-            </button>
-            <button class="refresh-btn" id="refreshBtn" onclick="loadTrace()">
-                <i class="fa-solid fa-rotate"></i>
-                Refresh
-            </button>
+        </div>
+        <nav class="main-sidebar-nav">
+            <div class="nav-category">Monitoring</div>
+            <a href="/dashboard" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Visual Dashboard</a>
+            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-table-list"></i> Live Table</a>
+            <a href="/inventory" class="nav-item"><i class="fa-solid fa-list"></i> Target Inventory</a>
+            <div class="nav-item tree-parent" onclick="this.classList.toggle('open')">
+                <div style="display:flex;align-items:center;gap:11px"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
+                <i class="fa-solid fa-chevron-down tree-chevron"></i>
+            </div>
+            <div class="tree-children">
+                <a href="/incidents" class="nav-item child-item"><i class="fa-solid fa-table-cells"></i> All Incidents</a>
+            </div>
+
+            <div class="nav-category">Management</div>
+            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-plus" style="color:#60a5fa"></i> Add New Target</a>
+            <a href="/live_dashboard" class="nav-item" id="mainDeleteBtn"><i class="fa-solid fa-trash" style="color:#f87171"></i> Delete Target</a>
+
+            <div class="nav-category">Integrations</div>
+            <a href="/integrations" class="nav-item"><i class="fa-solid fa-link"></i> External Apps Links</a>
+            <a href="/integrations_config" class="nav-item"><i class="fa-solid fa-gears"></i> Integration Config</a>
+
+            <div class="nav-category">Configuration</div>
+            <a href="/alerts" class="nav-item"><i class="fa-solid fa-folder"></i> Alerts Config</a>
+            <a href="/polling" class="nav-item"><i class="fa-solid fa-folder"></i> Polling Config</a>
+            <a href="/users_config" class="nav-item"><i class="fa-solid fa-user-gear"></i> User Configuration</a>
+            <button class="nav-item" onclick="if(typeof exportConfig==='function'){exportConfig();}else{alert('Export not available here.');}"><i class="fa-solid fa-file-export"></i> Export Snapshot</button>
+            <button class="nav-item" onclick="if(document.getElementById('importFile')){document.getElementById('importFile').click();}else{alert('Import not available here.');}"><i class="fa-solid fa-file-import"></i> Import Snapshot</button>
+
+            <div class="nav-category">Operations</div>
+            <a href="/troubleshooting" class="nav-item"><i class="fa-solid fa-microchip"></i> Troubleshooting</a>
+            <a href="/device_reachability" class="nav-item"><i class="fa-solid fa-satellite-dish"></i> Device Reachability</a>
+        </nav>
+    </aside>
+
+    <div class="app-content">
+        <!-- Top bar -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <a href="/inventory" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Inventory</a>
+                <div class="target-title">Path Trace — <span id="hostTitle">…</span></div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <div class="method-selector"
+                    style="display: flex; align-items: center; gap: 8px; margin-right: 15px; background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.9rem;">
+                    <span style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 500;">METHOD:</span>
+                    <select id="traceMethod"
+                        style="background: none; border: none; color: var(--text-primary); cursor: pointer; font-weight: 600; outline: none;"
+                        onchange="loadTrace()">
+                        <option value="tcp">TCP (Standard Web)</option>
+                        <option value="udp">UDP (Linux Style)</option>
+                        <option value="icmp">ICMP (Windows Style)</option>
+                    </select>
+                </div>
+                <button id="theme-toggle-btn" 
+                    style="background:none; color:var(--text-secondary); border:1px solid var(--border); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-right: 10px;"
+                    title="Toggle Dark / Light Mode">
+                    <i id="theme-toggle-icon" class="fa-solid fa-moon"></i>
+                </button>
+                <button class="refresh-btn" id="refreshBtn" onclick="loadTrace()">
+                    <i class="fa-solid fa-rotate"></i>
+                    Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-scroll-area">
+            <!-- Summary row -->
+            <div class="summary-row">
+                <div class="summary-card">
+                    <div class="card-label">Total Hops</div>
+                    <div class="card-value" id="s-hops">—</div>
+                    <div class="card-sub">to destination</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-label">Avg Latency</div>
+                    <div class="card-value" id="s-latency">—</div>
+                    <div class="card-sub">round-trip</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-label">Avg Jitter</div>
+                    <div class="card-value" id="s-jitter">—</div>
+                    <div class="card-sub">variance</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-label">Packet Loss</div>
+                    <div class="card-value" id="s-loss">—</div>
+                    <div class="card-sub">overall</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-label">DNS Resp</div>
+                    <div class="card-value" id="s-dns">—</div>
+                    <div class="card-sub" id="s-dns-sub">resolution time</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-label">Severity</div>
+                    <div class="card-value" id="s-sev" style="font-size:1.1rem;">—</div>
+                    <div class="card-sub" id="s-sev-sub">worst hop</div>
+                </div>
+            </div>
+
+            <!-- Application Layer Health Strip -->
+            <div class="app-layer-strip" id="appLayerStrip">
+                <span class="strip-label"><i class="fa-solid fa-globe" style="color:var(--accent)"></i> Application Layer</span>
+                <div class="app-layer-divider"></div>
+                <div class="app-metric">
+                    <span class="app-metric-label">HTTP Latency</span>
+                    <span class="app-metric-val" id="al-latency" style="color:var(--text-secondary)">—</span>
+                </div>
+                <div class="app-metric">
+                    <span class="app-metric-label">HTTP Status</span>
+                    <span class="app-metric-val" id="al-http">—</span>
+                </div>
+                <div class="app-metric">
+                    <span class="app-metric-label">SSL Expiry</span>
+                    <span class="app-metric-val" id="al-ssl">—</span>
+                </div>
+                <div class="app-metric">
+                    <span class="app-metric-label">App Severity</span>
+                    <span class="app-metric-val" id="al-sev">—</span>
+                </div>
+                <span class="app-layer-note">Source: /v1/metrics/* (same as dashboard)</span>
+            </div>
+
+            <div class="topology-wrap">
+                <div class="topology-header">
+                    <h2><i class="fa-solid fa-route" style="color:var(--accent);margin-right:8px;"></i>Path Trace Topology</h2>
+                    <div class="legend">
+                        <div class="leg"><div class="leg-dot" style="background:var(--green)"></div> OK</div>
+                        <div class="leg"><div class="leg-dot" style="background:var(--yellow)"></div> Minor</div>
+                        <div class="leg"><div class="leg-dot" style="background:var(--orange)"></div> Major</div>
+                        <div class="leg"><div class="leg-dot" style="background:var(--red)"></div> Critical</div>
+                        <div class="leg"><div class="leg-dot" style="background:#4b5563"></div> Timeout</div>
+                    </div>
+                </div>
+                <div class="topology-scroll">
+                    <div class="topology-path" id="topologyPath">
+                        <svg id="topologySvg"></svg>
+                        <div id="topologyStatus" class="loading-box" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:10px;">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i>
+                            <span id="statusText">Running diagnostic trace…</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hop detail table -->
+            <div class="table-wrap">
+                <div class="table-header">
+                    <h2><i class="fa-solid fa-table-cells-large" style="color:var(--info);margin-right:8px;"></i>Hop Detail — Test Results</h2>
+                </div>
+                <div id="hopTableContainer">
+                    <div class="loading-box"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
+                </div>
+            </div>
+
+            <!-- Incident Summary -->
+            <div class="incident-summary-wrap" id="incidentSummaryWrap" style="display: none;">
+                <div class="table-header" style="border-bottom: 1px solid var(--border);">
+                    <h2><i class="fa-solid fa-magnifying-glass-chart" style="color:var(--accent);margin-right:8px;"></i>AI Incident Diagnostics & Resolution</h2>
+                </div>
+                <div class="incident-body">
+                    <div class="analysis-card">
+                        <h3><i class="fa-solid fa-stethoscope"></i> Automated Analysis</h3>
+                        <div id="analysisContent"></div>
+                    </div>
+                    <div class="resolution-card">
+                        <h3><i class="fa-solid fa-screwdriver-wrench"></i> Troubleshooting Steps</h3>
+                        <div id="resolutionContent" class="resolution-list"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
-    <!-- Main -->
-    <div class="main">
-
-        <!-- Summary row -->
-        <div class="summary-row">
-            <div class="summary-card">
-                <div class="card-label">Total Hops</div>
-                <div class="card-value" id="s-hops">—</div>
-                <div class="card-sub">to destination</div>
-            </div>
-            <div class="summary-card">
-                <div class="card-label">Avg Latency</div>
-                <div class="card-value" id="s-latency">—</div>
-                <div class="card-sub">round-trip</div>
-            </div>
-            <div class="summary-card">
-                <div class="card-label">Avg Jitter</div>
-                <div class="card-value" id="s-jitter">—</div>
-                <div class="card-sub">variance</div>
-            </div>
-            <div class="summary-card">
-                <div class="card-label">Packet Loss</div>
-                <div class="card-value" id="s-loss">—</div>
-                <div class="card-sub">overall</div>
-            </div>
-            <div class="summary-card">
-                <div class="card-label">DNS Resp</div>
-                <div class="card-value" id="s-dns">—</div>
-                <div class="card-sub" id="s-dns-sub">resolution time</div>
-            </div>
-            <div class="summary-card">
-                <div class="card-label">Severity</div>
-                <div class="card-value" id="s-sev" style="font-size:1.1rem;">—</div>
-                <div class="card-sub" id="s-sev-sub">worst hop</div>
-            </div>
-        </div>
-
-        <!-- Topology -->
-        <div class="topology-wrap">
-            <div class="topology-header">
-                <h2><i class="fa-solid fa-route" style="color:var(--accent);margin-right:8px;"></i>Path Trace
-                    Topology</h2>
-                <div class="legend">
-                    <div class="leg">
-                        <div class="leg-dot" style="background:var(--green)"></div> OK
-                    </div>
-                    <div class="leg">
-                        <div class="leg-dot" style="background:var(--yellow)"></div> Minor
-                    </div>
-                    <div class="leg">
-                        <div class="leg-dot" style="background:var(--orange)"></div> Major
-                    </div>
-                    <div class="leg">
-                        <div class="leg-dot" style="background:var(--red)"></div> Critical
-                    </div>
-                    <div class="leg">
-                        <div class="leg-dot" style="background:#4b5563"></div> Timeout
-                    </div>
-                </div>
-            </div>
-            <div class="topology-scroll">
-                <div class="topology-path" id="topologyPath">
-                    <svg id="topologySvg"></svg>
-                    <!-- Nodes injected here -->
-                    <div id="topologyStatus" class="loading-box"
-                        style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:10px;">
-                        <i class="fa-solid fa-circle-notch fa-spin"></i>
-                        <span id="statusText">Running diagnostic trace…</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Hop detail table -->
-        <div class="table-wrap">
-            <div class="table-header">
-                <h2><i class="fa-solid fa-table-cells-large" style="color:var(--info);margin-right:8px;"></i>Hop Detail
-                    — Test Results</h2>
-            </div>
-            <div id="hopTableContainer">
-                <div class="loading-box"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
-            </div>
-        </div>
-
-        <!-- Incident Summary -->
-        <div class="incident-summary-wrap" id="incidentSummaryWrap" style="display: none;">
-            <div class="table-header" style="border-bottom: 1px solid var(--border);">
-                <h2><i class="fa-solid fa-magnifying-glass-chart" style="color:var(--accent);margin-right:8px;"></i>AI
-                    Incident Diagnostics & Resolution</h2>
-            </div>
-            <div class="incident-body">
-                <div class="analysis-card">
-                    <h3><i class="fa-solid fa-stethoscope"></i> Automated Analysis</h3>
-                    <div id="analysisContent">
-                        <!-- Dynamic Content -->
-                    </div>
-                </div>
-                <div class="resolution-card">
-                    <h3><i class="fa-solid fa-screwdriver-wrench"></i> Troubleshooting Steps</h3>
-                    <div id="resolutionContent" class="resolution-list">
-                        <!-- Dynamic List -->
-                    </div>
-                </div>
-            </div>
-        </div>
+</div>
 
         <script>
             // ── helpers ──────────────────
             const params = new URLSearchParams(location.search);
-            const host = params.get('host') || 'unknown';
+            const host = params.get('host') || params.get('target') || 'unknown';
             document.getElementById('hostTitle').textContent = host;
             document.title = `Path Trace — ${host} | Hawk-Eye`;
 
@@ -1123,7 +1329,7 @@
                 <td class="val-${jc}">${h.jitter !== null ? h.jitter + ' ms' : '<span style="color:#6b7280;">—</span>'}</td>
                 <td class="val-${psc}">${h.loss !== null ? h.loss + ' %' : '—'}</td>
                 <td>${nnmiHTML}</td>
-                <td style="color:var(--text-secondary);">${h.latency !== null ? 64 - h.hop : '—'}</td>
+                <td style="color:var(--text-secondary);">TTL ${h.ttl ?? h.hop}</td>
                 <td>${sevBadgeHTML}</td>
             `;
                     tbody.appendChild(tr);
@@ -1133,7 +1339,109 @@
                 container.appendChild(table);
             }
 
-            // ── Update summary cards ──────
+            // ── Load Application-Layer Metrics and update strip ──
+            async function loadAppLayerMetrics(networkGlobalHealth) {
+                try {
+                    // Normalize the host to match the API keys
+                    // health/latency keys are full URLs like https://linkedin.com
+                    // ssl keys are like linkedin.com:443
+                    const [healthRes, latencyRes, sslRes] = await Promise.allSettled([
+                        fetch('/v1/metrics/health').then(r => r.json()),
+                        fetch('/v1/metrics/latency').then(r => r.json()),
+                        fetch('/v1/metrics/ssl_tls').then(r => r.json()),
+                    ]);
+
+                    const healthData  = healthRes.status  === 'fulfilled' ? healthRes.value.data  : {};
+                    const latencyData = latencyRes.status === 'fulfilled' ? latencyRes.value.data : {};
+                    const sslData     = sslRes.status     === 'fulfilled' ? sslRes.value.data     : {};
+
+                    // Find matching key (API keys have full URL, host is just hostname)
+                    const matchKey = (obj) => Object.keys(obj).find(k =>
+                        k.replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,'').replace(/:\d+$/,'').toLowerCase() === host.toLowerCase()
+                    );
+
+                    const latKey    = matchKey(latencyData);
+                    const healthKey = matchKey(healthData);
+                    const sslKey    = matchKey(sslData);
+
+                    const latVal    = latKey    ? latencyData[latKey] : null;
+                    const healthVal = healthKey ? healthData[healthKey] : null;
+                    const sslVal    = sslKey    ? sslData[sslKey] : null;
+
+                    // Latency in seconds (API returns { total: 0.548 })
+                    const httpLatMs = latVal ? (typeof latVal === 'object' ? latVal.total : latVal) * 1000 : null;
+                    const httpOk    = healthVal === 'healthy' || healthVal === 1 || healthVal === true;
+                    const sslDays   = sslVal !== null && sslVal !== undefined ? Math.round(typeof sslVal === 'object' ? sslVal.days_left : sslVal) : null;
+
+                    // Compute app-layer severity
+                    let appSev = 'ok';
+                    if (httpLatMs !== null && httpLatMs >= 500) appSev = 'critical';
+                    else if (httpLatMs !== null && httpLatMs >= 300) appSev = 'major';
+                    else if (httpLatMs !== null && httpLatMs >= 150) appSev = 'minor';
+                    if (!httpOk) appSev = appSev === 'ok' ? 'minor' : appSev;
+                    if (sslDays !== null && sslDays <= 0)  appSev = 'critical';
+                    else if (sslDays !== null && sslDays <= 7)  { if (appSev === 'ok' || appSev === 'minor') appSev = 'major'; }
+                    else if (sslDays !== null && sslDays <= 30) { if (appSev === 'ok') appSev = 'minor'; }
+
+                    const sevColors = { critical: 'var(--red)', major: 'var(--orange)', minor: 'var(--yellow)', ok: 'var(--green)' };
+                    const col = sevColors[appSev] || 'var(--text-secondary)';
+
+                    // Update strip
+                    const latEl = document.getElementById('al-latency');
+                    if (httpLatMs !== null) {
+                        latEl.textContent = httpLatMs.toFixed(0) + ' ms';
+                        latEl.style.color = appSev === 'ok' ? 'var(--green)' : col;
+                    } else {
+                        latEl.textContent = '—';
+                    }
+
+                    const httpEl = document.getElementById('al-http');
+                    httpEl.textContent = healthVal === null ? '—' : httpOk ? '\u2705 OK' : '\u274c Failed';
+                    httpEl.style.color = httpOk ? 'var(--green)' : 'var(--red)';
+
+                    const sslEl = document.getElementById('al-ssl');
+                    if (sslDays === null) {
+                        sslEl.textContent = '—';
+                    } else if (sslDays <= 0) {
+                        sslEl.textContent = 'Expired';
+                        sslEl.style.color = 'var(--red)';
+                    } else {
+                        sslEl.textContent = sslDays + 'd';
+                        sslEl.style.color = sslDays <= 7 ? 'var(--red)' : sslDays <= 30 ? 'var(--yellow)' : 'var(--green)';
+                    }
+
+                    const sevEl2 = document.getElementById('al-sev');
+                    sevEl2.textContent = appSev.charAt(0).toUpperCase() + appSev.slice(1);
+                    sevEl2.style.color = col;
+
+                    // ── Reconcile page-level Severity badge and AI diagnosis ──
+                    // The overall severity shown at top = worst of (network path, app layer)
+                    const sevOrder = { critical: 0, major: 1, minor: 2, ok: 3, timeout: 4 };
+                    const pageSevEl = document.getElementById('s-sev');
+                    const currentSev = pageSevEl.dataset.networkSev || 'ok';
+                    const mergedSev = (sevOrder[appSev] ?? 5) <= (sevOrder[currentSev] ?? 5) ? appSev : currentSev;
+                    pageSevEl.textContent = mergedSev.charAt(0).toUpperCase() + mergedSev.slice(1);
+                    pageSevEl.style.color = sevColors[mergedSev] || 'var(--text-secondary)';
+                    document.getElementById('s-sev-sub').textContent = mergedSev === appSev ? 'app layer' : 'network hop';
+
+                    // Tell AI incident block about app-layer issue if it's worse than network
+                    if (appSev !== 'ok' && (sevOrder[appSev] ?? 5) < (sevOrder[currentSev] ?? 5)) {
+                        const syntheticGlobalHealth = {
+                            status: 'issue',
+                            severity: appSev,
+                            reason: httpLatMs !== null && httpLatMs >= 300
+                                ? `High HTTP latency: ${httpLatMs.toFixed(0)}ms (network path: ${document.getElementById('s-latency').textContent})`
+                                : (sslDays !== null && sslDays <= 7 ? `SSL cert expiring in ${sslDays} day(s)` : 'Application layer issue detected'),
+                        };
+                        const existingHops = window._lastHops || [];
+                        if (existingHops.length) updateIncidentSummary(existingHops, syntheticGlobalHealth);
+                    }
+
+                } catch (e) {
+                    console.warn('Could not load app-layer metrics:', e);
+                }
+            }
+
             function updateSummary(hops, dnsLat, globalHealth = null) {
                 const valid = hops.filter(h => h.latency !== null);
                 const avgLat = valid.length ? (valid.reduce((s, h) => s + h.latency, 0) / valid.length).toFixed(1) : '—';
@@ -1167,7 +1475,9 @@
                 const sevEl = document.getElementById('s-sev');
                 sevEl.textContent = sev ? sev.charAt(0).toUpperCase() + sev.slice(1) : '—';
                 sevEl.style.color = sevColors[sev] || 'var(--text-primary)';
+                sevEl.dataset.networkSev = sev || 'ok';   // store for app-layer reconciliation
 
+                window._lastHops = hops;    // store for app-layer reconciliation
                 updateIncidentSummary(hops, globalHealth);
             }
 
@@ -1279,7 +1589,7 @@
                 setTopologyStatus(`Probing network path (<b>${method.toUpperCase()}</b>) for <b>${host}</b>...`);
 
                 try {
-                    const response = await fetch(`/api/v1/targets/${host}/trace?method=${method}`);
+                    const response = await fetch(`/api/v1/targets/${host}/path?method=${method}`);
                     if (!response.ok) throw new Error('Failed to fetch traceroute data');
 
                     const json = await response.json();
@@ -1293,9 +1603,17 @@
                         return;
                     }
 
+                    const hopMap = new Map();
+                    for (const h of rawHops) {
+                        if (!hopMap.has(h.ttl) || (h.latency && hopMap.get(h.ttl).latency > h.latency)) {
+                            hopMap.set(h.ttl, h);
+                        }
+                    }
+                    const uniqueHops = Array.from(hopMap.values()).sort((a, b) => a.ttl - b.ttl);
+
                     let foundReached = false;
                     const transformedHops = [];
-                    for (const h of rawHops) {
+                    for (const h of uniqueHops) {
                         if (foundReached) break;
                         const latencyMs = h.latency ? +(h.latency / 1000000).toFixed(1) : null;
                         const isHidden = !h.addr || !h.addr.ip || h.addr.ip === "0.0.0.0";
@@ -1307,10 +1625,11 @@
                             dns: isHidden ? null : h.name,
                             label: isHidden ? 'Timeout' : (h.ttl === 1 ? 'Gateway' : h.reached ? 'Target' : 'Transit'),
                             latency: latencyMs,
-                            jitter: +(Math.random() * 2).toFixed(2),
+                            jitter: null,   // not measured by traceroute — shown as —
                             loss: loss,
                             sev: isHidden ? 'timeout' : sevClass(latencyMs, loss),
-                            nnmi_device: h.nnmi_device
+                            nnmi_device: h.nnmi_device,
+                            ttl: h.ttl,
                         });
 
                         if (h.reached) foundReached = true;
@@ -1322,6 +1641,8 @@
                     renderTable(transformedHops);
                     const globalHealth = json.global_health;
                     updateSummary(transformedHops, json.dns_latency_ms, globalHealth);
+                    // Load HTTP-layer metrics and overlay on severity
+                    loadAppLayerMetrics(globalHealth);
 
                 } catch (error) {
                     console.error('Error loading trace:', error);
@@ -1359,6 +1680,8 @@
             });
         </script>
         <script src="/scripts/hawk-ui.js"></script>
+
+    <script src="/scripts/ai-assistant.js"></script>
 </body>
 
 </html>
