@@ -1,0 +1,2549 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hawk-Eye</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="/scripts/hawk-ui.js"></script>
+    <style>
+        :root {
+            --bg-dark: #09090b;
+            --surface-color: #18181b;
+            --surface-highlight: #27272a;
+            --border-color: #3f3f46;
+            --text-primary: #f4f4f5;
+            --text-secondary: #a1a1aa;
+
+            --success-color: #10b981;
+            --success-bg: rgba(16, 185, 129, 0.1);
+            --error-color: #f43f5e;
+            --error-bg: rgba(244, 63, 94, 0.1);
+            --warning-color: #f59e0b;
+            --warning-bg: rgba(245, 158, 11, 0.1);
+            --info-color: #3b82f6;
+            --info-bg: rgba(59, 130, 246, 0.1);
+            --header-bg: #1e2128;
+            --hover-row: #232730;
+            --even-row: #14161B;
+        }
+
+        body.light-theme {
+            --bg-dark: #f8fafc;
+            --surface-color: #ffffff;
+            --surface-highlight: #f1f5f9;
+            --border-color: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --header-bg: #f1f5f9;
+            --hover-row: #E0E7FF;
+            --even-row: #F8FAFC;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            /* will be overridden by app-window */
+        }
+
+        .app-window {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+        }
+
+        /* Sidebar Styles */
+        
+
+        
+
+        
+
+        .nav-category {
+            padding: 0 1.5rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin: 1.5rem 0 0.5rem 0;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-category:first-of-type {
+            margin-top: 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            gap: 14px;
+            cursor: pointer;
+            background: transparent;
+            border-top: none;
+            border-right: none;
+            border-bottom: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .nav-item i {
+            width: 16px;
+            font-size: 1.1rem;
+            text-align: center;
+            transition: color 0.2s;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: rgba(139, 92, 246, 0.1);
+            color: #fff;
+            border-left-color: var(--accent-purple, #8b5cf6);
+        }
+
+        .nav-item.active i {
+            color: var(--accent-purple, #8b5cf6);
+        }
+
+        
+
+        .app-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .top-navbar {
+            height: 70px;
+            background-color: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 0 2rem;
+            flex-shrink: 0;
+        }
+
+        .page-scroll-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 2rem;
+        }
+
+        /* Top Navigation (Legacy override) */
+        .navbar {
+            display: none;
+        }
+
+        th.sortable {
+            cursor: pointer;
+            position: relative;
+            padding-right: 25px !important;
+            transition: background 0.2s;
+        }
+
+        th.sortable:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        th.sortable::after {
+            content: '\f0dc';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.3;
+            font-size: 0.7rem;
+        }
+
+        th.sortable.asc::after {
+            content: '\f0de';
+            opacity: 1;
+            color: var(--accent-purple);
+        }
+
+        th.sortable.desc::after {
+            content: '\f0dd';
+            opacity: 1;
+            color: var(--accent-purple);
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Cleanup dangling CSS */
+        .navbar-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .navbar-brand i {
+            color: var(--info-color);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            background: var(--surface-highlight);
+            border: 1px solid var(--border-color);
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .dot.connected {
+            background-color: var(--success-color);
+            box-shadow: 0 0 8px var(--success-color);
+        }
+
+        .dot.disconnected {
+            background-color: var(--error-color);
+            box-shadow: 0 0 8px var(--error-color);
+        }
+
+        /* Main Content */
+        .container {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .header-section {
+            margin-bottom: 2rem;
+        }
+
+        .header-section h1 {
+            font-size: 1.5rem;
+            margin: 0 0 0.5rem 0;
+            font-weight: 600;
+        }
+
+        .header-section p {
+            color: var(--text-secondary);
+            margin: 0;
+            font-size: 0.875rem;
+        }
+
+        /* Unified Data Table NNMi Dense Grid */
+        .data-table-wrapper {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: none;
+            margin-bottom: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        th {
+            background-color: var(--header-bg);
+            padding: 6px 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: none;
+            letter-spacing: 0;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 6px 8px;
+            border: 1px solid var(--border-color);
+            vertical-align: top;
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+
+        tbody tr.main-row {
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        tbody tr.main-row:nth-child(even) { background: var(--even-row); }
+        tbody tr.main-row:hover { background: var(--hover-row); }
+
+        /* Detail Drawer */
+        .drawer-row {
+            display: none;
+            background-color: #121214;
+        }
+
+        .drawer-row.active {
+            display: table-row;
+        }
+
+        .drawer-content {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .drawer-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+        }
+
+        .drawer-section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .drawer-section h3 {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin: 0 0 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .timeline-list {
+            max-height: 200px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .timeline-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            border-left: 2px solid var(--info-color);
+        }
+
+        .drawer-raw-data {
+            font-family: 'Monaco', monospace;
+            font-size: 0.8rem;
+            color: #a7f3d0;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        /* Target formatting */
+        .target-col {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .target-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--surface-highlight);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-color);
+            font-size: 1.2rem;
+        }
+
+        .target-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .target-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        /* Metric Cells */
+        .metric-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .metric-value {
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .metric-subtext {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .badge.success {
+            background: var(--success-bg);
+            color: var(--success-color);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .badge.error {
+            background: var(--error-bg);
+            color: var(--error-color);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+        }
+
+        .badge.warning {
+            background: var(--warning-bg);
+            color: var(--warning-color);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .badge.neutral {
+            background: var(--surface-highlight);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Real-time pulse animation for updates */
+        @keyframes flash {
+            0% {
+                background-color: var(--info-bg);
+            }
+
+            100% {
+                background-color: transparent;
+            }
+        }
+
+        .updated {
+            animation: flash 1.5s ease-out;
+        }
+
+        .updated {
+            animation: flash 1.5s ease-out;
+        }
+
+        /* Empty state */
+        .empty-state {
+            padding: 4rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        #notification {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 9999;
+            transform: translateY(100px);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        #notification.show {
+            transform: translateY(0);
+        }
+
+        /* Help Dropdown */
+        .help-dropdown {
+            position: relative;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .help-dropbtn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .help-dropbtn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .help-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #1a1b26;
+            min-width: 220px;
+            box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            top: 100%;
+            margin-top: 10px;
+            overflow: visible;
+            backdrop-filter: blur(10px);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+        
+        
+        
+        
+        .help-dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            background: transparent;
+        }
+
+        .help-dropdown-content a {
+            position: relative;
+            z-index: 2;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background-color: #1a1b26;
+        }
+
+        .help-dropdown-content a:last-child {
+            border-bottom: none;
+        }
+
+        .help-dropdown-content a:hover {
+            background-color: rgba(139, 92, 246, 0.2);
+            color: #fff;
+            padding-left: 20px;
+        }
+
+        .help-dropdown-content a i {
+            margin-right: 10px;
+            width: 16px;
+            text-align: center;
+        }
+
+        .help-dropdown:hover .help-dropdown-content {
+            display: block;
+        }
+
+        .tree-parent {
+            justify-content: space-between !important;
+        }
+
+        .tree-parent .tree-chevron {
+            font-size: 0.7rem;
+            transition: transform 0.2s;
+            width: auto !important;
+        }
+
+        .tree-parent.open .tree-chevron {
+            transform: rotate(180deg);
+        }
+
+        .tree-children {
+            display: none;
+            flex-direction: column;
+            gap: 2px;
+            background: rgba(0, 0, 0, 0.15);
+            border-left: 2px solid rgba(139, 92, 246, 0.3);
+            margin-left: 24px;
+            padding-left: 4px;
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        .tree-parent.open+.tree-children {
+            display: flex;
+        }
+
+        .child-item {
+            padding: 8px 1rem !important;
+            font-size: 0.8rem !important;
+        }
+    
+        /* ══ GLOBAL SIDEBAR ═══════════════════════════════════════ */
+        .app-window {
+            display: flex !important;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+        .main-sidebar {
+            width: 230px !important;
+            min-width: 230px !important;
+            background: linear-gradient(175deg,#0b1a2e,#0f2744,#122f52) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            flex-shrink: 0 !important;
+            z-index: 200 !important;
+            border-right: 1px solid rgba(255,255,255,0.08) !important;
+            overflow: hidden !important;
+        }
+        body.light-theme .main-sidebar { background: linear-gradient(175deg,#1a3a6c,#1e4487,#1d4ed8) !important; }
+
+        .main-sidebar-header {
+            height: 62px;
+            display: flex;
+            align-items: center;
+            padding: 0 1.2rem;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+        }
+        .main-sidebar-logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+        .main-sidebar-logo-text .hawk-name {
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: #e0f0ff;
+            letter-spacing: -0.01em;
+        }
+        .main-sidebar-logo-text .hawk-sub {
+            font-size: 0.58rem;
+            color: #ff6ef7;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+        .main-sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.8rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.1) transparent;
+        }
+        .nav-category {
+            padding: 0.9rem 1rem 0.3rem;
+            font-size: 0.6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.4);
+        }
+        .nav-item {
+            display: flex !important;
+            align-items: center !important;
+            padding: 9px 1.2rem !important;
+            color: rgba(200,220,255,0.75) !important;
+            text-decoration: none !important;
+            font-size: 0.8rem !important;
+            font-weight: 600 !important;
+            transition: all 0.15s !important;
+            border-left: 3px solid transparent !important;
+            gap: 11px !important;
+            cursor: pointer !important;
+            background: transparent !important;
+            border-top: none !important;
+            border-right: none !important;
+            border-bottom: none !important;
+            width: 100% !important;
+            text-align: left !important;
+            font-family: inherit !important;
+            box-sizing: border-box !important;
+        }
+        .nav-item i {
+            width: 16px;
+            font-size: 0.9rem;
+            text-align: center;
+            color: rgba(160,200,255,0.6);
+            transition: color 0.15s;
+            flex-shrink: 0;
+        }
+        .nav-item:hover {
+            background: rgba(255,255,255,0.07) !important;
+            color: #e0f0ff !important;
+            border-left-color: rgba(96,165,250,0.5) !important;
+        }
+        .nav-item:hover i { color: #93c5fd; }
+        .nav-item.active {
+            background: rgba(59,130,246,0.22) !important;
+            color: #e0f0ff !important;
+            border-left-color: #60a5fa !important;
+            font-weight: 700 !important;
+        }
+        .nav-item.active i { color: #93c5fd; }
+
+        /* Tree accordion */
+        .tree-parent { justify-content: space-between !important; }
+        .tree-chevron { font-size: 0.6rem; transition: transform 0.2s; width: auto !important; flex-shrink: 0; }
+        .tree-parent.open .tree-chevron { transform: rotate(180deg); }
+        .tree-children {
+            display: none;
+            flex-direction: column;
+            gap: 1px;
+            background: rgba(0,0,0,0.15);
+            border-left: 2px solid rgba(96,165,250,0.25);
+            margin-left: 22px;
+        }
+        .tree-parent.open + .tree-children { display: flex; }
+        .child-item { padding: 7px 1rem !important; font-size: 0.76rem !important; }
+
+        /* App content */
+        .app-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .page-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        /* ══════════════════════════════════════════════════════════ */
+
+        
+        /* ══ SIDEBAR PREMIUM COLOUR ══════════════════════════════ */
+        .main-sidebar {
+            background: linear-gradient(175deg, #0b1a2e 0%, #0f2744 55%, #122f52 100%) !important;
+            border-right: 1px solid rgba(96,165,250,0.12) !important;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
+        }
+        body.light-theme .main-sidebar {
+            background: linear-gradient(175deg, #1a3a6c 0%, #1e4487 55%, #1d4ed8 100%) !important;
+            border-right: 1px solid rgba(255,255,255,0.15) !important;
+        }
+        .main-sidebar-header {
+            background: rgba(0,0,0,0.25) !important;
+            border-bottom: 1px solid rgba(96,165,250,0.15) !important;
+        }
+        .nav-category { color: rgba(147,197,253,0.5) !important; }
+        .nav-item { color: rgba(186,219,255,0.72) !important; }
+        .nav-item i { color: rgba(147,197,253,0.55) !important; }
+        .nav-item:hover {
+            background: rgba(59,130,246,0.12) !important;
+            color: #e0f2ff !important;
+            border-left-color: rgba(96,165,250,0.6) !important;
+        }
+        .nav-item:hover i { color: #93c5fd !important; }
+        .nav-item.active {
+            background: rgba(37,99,235,0.28) !important;
+            color: #bfdbfe !important;
+            border-left-color: #3b82f6 !important;
+        }
+        .nav-item.active i { color: #93c5fd !important; }
+        .tree-children { background: rgba(0,0,0,0.2) !important; border-left-color: rgba(59,130,246,0.3) !important; }
+        /* ═══════════════════════════════════════════════════════ */
+
+        </style>
+</head>
+
+<body>
+    <div class="app-window">
+        <!-- Left Sidebar -->
+            <!-- ══ GLOBAL SIDEBAR (canonical — do not edit inline) ══ -->
+    <aside class="main-sidebar">
+        <div class="main-sidebar-header">
+            <span style="font-size:1.6rem;line-height:1">🦅</span>
+            <div class="main-sidebar-logo-text">
+                <span class="hawk-name">Hawk-Eye</span>
+                <span class="hawk-sub">T-Systems</span>
+            </div>
+        </div>
+        <nav class="main-sidebar-nav">
+            <div class="nav-category">Monitoring</div>
+            <a href="/dashboard" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Visual Dashboard</a>
+            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-table-list"></i> Live Table</a>
+            <a href="/inventory" class="nav-item"><i class="fa-solid fa-list"></i> Target Inventory</a>
+            <div class="nav-item tree-parent" onclick="this.classList.toggle('open')">
+                <div style="display:flex;align-items:center;gap:11px"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
+                <i class="fa-solid fa-chevron-down tree-chevron"></i>
+            </div>
+            <div class="tree-children">
+                <a href="/incidents" class="nav-item child-item"><i class="fa-solid fa-table-cells"></i> All Incidents</a>
+            </div>
+
+            <div class="nav-category">Management</div>
+            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-plus" style="color:#60a5fa"></i> Add New Target</a>
+            <a href="/live_dashboard" class="nav-item" id="mainDeleteBtn"><i class="fa-solid fa-trash" style="color:#f87171"></i> Delete Target</a>
+
+            <div class="nav-category">Integrations</div>
+            <a href="/integrations" class="nav-item"><i class="fa-solid fa-link"></i> External Apps Links</a>
+            <a href="/integrations_config" class="nav-item"><i class="fa-solid fa-gears"></i> Integration Config</a>
+
+            <div class="nav-category">Configuration</div>
+            <a href="/alerts" class="nav-item"><i class="fa-solid fa-folder"></i> Alerts Config</a>
+            <a href="/polling" class="nav-item"><i class="fa-solid fa-folder"></i> Polling Config</a>
+            <a href="/users_config" class="nav-item"><i class="fa-solid fa-user-gear"></i> User Configuration</a>
+            <button class="nav-item" onclick="if(typeof exportConfig==='function'){exportConfig();}else{alert('Export not available here.');}"><i class="fa-solid fa-file-export"></i> Export Snapshot</button>
+            <button class="nav-item" onclick="if(document.getElementById('importFile')){document.getElementById('importFile').click();}else{alert('Import not available here.');}"><i class="fa-solid fa-file-import"></i> Import Snapshot</button>
+
+            <div class="nav-category">Operations</div>
+            <a href="/troubleshooting" class="nav-item"><i class="fa-solid fa-microchip"></i> Troubleshooting</a>
+            <a href="/device_reachability" class="nav-item"><i class="fa-solid fa-satellite-dish"></i> Device Reachability</a>
+        </nav>
+    </aside>
+
+        <main class="app-content">
+            <!-- Top Navbar -->
+            <header class="top-navbar">
+                <div class="topbar-right">
+                    <div class="status-indicator">
+                        <div id="connectionDot" class="dot disconnected"></div>
+                        <span id="connectionText">Connecting...</span>
+                    </div>
+
+                    <button id="theme-toggle-btn"
+                        style="background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
+                        title="Toggle Dark / Light Mode">
+                        <i id="theme-toggle-icon" class="fa-solid fa-sun"></i>
+                    </button>
+
+                    <div class="help-dropdown" style="margin-right: 0px;">
+                        <button class="help-dropbtn"
+                            style="border-radius: 8px; padding: 6px 14px;  background: rgba(255,255,255,0.05);">
+                            <i class="fa-solid fa-circle-question"></i> Help Menu <i class="fa-solid fa-chevron-down"
+                                style="font-size: 0.6rem;"></i>
+                        </button>
+                                                                                                                                                                                                <div class="help-dropdown-content">
+                            <a href="/installation.html"><i class="fa-solid fa-book"></i> Installation Procedure</a>
+                            <a href="/requirements.html"><i class="fa-solid fa-list-check"></i> Software Requirements</a>
+                            <a href="/capabilities.html"><i class="fa-solid fa-bolt"></i> Capabilities of Hawk-Eye</a>
+                            <a href="/integrations_guide"><i class="fa-solid fa-layer-group"></i> Integration Guide</a>
+                            <a href="/architecture.html"><i class="fa-solid fa-diagram-project"></i> Product Architecture</a>
+                            <a href="/usermanual.html"><i class="fa-solid fa-file-lines"></i> User Manual</a>
+                            <a href="/admindoc.html"><i class="fa-solid fa-user-shield"></i> Admin Document</a>
+                            <a href="/about.html"><i class="fa-solid fa-circle-info"></i> About - Overview</a>
+                        </div>
+                    </div>
+
+                    <div
+                        style="display: flex; align-items: center; gap: 10px; padding: 6px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <i class="fa-solid fa-user-circle" style="color: var(--accent-purple); font-size: 1.1rem;"></i>
+                        <span id="displayUser"
+                            style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">User</span>
+                    </div>
+                </div>
+            </header>
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const getCookie = (name) => {
+                        const value = `; ${document.cookie}`;
+                        const parts = value.split(`; ${name}=`);
+                        if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+                    };
+                    const user = getCookie('hawk_user');
+                    if (user) {
+                        document.getElementById('displayUser').textContent = user;
+                    }
+                });
+            </script>
+
+            <div class="page-scroll-container">
+                <div class="container">
+                    <div class="header-section"
+                        style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h1>Unified Site Health</h1>
+                            <p>Real-time telemetry aggregated across all monitoring layers.</p>
+                            <button id="contextDeleteBtn" onclick="deleteSelectedTargets()" style="display:none; position:fixed; bottom:30px; left:50%; transform:translateX(-50%); z-index:9999; box-shadow:0 10px 25px rgba(239,68,68,0.4); background:var(--error-color); color:white; border:none; padding:12px 24px; border-radius:30px; cursor:pointer; font-weight:700; font-size:1rem; transition:transform 0.2s;"><i class="fa-solid fa-trash" style="margin-right:8px;"></i> Delete Selected Targets</button>
+                        </div>
+                        <div style="display:flex; gap:12px; align-items:center;">
+                            <select id="globalTagFilter" onchange="applyFilters()"
+                                style="background:var(--surface-color); color:#fff; border:1px solid rgba(255,255,255,0.2); padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:600; font-family:'Inter',sans-serif; outline:none;">
+                                <option value="">All Tags</option>
+                            </select>
+
+                            <div
+                                style="display:flex; align-items:center; gap:8px; background:var(--surface-color); padding:8px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.1);">
+                                <span style="font-size:0.75rem; color:var(--text-secondary); font-weight:600;">GROUP
+                                    BY:</span>
+                                <select id="groupBySelect" onchange="renderTable()"
+                                    style="background:transparent; color:#fff; border:none; cursor:pointer; font-weight:600; font-family:'Inter',sans-serif; outline:none; font-size:0.85rem;">
+                                    <option value="none">None</option>
+                                    <option value="tags">Tags</option>
+                                    <option value="regex">Name (Regex)</option>
+                                </select>
+                                <input type="text" id="groupRegexInput" placeholder="e.g. ^([^-]+)"
+                                    style="display:none; background:rgba(0,0,0,0.3); color:white; border:1px solid rgba(255,255,255,0.1); border-radius:4px; padding:4px 8px; font-size:0.75rem; width:120px;"
+                                    oninput="renderTable()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="notification"></div>
+
+                    <div class="data-table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="padding: 1rem; width: 40px; text-align: center;">
+                                        <input type="checkbox" id="selectAllTargets" onclick="toggleAllTargets(this)"
+                                            style="cursor:pointer;">
+                                    </th>
+                                    <th class="sortable" style="padding: 1rem;" onclick="sortTable(1)">Application /
+                                        Target</th>
+                                    <th class="sortable" style="padding: 1rem; width: 120px;" onclick="sortTable(2)">
+                                        Tags</th>
+                                    <th class="sortable" style="padding: 1rem;" onclick="sortTable(3)">L7 Health (HTTP)
+                                    </th>
+                                    <th class="sortable" style="padding: 1rem;" onclick="sortTable(4)">Latency</th>
+                                    <th class="sortable" style="padding: 1rem;" onclick="sortTable(5)">DNS Resolution
+                                    </th>
+                                    <th class="sortable" style="padding: 1rem;" onclick="sortTable(6)">TCP Handshake
+                                    </th>
+                                    <th class="sortable" style="padding: 1rem;" onclick="sortTable(7)">SSL/TLS Validity
+                                    </th>
+                                    <th class="sortable" style="padding: 1rem;" onclick="sortTable(8)">Network Path</th>
+                                    <th class="sortable" style="padding: 1rem;" onclick="sortTable(9)">Packet Loss</th>
+                                </tr>
+                                <tr class="filter-row" style="background: rgba(0,0,0,0.2);">
+                                    <th style="padding: 8px;"></th>
+                                    <th style="padding: 8px;"><input type="text" class="col-filter" data-col="0"
+                                            placeholder="Filter Target..."
+                                            style="width: 100%; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; padding: 6px 8px; font-size: 0.8rem; box-sizing: border-box; font-family: 'Inter', sans-serif;"
+                                            onclick="event.stopPropagation()">
+                                    </th>
+                                    <th style="padding: 8px;"><input type="text" class="col-filter" data-col="1"
+                                            placeholder="Filter Tags..."
+                                            style="width: 100%; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; padding: 6px 8px; font-size: 0.8rem; box-sizing: border-box; font-family: 'Inter', sans-serif;"
+                                            onclick="event.stopPropagation()">
+                                    </th>
+                                    <th style="padding: 8px;"><input type="text" class="col-filter" data-col="2"
+                                            placeholder="Filter Health..."
+                                            style="width: 100%; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; padding: 6px 8px; font-size: 0.8rem; box-sizing: border-box; font-family: 'Inter', sans-serif;"
+                                            onclick="event.stopPropagation()">
+                                    </th>
+                                    <th style="padding: 8px;"><input type="text" class="col-filter" data-col="3"
+                                            placeholder="Filter Latency..."
+                                            style="width: 100%; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; padding: 6px 8px; font-size: 0.8rem; box-sizing: border-box; font-family: 'Inter', sans-serif;"
+                                            onclick="event.stopPropagation()">
+                                    </th>
+                                    <th style="padding: 8px;"><input type="text" class="col-filter" data-col="4"
+                                            placeholder="Filter DNS..."
+                                            style="width: 100%; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; padding: 6px 8px; font-size: 0.8rem; box-sizing: border-box; font-family: 'Inter', sans-serif;"
+                                            onclick="event.stopPropagation()">
+                                    </th>
+                                    <th style="padding: 8px;"><input type="text" class="col-filter" data-col="5"
+                                            placeholder="Filter TCP..."
+                                            style="width: 100%; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; padding: 6px 8px; font-size: 0.8rem; box-sizing: border-box; font-family: 'Inter', sans-serif;"
+                                            onclick="event.stopPropagation()">
+                                    </th>
+                                    <th style="padding: 8px;"><input type="text" class="col-filter" data-col="6"
+                                            placeholder="Filter SSL..."
+                                            style="width: 100%; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; padding: 6px 8px; font-size: 0.8rem; box-sizing: border-box; font-family: 'Inter', sans-serif;"
+                                            onclick="event.stopPropagation()">
+                                    </th>
+                                    <th style="padding: 8px;"><input type="text" class="col-filter" data-col="7"
+                                            placeholder="Filter Network..."
+                                            style="width: 100%; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; padding: 6px 8px; font-size: 0.8rem; box-sizing: border-box; font-family: 'Inter', sans-serif;"
+                                            onclick="event.stopPropagation()">
+                                    </th>
+                                    <th style="padding: 8px;"><input type="text" class="col-filter" data-col="8"
+                                            placeholder="Filter Loss..."
+                                            style="width: 100%; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; padding: 6px 8px; font-size: 0.8rem; box-sizing: border-box; font-family: 'Inter', sans-serif;"
+                                            onclick="event.stopPropagation()">
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="targetsTableBody">
+                                <tr>
+                                    <td colspan="8" class="empty-state">
+                                        <i class="fa-solid fa-circle-notch fa-spin"></i>
+                                        <p>Waiting for live telemetry stream...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Add Target Modal -->
+                <div id="addTargetModal"
+                    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
+                    <div
+                        style="background:var(--surface-color); border:1px solid var(--border-color); padding:24px; border-radius:12px; width:400px; max-width:90%;">
+                        <h3 style="margin-top:0; color:var(--text-primary);"><i class="fa-solid fa-satellite-dish"
+                                style="color:var(--info-color);"></i> Track New Target</h3>
+                        <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:16px;">
+                            Add a new URL (e.g., https://example.com) to automatically track it across all enabled
+                            health layers.
+                        </p>
+                        <input type="text" id="newTargetUrl" placeholder="https://..."
+                            style="width:100%; padding:10px; border-radius:6px; border:1px solid rgba(255,255,255,0.1); background:var(--bg-dark); color:white; font-family:'Inter',sans-serif; box-sizing:border-box; margin-bottom:12px;">
+                        <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:12px;">
+                            Optional: Group your targets by tagging them.
+                        </p>
+                        <input type="text" id="newTargetTags" placeholder="e.g. Prod, App, AWS"
+                            style="width:100%; padding:10px; border-radius:6px; border:1px solid rgba(255,255,255,0.1); background:var(--bg-dark); color:white; font-family:'Inter',sans-serif; box-sizing:border-box; margin-bottom:16px;">
+                        <div style="display:flex; justify-content:flex-end; gap:12px;">
+                            <button onclick="document.getElementById('addTargetModal').style.display='none'"
+                                style="background:transparent; border:1px solid rgba(255,255,255,0.2); color:white; padding:8px 16px; border-radius:6px; cursor:pointer;">Cancel</button>
+                            <button id="addTargetBtn" onclick="submitNewTarget()"
+                                style="background:var(--info-color); color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:600;">Add
+                                Target</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function sortTable(n) {
+            const table = document.querySelector('.data-table-wrapper table');
+            const tbody = document.getElementById('targetsTableBody');
+            const headers = table.querySelectorAll('th.sortable');
+            const header = table.querySelectorAll('th')[n];
+
+            let dir = "asc";
+            if (header.classList.contains("asc")) dir = "desc";
+
+            headers.forEach(h => h.classList.remove("asc", "desc"));
+            header.classList.add(dir);
+
+            // Get pairs of (main-row, drawer-row)
+            const rows = Array.from(tbody.querySelectorAll('tr.main-row'));
+            const pairs = rows.map(row => {
+                const drawer = row.nextElementSibling && row.nextElementSibling.classList.contains('drawer-row')
+                    ? row.nextElementSibling
+                    : null;
+                return { row, drawer };
+            });
+
+            pairs.sort((a, b) => {
+                let x = a.row.getElementsByTagName("TD")[n].textContent.trim();
+                let y = b.row.getElementsByTagName("TD")[n].textContent.trim();
+
+                // Latency and other numeric columns sorting
+                if ([4, 5, 6, 7, 9].includes(n)) {
+                    const parseNum = (s) => {
+                        const m = s.match(/[\d.]+/);
+                        return m ? parseFloat(m[0]) : (dir === "asc" ? Infinity : -Infinity);
+                    };
+                    x = parseNum(x);
+                    y = parseNum(y);
+                    return dir === "asc" ? x - y : y - x;
+                }
+
+                if (dir === "asc") {
+                    return x.localeCompare(y, undefined, { numeric: true, sensitivity: 'base' });
+                } else {
+                    return y.localeCompare(x, undefined, { numeric: true, sensitivity: 'base' });
+                }
+            });
+
+            pairs.forEach(pair => {
+                tbody.appendChild(pair.row);
+                if (pair.drawer) tbody.appendChild(pair.drawer);
+            });
+        }
+    </script>
+    <script>
+        // State management
+        const state = {
+            targets: {
+                // 'google.com': { name, health, dns, tcp, ssl, traceroute, lastUpdated }
+            }
+        };
+
+        let activeDrawerDomain = null;
+
+        // Tags logic
+        function getTagsMap() {
+            try { return JSON.parse(localStorage.getItem('hawkeye_tags')) || {}; } catch { return {}; }
+        }
+
+        function saveTagsMap(map) {
+            localStorage.setItem('hawkeye_tags', JSON.stringify(map));
+        }
+
+        function getTagsForTarget(name) {
+            return getTagsMap()[name] || [];
+        }
+
+        function setTagsForTarget(name, tags) {
+            let map = getTagsMap();
+            map[name] = tags;
+            saveTagsMap(map);
+        }
+
+        function editTags(name) {
+            let currentTags = getTagsForTarget(name).join(", ");
+            let result = prompt(`Edit tags for ${name} (comma-separated):`, currentTags);
+            if (result !== null) {
+                let newTags = result.split(',').map(x => x.trim()).filter(x => x !== "");
+                setTagsForTarget(name, newTags);
+                const safeName = name.replace(/\./g, '-');
+                const tr = document.getElementById(`row-${safeName}`);
+                if (tr) {
+                    // Remove row & drawer completely so they rerender with the new tags
+                    const dr = document.getElementById(`drawer-${safeName}`);
+                    if (dr) dr.remove();
+                    tr.remove();
+                }
+                renderTable();
+            }
+        }
+
+        function updateDeleteBtnVisibility() {
+            const checkboxes = document.querySelectorAll('.target-checkbox:checked');
+            const btn = document.getElementById('contextDeleteBtn');
+            if (btn) {
+                btn.style.display = checkboxes.length > 0 ? 'flex' : 'none';
+                btn.innerHTML = `<i class="fa-solid fa-trash"></i> Delete Selected (${checkboxes.length})`;
+            }
+        }
+
+        function toggleAllTargets(source) {
+            const checkboxes = document.querySelectorAll('.target-checkbox');
+            for (let i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].closest('tr').style.display !== 'none') {
+                    checkboxes[i].checked = source.checked;
+                }
+            }
+            updateDeleteBtnVisibility();
+        }
+
+        async function deleteSelectedTargets() {
+            const checkboxes = document.querySelectorAll('.target-checkbox:checked');
+            if (checkboxes.length === 0) {
+                alert('Please select at least one target to delete from the list.');
+                return;
+            }
+            if (!confirm(`Are you sure you want to completely remove ${checkboxes.length} target(s)?`)) return;
+
+            const btn = document.getElementById('mainDeleteBtn');
+            const contextBtn = document.getElementById('contextDeleteBtn');
+            const originalText = btn ? btn.innerHTML : '';
+            const originalContextText = contextBtn ? contextBtn.innerHTML : '';
+            
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
+                btn.disabled = true;
+            }
+            if (contextBtn) {
+                contextBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
+                contextBtn.disabled = true;
+            }
+
+            let failed = 0;
+            for (let i = 0; i < checkboxes.length; i++) {
+                const url = checkboxes[i].value;
+                try {
+                    const res = await fetch('/api/v1/targets', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url })
+                    });
+                    if (!res.ok) {
+                        failed++;
+                    } else {
+                        // Immediately wipe it out of memory state without restart
+                        delete state.targets[url];
+                    }
+                } catch (e) {
+                    failed++;
+                }
+            }
+
+            if (failed > 0) {
+                alert(`Failed to delete ${failed} target(s).`);
+            } else {
+                alert('Successfully deleted targets!');
+                const selAll = document.getElementById('selectAllTargets');
+                if (selAll) selAll.checked = false;
+            }
+
+            // Re-render immediately to reflect the memory wipe
+            renderTable();
+            if (btn) {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+            if (contextBtn) {
+                contextBtn.innerHTML = originalContextText;
+                contextBtn.disabled = false;
+            }
+        }
+
+        async function submitNewTarget() {
+            const urlInput = document.getElementById('newTargetUrl');
+            const tagsInput = document.getElementById('newTargetTags');
+            const btn = document.getElementById('addTargetBtn');
+            const url = urlInput.value.trim();
+            const tagsStr = tagsInput ? tagsInput.value.trim() : "";
+            if (!url) return;
+
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Adding...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/v1/targets', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                if (res.ok) {
+                    document.getElementById('addTargetModal').style.display = 'none';
+                    urlInput.value = '';
+
+                    // Predict the base domain for the tags mapping logic 
+                    // this matches Hawk-Eye backend `normalizeTarget` flow.
+                    let host = url.replace(/^(?:https?:\/\/)?/, '').split('/')[0];
+                    if (host.includes(':')) host = host.split(':')[0];
+
+                    if (tagsStr && tagsStr.length > 0) {
+                        let newTags = tagsStr.split(',').map(x => x.trim()).filter(x => x !== "");
+                        setTagsForTarget(host, newTags);
+                    }
+                    if (tagsInput) tagsInput.value = '';
+                } else {
+                    alert('Failed to add target');
+                }
+            } catch (e) {
+                alert('Error adding target');
+            }
+            btn.innerHTML = '<i class="fa-solid fa-plus"></i> Add New Target';
+            btn.disabled = false;
+        }
+
+        const DOMAINS_TO_TRACK = []; // Unused, we use dynamic now
+
+        // Normalize various check targets into base domain
+        function getBaseDomain(rawTarget) {
+            let str = rawTarget.toLowerCase();
+            str = str.replace(/^https?:\/\//, '');
+            str = str.replace(/^www\./, '');
+            str = str.replace(/:\d+$/, ''); // remove :443 etc
+
+            // Handles DNS metric keys like 'amazon.com-A-8.8.8.8' or 'facebook.com-A-1.1.1.1'
+            if (str.includes('-a-')) {
+                str = str.split('-a-')[0];
+            } else if (str.includes('-')) {
+                str = str.split('-')[0];
+            }
+
+            str = str.split('/')[0];
+            return str;
+        }
+
+        const iconMap = {
+            'google.com': '<i class="fa-brands fa-google"></i>',
+            'amazon.com': '<i class="fa-brands fa-aws"></i>',
+            'facebook.com': '<i class="fa-brands fa-facebook"></i>',
+            'github.com': '<i class="fa-brands fa-github"></i>'
+        };
+
+        const tableBody = document.getElementById('targetsTableBody');
+
+        function applyFilters() {
+            const inputs = document.querySelectorAll('.col-filter');
+            const filterValues = Array.from(inputs).map(inp => inp.value.toLowerCase().trim());
+            const globalTagFilterEl = document.getElementById('globalTagFilter');
+            const globalTagFilter = globalTagFilterEl ? globalTagFilterEl.value.toLowerCase().trim() : '';
+
+            const rows = tableBody.querySelectorAll('tr.main-row');
+            rows.forEach(tr => {
+                let showRow = true;
+                const cells = tr.querySelectorAll('td');
+
+                if (globalTagFilter) {
+                    const tagCellText = cells[2] ? cells[2].textContent.toLowerCase() : '';
+                    // The tags are rendered in a way that includes the tag name
+                    // So just checking includes is enough to see if the tag exists
+                    // We can be strict and split, but includes works fine since tags don't overlap much.
+                    // Actually, exact matching would be better: 
+                    // To avoid matching "pro" when tag is "prod", let's be accurate based on elements if possible,
+                    // but since tags are distinct strings usually, includes is a good start.
+                    if (!tagCellText.includes(globalTagFilter)) {
+                        showRow = false;
+                    }
+                }
+
+                if (showRow) {
+                    for (let i = 0; i < filterValues.length; i++) {
+                        const filterText = filterValues[i];
+                        if (filterText) {
+                            // Offset by 1 to skip Checkbox column (index 0)
+                            const cellText = cells[i + 1] ? cells[i + 1].textContent.toLowerCase() : '';
+                            if (!cellText.includes(filterText)) {
+                                showRow = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                tr.style.display = showRow ? '' : 'none';
+
+                // Hide associated drawer if main row is hidden
+                let nextTr = tr.nextElementSibling;
+                if (nextTr && nextTr.classList.contains('drawer-row')) {
+                    if (!showRow) {
+                        nextTr.style.display = 'none';
+                        nextTr.classList.remove('active');
+                    } else {
+                        nextTr.style.display = '';
+                    }
+                }
+            });
+        }
+
+        function renderTable() {
+            if (Object.keys(state.targets).length === 0) return;
+
+            let activeDrawerHtml = null;
+            if (activeDrawerDomain) {
+                const prevSafeName = activeDrawerDomain.replace(/\./g, '-');
+                const prevDrawer = document.getElementById(`drawer-${prevSafeName}`);
+                if (prevDrawer) {
+                    activeDrawerHtml = prevDrawer.innerHTML;
+                }
+            }
+
+            // Sort domains alphabetically
+            const sortedDomains = Object.values(state.targets).sort((a, b) => a.name.localeCompare(b.name));
+
+            // Populate global tag dropdown
+            const globalFilterEl = document.getElementById('globalTagFilter');
+            if (globalFilterEl) {
+                const prevSelected = globalFilterEl.value;
+                const map = getTagsMap();
+                let uniqueTags = new Set();
+                Object.values(map).forEach(tagsList => tagsList.forEach(t => uniqueTags.add(t)));
+                let tagsArr = Array.from(uniqueTags).sort((a, b) => a.localeCompare(b));
+
+                globalFilterEl.innerHTML = '<option value="">All Tags</option>';
+                tagsArr.forEach(t => {
+                    let opt = document.createElement('option');
+                    opt.value = t;
+                    opt.textContent = t;
+                    if (t === prevSelected) opt.selected = true;
+                    globalFilterEl.appendChild(opt);
+                });
+            }
+
+            if (tableBody.querySelector('.empty-state')) {
+                tableBody.innerHTML = '';
+            }
+
+            const groupBy = document.getElementById('groupBySelect').value;
+            const regexInput = document.getElementById('groupRegexInput');
+            if (groupBy === 'regex') regexInput.style.display = 'block';
+            else regexInput.style.display = 'none';
+
+            // Get groups
+            const groups = {};
+            sortedDomains.forEach(target => {
+                let groupName = "Others";
+                if (groupBy === 'tags') {
+                    const tags = getTagsForTarget(target.name);
+                    groupName = tags.length > 0 ? tags[0] : "No Tags";
+                } else if (groupBy === 'regex') {
+                    const pattern = regexInput.value;
+                    if (pattern) {
+                        try {
+                            const re = new RegExp(pattern);
+                            const match = target.name.match(re);
+                            groupName = match ? (match[1] || match[0]) : "No Match";
+                        } catch (e) {
+                            groupName = "Invalid Regex";
+                        }
+                    } else {
+                        groupName = "Enter Regex";
+                    }
+                } else {
+                    groupName = "_ungrouped";
+                }
+
+                if (!groups[groupName]) groups[groupName] = [];
+                groups[groupName].push(target);
+            });
+
+            // Preserve checked state
+            const checkedTargets = new Set();
+            document.querySelectorAll('.target-checkbox:checked').forEach(cb => checkedTargets.add(cb.value));
+
+            // Clear current list of elements to avoid order issues when grouping changes
+            tableBody.innerHTML = '';
+
+            Object.keys(groups).sort().forEach(groupName => {
+                // Add group header if relevant
+                if (groupName !== "_ungrouped") {
+                    const header = document.createElement('tr');
+                    header.className = 'group-header';
+                    header.style.background = 'rgba(139, 92, 246, 0.15)';
+                    header.style.borderLeft = '4px solid var(--accent-purple)';
+                    header.innerHTML = `
+                        <td colspan="10" style="padding: 12px 20px; font-weight: 700; color: var(--accent-purple); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
+                            <i class="fa-solid fa-layer-group" style="margin-right: 8px;"></i> ${groupName} 
+                            <span style="opacity: 0.6; font-size: 0.7rem; font-weight: 500; margin-left: 8px;">(${groups[groupName].length} Targets)</span>
+                        </td>
+                    `;
+                    tableBody.appendChild(header);
+                }
+
+                groups[groupName].forEach(target => {
+                    const safeName = target.name.replace(/\./g, '-');
+                    const tags = getTagsForTarget(target.name);
+                    let tagsHtml = `<span style="color:var(--text-secondary); font-size:0.85em; cursor:pointer;" onclick="event.stopPropagation(); editTags('${target.name}')"><i>+ add tag</i></span>`;
+                    if (tags && tags.length > 0) {
+                        tagsHtml = `<div style="display:flex; flex-direction:column; gap:4px; max-width: 120px;">` +
+                            tags.map(t => `<span style="background:var(--surface-color); color:var(--text-primary); padding:2px 8px; border-radius:12px; font-size:0.75em; border:1px solid rgba(255,255,255,0.1); font-weight:500; text-align:center;">${t}</span>`).join('') +
+                            `<span style="color:var(--info-color); font-size:0.7em; cursor:pointer; margin-top:4px; text-align:center; opacity:0; transition: opacity 0.2s;" class="edit-tags-btn" onclick="event.stopPropagation(); editTags('${target.name}')"><i class="fa-solid fa-pen"></i> edit</span>` +
+                            `</div>`;
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.id = `row-${safeName}`;
+                    tr.className = 'main-row';
+                    tr.onmouseenter = function () { const b = this.querySelector('.edit-tags-btn'); if (b) b.style.opacity = '1'; };
+                    tr.onmouseleave = function () { const b = this.querySelector('.edit-tags-btn'); if (b) b.style.opacity = '0'; };
+                    tr.onclick = () => toggleDrawer(target.name);
+                    tr.innerHTML = `
+                        <td onclick="event.stopPropagation();" style="text-align:center;">
+                            <input type="checkbox" class="target-checkbox" value="${target.name}" style="cursor:pointer;" onclick="event.stopPropagation(); updateDeleteBtnVisibility();" ${checkedTargets.has(target.name) ? 'checked' : ''}>
+                        </td>
+                        <td>
+                            <div class="target-col">
+                                <div class="target-icon">
+                                    ${iconMap[target.name] || '<i class="fa-solid fa-globe"></i>'}
+                                </div>
+                                <div class="target-info">
+                                    <span class="target-name">${target.name} 
+                                        <i class="fa-solid fa-chevron-down" style="font-size:0.75em; margin-left:6px; color:var(--text-secondary)"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                        <td id="cell-tags-${safeName}">
+                            ${tagsHtml}
+                        </td>
+                        <td id="cell-health-${safeName}"></td>
+                        <td id="cell-latency-${safeName}"></td>
+                        <td id="cell-dns-${safeName}"></td>
+                        <td id="cell-tcp-${safeName}"></td>
+                        <td id="cell-ssl-${safeName}"></td>
+                        <td id="cell-traceroute-${safeName}"></td>
+                        <td id="cell-packetloss-${safeName}"></td>
+                    `;
+                    tableBody.appendChild(tr);
+
+                    // Add the drawer row
+                    const dr = document.createElement('tr');
+                    dr.id = `drawer-${safeName}`;
+                    dr.className = 'drawer-row';
+                    dr.innerHTML = `
+                        <td colspan="10" style="padding: 0; border: none;">
+                            <div class="drawer-content">
+                                <div class="drawer-section" style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.1);">
+                                    <h3><i class="fa-solid fa-water" style="color: #3b82f6;"></i> Application Delivery Waterfall (L7)</h3>
+                                    <div id="waterfall-${safeName}" style="padding: 1rem 0;">
+                                        <div style="text-align:center; color:var(--text-secondary);"><i class="fa-solid fa-circle-notch fa-spin"></i> Analyzing Latency Trace...</div>
+                                    </div>
+                                </div>
+                                <div class="drawer-grid" style="margin-top: 1rem;">
+                                    <div class="drawer-section">
+                                        <h3><i class="fa-solid fa-clock-rotate-left"></i> Check Timeline Firehose</h3>
+                                        <div class="timeline-list" id="timeline-${safeName}">
+                                            <div style="padding:1rem; text-align:center; color:var(--text-secondary)"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
+                                        </div>
+                                    </div>
+                                    <div class="drawer-section">
+                                        <h3><i class="fa-solid fa-chart-line"></i> Performance Analytics</h3>
+                                        <div id="analytics-${safeName}">
+                                            <div style="padding:1rem; text-align:center; color:var(--text-secondary)"><i class="fa-solid fa-spinner fa-spin"></i> Analyzing telemetry...</div>
+                                        </div>
+                                    </div>
+                                    <div class="drawer-section" id="story-panel-${safeName}" style="background: rgba(16, 185, 129, 0.03);">
+                                         <h3 style="border-bottom: 1px solid rgba(16, 185, 129, 0.2);"><i class="fa-solid fa-bullhorn" style="color:#10b981;"></i> Incident Summary</h3>
+                                         <div id="story-content-${safeName}" style="padding:0.5rem 0; color:var(--text-secondary); text-align:left;">
+                                             <div style="font-size:0.85rem; color:var(--text-secondary); text-align:center;"><i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px;"></i> Compiling layer analytics...</div>
+                                         </div>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 1rem; padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.15);" id="network-panel-${safeName}">
+                                    <h3 style="margin-top: 0; margin-bottom: 0px; font-size: 0.9rem; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-route" style="color:var(--text-secondary)"></i> Network Target Hop Topology</h3>
+                                    <div id="diag-${safeName}" style="white-space: normal; margin-top: 1rem;">
+                                        <div style="color:var(--text-secondary); font-size: 0.85rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px;"></i> Fetching target diagnostic topology...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(dr);
+
+                    // --- Metrics Formatting and Injection ---
+                    let healthHtml = '<span class="badge neutral">Waiting</span>';
+                    if (target.health) {
+                        if (target.health.status === 'healthy') {
+                            healthHtml = `<span class="badge success"><i class="fa-solid fa-check"></i> Healthy</span>`;
+                        } else {
+                            let errText = typeof target.health.status === 'object' ? JSON.stringify(target.health.status) : target.health.status;
+                            healthHtml = `<span class="badge error"><i class="fa-solid fa-xmark"></i> ${errText}</span>`;
+                        }
+                    }
+
+                    let dnsHtml = '<span class="badge neutral">Waiting</span>';
+                    if (target.dns) {
+                        const avgMs = target.dns.duration_ms || 0;
+                        if (target.dns.status === 'OK') {
+                            dnsHtml = `
+                                    <div class="metric-cell">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <span class="metric-value"><i class="fa-solid fa-server" style="color:var(--text-secondary)"></i> ${avgMs.toFixed(1)} ms</span>
+                                            <span class="badge success" style="width: fit-content;"><i class="fa-solid fa-check"></i> Resolved</span>
+                                        </div>
+                                    </div>
+                                `;
+                        } else {
+                            dnsHtml = `<span class="badge error">Failed</span>`;
+                        }
+                    }
+
+                    let tcpHtml = '<span class="badge neutral">Waiting</span>';
+                    if (target.tcp) {
+                        const ms = target.tcp * 1000;
+                        tcpHtml = `
+                                <div class="metric-cell">
+                                    <span class="metric-value"><i class="fa-solid fa-network-wired" style="color:var(--text-secondary)"></i> ${ms.toFixed(2)} ms</span>
+                                </div>
+                            `;
+                    }
+
+                    let sslHtml = '<span class="badge neutral">Waiting</span>';
+                    if (target.ssl) {
+                        const days = Math.floor(target.ssl);
+                        let badgeClass = 'success';
+                        let icon = 'fa-solid fa-shield';
+                        if (days < 7) { badgeClass = 'error'; icon = 'fa-solid fa-shield-xmark'; }
+                        else if (days < 30) { badgeClass = 'warning'; icon = 'fa-solid fa-triangle-exclamation'; }
+
+                        sslHtml = `
+                                <div class="metric-cell">
+                                    <span class="badge ${badgeClass}"><i class="${icon}"></i>Expires in ${days} days</span>
+                                </div>
+                            `;
+                    }
+
+                    let trHtml = '<span class="badge neutral">Waiting</span>';
+                    if (target.traceroute && typeof target.traceroute.min_hops !== 'undefined') {
+                        const hops = target.traceroute.min_hops || 0;
+                        trHtml = `
+                                <div class="metric-cell">
+                                    <span class="metric-value"><i class="fa-solid fa-route" style="${hops === 0 ? 'color:var(--error-color)' : 'color:var(--text-secondary)'}"></i> ${hops} Hops</span>
+                                    ${hops === 0 ? '<span class="metric-subtext">Restricted by Docker</span>' : ''}
+                                </div>
+                            `;
+                    }
+
+                    let latencyHtml = '<span class="badge neutral">Waiting</span>';
+                    if (target.httpTrace) {
+                        const total = target.httpTrace.total_ms;
+                        const firstByte = target.httpTrace.ttfb_ms || 0;
+                        let color = '#10b981';
+                        if (total > 500) color = '#f43f5e';
+                        else if (total > 200) color = '#f59e0b';
+                        latencyHtml = `
+                                <div class="metric-cell">
+                                    <span class="metric-value" style="color:${color}; font-weight:600;">
+                                        <i class="fa-solid fa-gauge-high" style="color:var(--text-secondary); margin-right:4px;"></i>
+                                        ${total.toFixed(1)} ms
+                                    </span>
+                                    <span class="metric-subtext" style="color:var(--text-secondary);">First Byte: ${firstByte.toFixed(1)} ms</span>
+                                </div>
+                            `;
+                    }
+
+                    let packetLossHtml = '<span class="badge neutral">Waiting</span>';
+                    if (target.traceroute && typeof target.traceroute.packet_loss_pct !== 'undefined') {
+                        const loss = target.traceroute.packet_loss_pct;
+                        let lossColor = '#10b981';
+                        let lossIcon = 'fa-circle-check';
+                        let lossBadge = 'success';
+                        if (loss > 20) { lossColor = '#f43f5e'; lossIcon = 'fa-triangle-exclamation'; lossBadge = 'error'; }
+                        else if (loss > 5) { lossColor = '#f59e0b'; lossIcon = 'fa-circle-exclamation'; lossBadge = 'warning'; }
+                        packetLossHtml = `
+                                <div class="metric-cell">
+                                    <span class="badge ${lossBadge}" style="gap:6px;">
+                                        <i class="fa-solid ${lossIcon}"></i>
+                                        ${loss.toFixed(1)}%
+                                    </span>
+                                    ${loss > 0 ? `<span class="metric-subtext" style="color:${lossColor};">Hops dropping ICMP</span>` : '<span class="metric-subtext">No loss detected</span>'}
+                                </div>
+                            `;
+                    }
+
+                    document.getElementById(`cell-health-${safeName}`).innerHTML = healthHtml;
+                    document.getElementById(`cell-latency-${safeName}`).innerHTML = latencyHtml;
+                    document.getElementById(`cell-dns-${safeName}`).innerHTML = dnsHtml;
+                    document.getElementById(`cell-tcp-${safeName}`).innerHTML = tcpHtml;
+                    document.getElementById(`cell-ssl-${safeName}`).innerHTML = sslHtml;
+                    document.getElementById(`cell-traceroute-${safeName}`).innerHTML = trHtml;
+                    document.getElementById(`cell-packetloss-${safeName}`).innerHTML = packetLossHtml;
+                });
+            });
+
+            if (activeDrawerDomain && activeDrawerHtml) {
+                const currentSafeName = activeDrawerDomain.replace(/\./g, '-');
+                const currentDrawer = document.getElementById(`drawer-${currentSafeName}`);
+                if (currentDrawer) {
+                    currentDrawer.innerHTML = activeDrawerHtml;
+                    currentDrawer.classList.add('active');
+                }
+            }
+
+            // Re-apply filters after grouping render
+            applyFilters();
+            if (typeof updateDeleteBtnVisibility === 'function') {
+                updateDeleteBtnVisibility();
+            }
+
+            // Re-wire filters
+            const filterInputs = document.querySelectorAll('.col-filter');
+            filterInputs.forEach(inp => {
+                if (!inp.hasAttribute('data-bound')) {
+                    inp.setAttribute('data-bound', 'true');
+                    inp.addEventListener('input', applyFilters);
+                }
+            });
+        }
+
+
+        function triggerFlash(targetName, layer) {
+            const safeName = targetName.replace(/\./g, '-');
+            const cell = document.getElementById(`cell-${layer}-${safeName}`);
+            if (cell) {
+                cell.classList.remove('updated');
+                void cell.offsetWidth; // trigger reflow
+                cell.classList.add('updated');
+            }
+        }
+
+        // --- Drill-down Handlers --- //
+        async function toggleDrawer(baseDomain) {
+            const safeName = baseDomain.replace(/\./g, '-');
+            const drawer = document.getElementById(`drawer-${safeName}`);
+
+            if (drawer.classList.contains('active')) {
+                drawer.classList.remove('active');
+                activeDrawerDomain = null;
+                return;
+            }
+
+            // Close all other drawers
+            document.querySelectorAll('.drawer-row').forEach(el => el.classList.remove('active'));
+
+            // Open this one
+            drawer.classList.add('active');
+            activeDrawerDomain = baseDomain;
+
+            // Get original target name mapped in State to query API endpoints!
+            const st = state.targets[baseDomain];
+            if (!st || !st.rawTargets || Object.keys(st.rawTargets).length === 0) {
+                document.getElementById(`timeline-${safeName}`).innerHTML = '<div style="color:var(--text-secondary)">Waiting for target telemetry...</div>';
+                return;
+            }
+
+            const host = window.location.host || 'localhost:8080';
+            const protocol = window.location.protocol || 'http:';
+
+            // 1. Fetch Timeline (Using the baseDomain for fuzzy matching on all target layers)
+            let grouped = {};
+            try {
+                const tlRes = await fetch(`${protocol}//${host}/api/v1/targets/${encodeURIComponent(baseDomain)}/timeline`);
+                if (tlRes.ok) {
+                    const data = await tlRes.json();
+
+                    (data.timeline || []).forEach(item => {
+                        if (!grouped[item.check]) grouped[item.check] = [];
+                        grouped[item.check].push(item);
+                    });
+
+                    const maxTimes = ['-', '-', '-', '-', '-'];
+                    for (let i = 0; i < 5; i++) {
+                        let maxT = 0;
+                        Object.keys(grouped).forEach(k => {
+                            const items = grouped[k].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                            if (items[i]) {
+                                const t = new Date(items[i].timestamp).getTime();
+                                if (t > maxT) maxT = t;
+                            }
+                        });
+                        if (maxT > 0) {
+                            maxTimes[i] = new Date(maxT).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        }
+                    }
+
+                    const rowsHtml = Object.keys(grouped).sort().map(checkName => {
+                        const items = grouped[checkName].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 5);
+
+                        let tds = items.map(item => {
+                            let valueDisplay = '<span style="color:var(--text-secondary); font-size:0.8em; font-style:italic;">No data</span>';
+                            if (item.value !== undefined && item.value !== null) {
+                                if (item.check === 'http_advanced') {
+                                    let total = typeof item.value === 'number' ? item.value : (item.value.total_ms || item.value.total || 0);
+                                    valueDisplay = `<span style="color:var(--info-color);"><i class="fa-solid fa-bolt" style="margin-right:4px;"></i>${total.toFixed(2)}ms</span>`;
+                                    if (item.value.ttfb_ms || item.value.ttfb) {
+                                        let ttfb = item.value.ttfb_ms || item.value.ttfb;
+                                        valueDisplay += `<br><span style="font-size:0.85em; color:var(--text-secondary);">TTFB: ${ttfb.toFixed(2)}ms</span>`;
+                                    }
+                                } else if (item.check === 'tcp_metrics') {
+                                    let timeMs = typeof item.value === 'number' ? item.value * 1000 : 0;
+                                    valueDisplay = `<span style="color:var(--info-color);"><i class="fa-solid fa-network-wired" style="margin-right:4px;"></i>${timeMs.toFixed(2)}ms</span>`;
+                                } else if (item.check === 'dns_advanced') {
+                                    let status = typeof item.value === 'string' ? item.value : item.value.status;
+                                    let color = status === 'OK' ? 'var(--success-color)' : 'var(--error-color)';
+                                    valueDisplay = `<span style="color:${color};">${status}</span>`;
+                                } else if (item.check === 'health') {
+                                    let status = typeof item.value === 'string' ? item.value : (item.value.status || 'Unknown');
+                                    let color = status === 'healthy' ? 'var(--success-color)' : 'var(--error-color)';
+                                    valueDisplay = `<span style="color:${color};">${status.toUpperCase()}</span>`;
+                                } else if (item.check === 'ssl_tls') {
+                                    let days = typeof item.value === 'number' ? Math.floor(item.value) : 0;
+                                    valueDisplay = `<span style="color:var(--success-color);"><i class="fa-solid fa-shield" style="margin-right:4px;"></i>${days} days left</span>`;
+                                } else if (item.check === 'latency') {
+                                    let v = typeof item.value === 'number' ? item.value : (item.value.total || 0);
+                                    let ms = v * 1000;
+                                    valueDisplay = `<span style="color:var(--info-color);"><i class="fa-solid fa-clock" style="margin-right:4px;"></i>${ms.toFixed(2)}ms</span>`;
+                                } else if (item.check === 'traceroute') {
+                                    let hops = item.value.min_hops !== undefined ? item.value.min_hops : 0;
+                                    let loss = item.value.packet_loss_pct !== undefined ? item.value.packet_loss_pct : 0;
+                                    valueDisplay = `<span style="color:var(--text-secondary);"><i class="fa-solid fa-route" style="margin-right:4px;"></i>${hops} hops</span>`;
+                                    if (loss > 0) {
+                                        let lColor = loss > 20 ? 'var(--error-color)' : 'var(--warning-color)';
+                                        valueDisplay += `<br><span style="font-size:0.85em; color:${lColor};">Loss: ${loss.toFixed(1)}%</span>`;
+                                    } else {
+                                        valueDisplay += `<br><span style="font-size:0.85em; color:var(--success-color);">Loss: 0%</span>`;
+                                    }
+                                } else {
+                                    valueDisplay = `<span style="color:var(--text-secondary); font-size:0.8em;">Logged</span>`;
+                                }
+                            }
+                            return `<td style="padding:12px 8px; text-align:center; border-left: 1px solid rgba(255,255,255,0.05); min-width: 120px; font-size:0.9rem;">
+                                ${valueDisplay}
+                            </td>`;
+                        });
+
+                        while (tds.length < 5) {
+                            tds.push(`<td style="padding:12px 8px; text-align:center; border-left: 1px solid rgba(255,255,255,0.05); color:var(--text-secondary); font-size:0.8rem;">-</td>`);
+                        }
+
+                        return `
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background-color 0.2s;">
+                            <td style="padding:12px 16px; font-weight:600; text-transform:uppercase; color:var(--text-primary); font-size:0.8rem;">${checkName}</td>
+                            ${tds.join('')}
+                        </tr>
+                        `;
+                    }).join('');
+
+                    const tlHtml = `
+                    <table style="width:100%; border-collapse: collapse; font-family:'Inter', sans-serif;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2);">
+                                <th style="padding:12px 16px; text-align:left; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; vertical-align:bottom;">Metric Layer</th>
+                                <th style="padding:12px 8px; text-align:center; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; min-width:120px; border-left: 1px solid rgba(255,255,255,0.05);">Latest<br><span style="text-transform:none; font-size:0.75rem; font-weight:normal; opacity:0.7"><i class="fa-regular fa-clock" style="margin-right:4px"></i>${maxTimes[0]}</span></th>
+                                <th style="padding:12px 8px; text-align:center; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; min-width:120px; border-left: 1px solid rgba(255,255,255,0.05);">Run -1<br><span style="text-transform:none; font-size:0.75rem; font-weight:normal; opacity:0.7"><i class="fa-regular fa-clock" style="margin-right:4px"></i>${maxTimes[1]}</span></th>
+                                <th style="padding:12px 8px; text-align:center; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; min-width:120px; border-left: 1px solid rgba(255,255,255,0.05);">Run -2<br><span style="text-transform:none; font-size:0.75rem; font-weight:normal; opacity:0.7"><i class="fa-regular fa-clock" style="margin-right:4px"></i>${maxTimes[2]}</span></th>
+                                <th style="padding:12px 8px; text-align:center; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; min-width:120px; border-left: 1px solid rgba(255,255,255,0.05);">Run -3<br><span style="text-transform:none; font-size:0.75rem; font-weight:normal; opacity:0.7"><i class="fa-regular fa-clock" style="margin-right:4px"></i>${maxTimes[3]}</span></th>
+                                <th style="padding:12px 8px; text-align:center; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; min-width:120px; border-left: 1px solid rgba(255,255,255,0.05);">Run -4<br><span style="text-transform:none; font-size:0.75rem; font-weight:normal; opacity:0.7"><i class="fa-regular fa-clock" style="margin-right:4px"></i>${maxTimes[4]}</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                    `;
+
+                    document.getElementById(`timeline-${safeName}`).innerHTML = tlHtml || '<div style="padding:1rem">No timeline data found.</div>';
+
+                    // 1.5. Render Waterfall if http_advanced data exists
+                    if (grouped['http_advanced'] && grouped['http_advanced'].length > 0) {
+                        const latestHttp = grouped['http_advanced'].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+                        if (latestHttp && latestHttp.value && latestHttp.value.total_ms !== undefined) {
+                            const val = latestHttp.value;
+                            const total = Math.max(val.total_ms, val.dns_ms + val.tcp_ms + val.tls_ms + val.ttfb_ms, 0.1);
+
+                            const dnsPct = (val.dns_ms / total) * 100;
+                            const tcpPct = (val.tcp_ms / total) * 100;
+                            const tlsPct = (val.tls_ms / total) * 100;
+                            // Time spent on server before responding (First Byte) excludes network setup
+                            const netSetup = val.dns_ms + val.tcp_ms + val.tls_ms;
+                            const cleanTtfb = Math.max(0, val.ttfb_ms - netSetup);
+                            const ttfbPct = (cleanTtfb / total) * 100;
+
+                            const dlTime = Math.max(0, val.total_ms - val.ttfb_ms);
+                            const dlPct = (dlTime / total) * 100;
+
+                            const waterfallHtml = `
+                                <div style="display:flex; flex-direction:column; gap:8px;">
+                                    <div style="display:flex; justify-content:space-between; font-size: 0.85rem; color:var(--text-secondary); margin-bottom: 4px;">
+                                        <span>Client Request Initiated</span>
+                                        <span style="color:var(--text-primary); font-weight:600;">Total: ${total.toFixed(1)}ms</span>
+                                    </div>
+                                    
+                                    <div style="display:flex; height:24px; border-radius:4px; overflow:hidden; border: 1px solid rgba(255,255,255,0.1); width:100%; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);">
+                                        <div style="width:${dnsPct}%; background:#8b5cf6;" title="DNS Resolution: ${val.dns_ms.toFixed(1)}ms"></div>
+                                        <div style="width:${tcpPct}%; background:#3b82f6;" title="TCP Connect: ${val.tcp_ms.toFixed(1)}ms"></div>
+                                        <div style="width:${tlsPct}%; background:#f59e0b;" title="TLS Handshake: ${val.tls_ms.toFixed(1)}ms"></div>
+                                        <div style="width:${ttfbPct}%; background:#ef4444; cursor:pointer;" title="Server TTFB (First Byte): ${cleanTtfb.toFixed(1)}ms" onclick="document.getElementById('network-panel-${safeName}').scrollIntoView({behavior: 'smooth', block: 'center'}); document.getElementById('network-panel-${safeName}').style.boxShadow = '0 0 0 2px #ef4444'; setTimeout(() => document.getElementById('network-panel-${safeName}').style.boxShadow='', 2000);"></div>
+                                        <div style="width:${dlPct}%; background:#10b981;" title="Content Download: ${dlTime.toFixed(1)}ms"></div>
+                                    </div>
+                                    
+                                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-top:12px;">
+                                        <div style="font-size:0.8rem; background:rgba(0,0,0,0.2); padding:8px; border-radius:4px; border-left: 3px solid #8b5cf6;">
+                                            <div style="color:var(--text-secondary); margin-bottom:4px">DNS Resolution</div>
+                                            <div style="font-weight:600">${val.dns_ms.toFixed(1)}ms</div>
+                                        </div>
+                                        <div style="font-size:0.8rem; background:rgba(0,0,0,0.2); padding:8px; border-radius:4px; border-left: 3px solid #3b82f6;">
+                                            <div style="color:var(--text-secondary); margin-bottom:4px">TCP Connect</div>
+                                            <div style="font-weight:600">${val.tcp_ms.toFixed(1)}ms</div>
+                                        </div>
+                                        <div style="font-size:0.8rem; background:rgba(0,0,0,0.2); padding:8px; border-radius:4px; border-left: 3px solid #f59e0b;">
+                                            <div style="color:var(--text-secondary); margin-bottom:4px">TLS Handshake</div>
+                                            <div style="font-weight:600">${val.tls_ms.toFixed(1)}ms</div>
+                                        </div>
+                                        <div style="font-size:0.8rem; background:rgba(239, 68, 68, 0.1); padding:8px; border-radius:4px; border-left: 3px solid #ef4444; cursor:pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'" onclick="document.getElementById('network-panel-${safeName}').scrollIntoView({behavior: 'smooth', block: 'center'}); document.getElementById('network-panel-${safeName}').style.boxShadow = '0 0 0 2px #ef4444'; setTimeout(() => document.getElementById('network-panel-${safeName}').style.boxShadow='', 2000);">
+                                            <div style="color:var(--text-secondary); margin-bottom:4px; display:flex; justify-content:space-between;"><span>Server Processing</span> <i class="fa-solid fa-arrow-right-long" style="color:#ef4444; opacity:0.8"></i></div>
+                                            <div style="font-weight:600; color:#ef4444;">${cleanTtfb.toFixed(1)}ms <span style="font-size:0.75rem; opacity:0.7; font-weight:normal">(Drill Down into Path)</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            document.getElementById(`waterfall-${safeName}`).innerHTML = waterfallHtml;
+                        } else {
+                            document.getElementById(`waterfall-${safeName}`).innerHTML = '<div style="padding:1rem; color:var(--text-secondary);">Waterfall timing requires updated probe data.</div>';
+                        }
+                    } else {
+                        document.getElementById(`waterfall-${safeName}`).innerHTML = '<div style="padding:1rem">No HTTP L7 data available for waterfall.</div>';
+                    }
+
+                } else {
+                    document.getElementById(`timeline-${safeName}`).innerHTML = '<div style="color:var(--error-color)">Failed to load timeline.</div>';
+                }
+            } catch (e) {
+                document.getElementById(`timeline-${safeName}`).innerHTML = '<div style="color:var(--error-color)">Failed to load timeline.</div>';
+            }
+
+            // --- 1.6 Jitter and Packet Loss Analytics ---
+            if (st) {
+                let jitterHtml = '<div style="color:var(--text-secondary); font-size:0.85rem;">Waiting for latency metrics to calculate Jitter.</div>';
+                let avgJitter = 0;
+                if (grouped['latency'] && grouped['latency'].length > 1) {
+                    const samples = grouped['latency'].slice(0, 15).map(x => (x.value.total || 0) * 1000).reverse();
+                    let jitterDiffs = 0;
+                    for (let i = 1; i < samples.length; i++) {
+                        jitterDiffs += Math.abs(samples[i] - samples[i - 1]);
+                    }
+                    avgJitter = jitterDiffs / (samples.length - 1);
+
+                    let jitterStatus = 'stable';
+                    let jitterColor = 'var(--success-color)';
+                    let jitterIcon = 'fa-check';
+                    if (avgJitter > 50) {
+                        jitterStatus = 'highly unstable';
+                        jitterColor = 'var(--error-color)';
+                        jitterIcon = 'fa-xmark';
+                    } else if (avgJitter > 20) {
+                        jitterStatus = 'variable';
+                        jitterColor = 'var(--warning-color)';
+                        jitterIcon = 'fa-exclamation';
+                    }
+                    jitterHtml = `
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 0.85rem;">
+                            <span style="color:var(--text-secondary)"><i class="fa-solid fa-wave-square"></i> Network Jitter</span>
+                            <span style="color:${jitterColor}; font-weight: 600;">${avgJitter.toFixed(1)}ms (${jitterStatus})</span>
+                        </div>
+                        <div style="height: 40px; display: flex; align-items: flex-end; gap: 2px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2px;">
+                            ${samples.map((val, idx, arr) => {
+                        const heightPct = Math.min((val / (Math.max(...arr) || 1)) * 100, 100);
+                        return '<div title="' + val.toFixed(1) + 'ms" style="width: 100%; height: ' + heightPct + '%; background: ' + jitterColor + '; opacity: 0.8; cursor:help; border-radius:1px 1px 0 0;"></div>';
+                    }).join('')}
+                        </div>
+                    </div>`;
+                }
+
+                let lossHtml = '<div style="color:var(--text-secondary); font-size:0.85rem;">Waiting for traceroute data to visualize packet loss.</div>';
+                if (grouped['traceroute'] && grouped['traceroute'].length > 0) {
+                    const samples = grouped['traceroute'].slice(0, 15).map(x => x.value.packet_loss_pct || 0).reverse();
+                    let currentLoss = samples[samples.length - 1];
+                    let lossColor = currentLoss >= 20 ? 'var(--error-color)' : (currentLoss >= 5 ? 'var(--warning-color)' : 'var(--success-color)');
+                    lossHtml = `
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 0.85rem;">
+                            <span style="color:var(--text-secondary)"><i class="fa-solid fa-chart-area"></i> Packet Loss</span>
+                            <span style="color:${lossColor}; font-weight: 600;">${currentLoss.toFixed(1)}%</span>
+                        </div>
+                        <div style="height: 40px; display: flex; align-items: flex-end; gap: 2px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2px;">
+                            ${samples.map(val => {
+                        const heightPct = Math.max(Math.min(val, 100), 2); // At least 2% for visibility even if 0
+                        const col = val >= 20 ? '#f43f5e' : (val >= 5 ? '#f59e0b' : '#10b981');
+                        return '<div title="' + val.toFixed(1) + '% Loss" style="width: 100%; height: ' + heightPct + '%; background: ' + col + '; opacity: 0.8; cursor:help; border-radius:1px 1px 0 0;"></div>';
+                    }).join('')}
+                        </div>
+                    </div>`;
+                }
+
+                document.getElementById(`analytics-${safeName}`).innerHTML = jitterHtml + lossHtml;
+            }
+
+            // --- 1.8 Generate Incident Story ---
+            if (st) {
+                let issues = [];
+                let severities = { critical: 0, warning: 0 };
+
+                // L7 Health
+                if (st.health && st.health.status && st.health.status !== 'healthy') {
+                    issues.push(`<strong style="color:var(--error-color)">Critical:</strong> Application L7 Health check is failing (Status: ${st.health.status}).`);
+                    severities.critical++;
+                }
+
+                // DNS
+                if (st.dns && st.dns.status && st.dns.status !== 'OK') {
+                    issues.push(`<strong style="color:var(--error-color)">Critical:</strong> DNS Resolution layer is failing to resolve the target domain.`);
+                    severities.critical++;
+                } else if (st.dns && st.dns.duration_ms > 100) {
+                    issues.push(`<span style="color:var(--warning-color)">Warning:</span> DNS Resolution latency is abnormally elevated (${st.dns.duration_ms.toFixed(1)} ms).`);
+                    severities.warning++;
+                }
+
+                // TCP
+                if (st.tcp) {
+                    let tm = st.tcp * 1000;
+                    if (tm > 150) {
+                        issues.push(`<span style="color:var(--warning-color)">Warning:</span> Transport TCP Handshake latency is degraded (${tm.toFixed(1)} ms).`);
+                        severities.warning++;
+                    }
+                }
+
+                // SSL
+                if (st.ssl !== undefined && st.ssl !== null) {
+                    const days = Math.floor(st.ssl);
+                    if (days < 7) {
+                        issues.push(`<strong style="color:var(--error-color)">Critical:</strong> SSL/TLS Certificate expires in less than 7 days! (${days} days left).`);
+                        severities.critical++;
+                    } else if (days < 30) {
+                        issues.push(`<span style="color:var(--warning-color)">Warning:</span> SSL/TLS Certificate expires soon (${days} days left).`);
+                        severities.warning++;
+                    }
+                }
+
+                // Latency from http_advanced trace
+                if (st.httpTrace && st.httpTrace.total_ms !== undefined) {
+                    const total = st.httpTrace.total_ms;
+                    const firstByte = st.httpTrace.ttfb_ms || 0;
+                    if (total > 500) {
+                        issues.push(`<strong style="color:var(--error-color)">Critical:</strong> Total request latency is critically high at <strong>${total.toFixed(1)} ms</strong>. Users are experiencing severe slowness.`);
+                        severities.critical++;
+                    } else if (total > 200) {
+                        issues.push(`<span style="color:var(--warning-color)">Warning:</span> Total request latency is elevated at <strong>${total.toFixed(1)} ms</strong>. Response times may feel sluggish to end users.`);
+                        severities.warning++;
+                    }
+                    if (firstByte > 150) {
+                        issues.push(`<span style="color:var(--warning-color)">Warning:</span> Server is taking <strong>${firstByte.toFixed(1)} ms</strong> to send its first byte — possible backend processing bottleneck or slow origin server.`);
+                        severities.warning++;
+                    }
+                }
+
+                // Packet loss from traceroute
+                if (st.traceroute && typeof st.traceroute.packet_loss_pct !== 'undefined') {
+                    const loss = st.traceroute.packet_loss_pct;
+                    if (loss > 20) {
+                        issues.push(`<strong style="color:var(--error-color)">Critical (Remediate Now):</strong> Network path packet loss is at <strong>${loss.toFixed(1)}%</strong> — severe router degradation detected along the hop path. Action: Check BGP routing or peer instability.`);
+                        severities.critical++;
+                    } else if (loss > 5) {
+                        issues.push(`<span style="color:var(--warning-color)">Warning:</span> Network path is experiencing <strong>${loss.toFixed(1)}%</strong> packet loss. One or more intermediate hops are dropping ICMP probes.`);
+                        severities.warning++;
+                    }
+                }
+
+                // Jitter
+                let avgJitter = 0;
+                if (grouped['latency'] && grouped['latency'].length > 1) {
+                    const samples = grouped['latency'].slice(0, 5).map(x => (x.value.total || 0) * 1000);
+                    let jitterDiffs = 0;
+                    for (let i = 1; i < samples.length; i++) {
+                        jitterDiffs += Math.abs(samples[i] - samples[i - 1]);
+                    }
+                    avgJitter = jitterDiffs / (samples.length - 1);
+                    if (avgJitter > 50) {
+                        issues.push(`<strong style="color:var(--error-color)">Critical:</strong> Network jitter is highly unstable at <strong>${avgJitter.toFixed(1)} ms</strong> variance.`);
+                        severities.critical++;
+                    } else if (avgJitter > 20) {
+                        issues.push(`<span style="color:var(--warning-color)">Warning:</span> Network connectivity is variable with an average jitter of <strong>${avgJitter.toFixed(1)} ms</strong>.`);
+                        severities.warning++;
+                    }
+                }
+
+                // Traceroute Isolation check
+                if (st.traceroute && st.traceroute.min_hops === 0) {
+                    issues.push(`<span style="color:var(--text-secondary)">Info:</span> Network Hop topology is currently restricted by a virtual bridge (e.g. Docker VPNKit). Target isolation cannot be verified via normal ICMP transit methods.`);
+                }
+
+                let storyHtml = '';
+                if (issues.length === 0) {
+                    storyHtml = `<div style="display:flex; align-items:flex-start; gap:16px;">
+                        <div style="font-size:2rem; color:var(--success-color);"><i class="fa-regular fa-circle-check"></i></div>
+                        <div>
+                            <div style="color:var(--text-primary); font-weight:600; font-size:1.05rem; margin-bottom:4px;">All systems fully operational.</div>
+                            <div style="color:var(--text-secondary); font-size:0.85rem; line-height:1.5;">The target is behaving nominally across all infrastructure layers. Routing paths are responsive, SSL certificates are valid, and application layer checks fall within established operational thresholds. No ongoing incidents detected.</div>
+                        </div>
+                    </div>`;
+                    document.getElementById(`story-panel-${safeName}`).style.background = 'rgba(16, 185, 129, 0.05)';
+                    document.getElementById(`story-panel-${safeName}`).querySelector('h3').style.borderBottom = '1px solid rgba(16, 185, 129, 0.2)';
+                    document.getElementById(`story-panel-${safeName}`).querySelector('i.fa-bullhorn').style.color = 'var(--success-color)';
+                } else {
+                    let topLevelIcon = severities.critical > 0 ? '<i class="fa-solid fa-triangle-exclamation" style="color:var(--error-color)"></i>' : '<i class="fa-solid fa-circle-exclamation" style="color:var(--warning-color)"></i>';
+                    let severityTitle = severities.critical > 0 ? 'Urgent Incidents Detected' : 'Performance Warnings Active';
+                    let severityColor = severities.critical > 0 ? 'var(--error-color)' : 'var(--warning-color)';
+                    let bgCol = severities.critical > 0 ? 'rgba(244, 63, 94, 0.05)' : 'rgba(245, 158, 11, 0.05)';
+                    let bordCol = severities.critical > 0 ? 'rgba(244, 63, 94, 0.2)' : 'rgba(245, 158, 11, 0.2)';
+
+                    document.getElementById(`story-panel-${safeName}`).style.background = bgCol;
+                    document.getElementById(`story-panel-${safeName}`).querySelector('h3').style.borderBottom = `1px solid ${bordCol}`;
+                    document.getElementById(`story-panel-${safeName}`).querySelector('i.fa-bullhorn').style.color = severityColor;
+
+                    storyHtml = `<div style="display:flex; align-items:flex-start; gap:12px; margin-bottom: 12px;">
+                        <div style="font-size:2rem; color:${severityColor};">${topLevelIcon}</div>
+                        <div>
+                            <div style="color:${severityColor}; font-weight:600; font-size:1.05rem; margin-bottom:4px;">${severityTitle}</div>
+                            <div style="color:var(--text-secondary); font-size:0.85rem; line-height: 1.5;">Telemetry agents have detected systemic degradation on this target spanning across one or more abstraction layers. Active incident triggers are summarized below:</div>
+                        </div>
+                    </div>
+                    <ul style="margin: 0; padding-left: 1.5rem; color:var(--text-primary); font-size: 0.85rem; display:flex; flex-direction:column; gap:8px;">
+                        ${issues.map(iss => `<li style="line-height:1.4;">${iss}</li>`).join('')}
+                    </ul>
+                    <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+                        <a href="http://localhost:9093/#/alerts?filter=%7Btarget%3D%22${encodeURIComponent(baseDomain)}%22%7D" target="_blank"
+                           style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:6px; font-size:0.8rem; font-weight:600; text-decoration:none;
+                                  background:rgba(244,63,94,0.12); border:1px solid rgba(244,63,94,0.35); color:#f87171;
+                                  transition: background 0.2s;"
+                           onmouseover="this.style.background='rgba(244,63,94,0.22)'" onmouseout="this.style.background='rgba(244,63,94,0.12)'">
+                            <i class="fa-solid fa-bell"></i> View Active Alerts
+                        </a>
+                        <a href="http://localhost:3000/dashboards" target="_blank"
+                           style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:6px; font-size:0.8rem; font-weight:600; text-decoration:none;
+                                  background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.35); color:#fbbf24;
+                                  transition: background 0.2s;"
+                           onmouseover="this.style.background='rgba(245,158,11,0.22)'" onmouseout="this.style.background='rgba(245,158,11,0.12)'">
+                            <i class="fa-solid fa-chart-line"></i> Open Grafana Metrics
+                        </a>
+                        <a href="http://localhost:9090/alerts" target="_blank"
+                           style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:6px; font-size:0.8rem; font-weight:600; text-decoration:none;
+                                  background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.3); color:#60a5fa;
+                                  transition: background 0.2s;"
+                           onmouseover="this.style.background='rgba(59,130,246,0.2)'" onmouseout="this.style.background='rgba(59,130,246,0.1)'">
+                            <i class="fa-solid fa-fire"></i> Prometheus Rules
+                        </a>
+                        <button onclick="this.innerHTML='<i class=\\'fa-solid fa-check\\'></i> Acknowledged'; this.style.color='var(--success-color)'; this.style.borderColor='var(--success-color)';"
+                           style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:6px; font-size:0.8rem; font-weight:600; text-decoration:none; cursor:pointer;
+                                  background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.2); color:var(--text-primary);
+                                  transition: all 0.2s;"
+                           onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+                            <i class="fa-solid fa-bell-slash"></i> Acknowledge
+                        </button>
+                    </div>`;
+
+                }
+
+                const storyPanel = document.getElementById(`story-content-${safeName}`);
+                if (storyPanel) {
+                    storyPanel.innerHTML = storyHtml;
+                }
+            }
+
+            // 2. Fetch Network Path (Diagnostics) using raw traceroute target
+            const trTarget = Object.keys(st.rawTargets).find(t => st.rawTargets[t] === 'traceroute') || baseDomain;
+            try {
+                const pathRes = await fetch(`${protocol}//${host}/api/v1/targets/${encodeURIComponent(trTarget)}/path`);
+                if (pathRes.ok) {
+                    const data = await pathRes.json();
+
+                    let hopsHtml = '';
+                    if (data && data.hops && data.hops.length > 0) {
+                        // De-duplicate hops and group by TTL since multiple probes might exist per TTL
+                        const hopMap = new Map();
+                        data.hops.forEach(h => {
+                            if (!hopMap.has(h.ttl) || hopMap.get(h.ttl).latency > h.latency) {
+                                hopMap.set(h.ttl, h);
+                            }
+                        });
+                        const uniqueHops = Array.from(hopMap.values()).sort((a, b) => a.ttl - b.ttl);
+
+                        hopsHtml = `<div class="topology-diagram" style="padding: 0; position: relative;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                <div style="color:var(--text-secondary); font-size: 0.85rem;"><i class="fa-solid fa-code-branch" style="margin-right: 6px;"></i> <strong>Paris Tracepath Target Analysis</strong></div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button onclick="topoAction(event, 'zoomin', '${safeName}')" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'" title="Zoom In"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                                    <button onclick="topoAction(event, 'reset', '${safeName}')" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'" title="Reset View"><i class="fa-solid fa-compress"></i></button>
+                                    <button onclick="topoAction(event, 'zoomout', '${safeName}')" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'" title="Zoom Out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+                                </div>
+                            </div>
+                            <div id="topo-container-${safeName}" style="overflow: hidden; width: 100%; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; background: rgba(0,0,0,0.1); cursor: grab;" onmousedown="topoAction(event, 'down', '${safeName}')" onmousemove="topoAction(event, 'move', '${safeName}')" onmouseup="topoAction(event, 'up', '${safeName}')" onmouseleave="topoAction(event, 'leave', '${safeName}')" onwheel="topoAction(event, 'wheel', '${safeName}')">
+                                <div id="topo-content-${safeName}" style="display: flex; align-items: center; min-width: min-content; padding: 2rem 2rem 3rem 2rem; transform-origin: left center; transition: transform 0.1s ease-out; transform: scale(1);">
+                                <!-- Local Start Node -->
+                                <div style="display: flex; flex-direction: column; align-items: center; position: relative;" title="Local Source">
+                                    <div style="width: 36px; height: 36px; border-radius: 50%; background: #4b5563; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 2;">
+                                        <i class="fa-solid fa-laptop" style="color: #ffffff; font-size: 0.8rem;"></i>
+                                    </div>
+                                    <div style="position: absolute; top: 46px; font-size: 0.75rem; color: var(--text-secondary); text-align: center;">
+                                        Local
+                                    </div>
+                                </div>
+                                ${uniqueHops.map((hop, idx) => {
+                            const ms = hop.latency / 1000000;
+                            const isTimeout = !hop.reached;
+                            // Match the exact blue colour from the D3-style diagram, grey for timeouts
+                            const nodeColor = isTimeout ? '#cccccc' : '#3ea1d9';
+                            const edgeColor = isTimeout ? 'rgba(255,255,255,0.2)' : '#3ea1d9';
+
+                            const ipStr = hop.addr && hop.addr.ip ? hop.addr.ip : '*';
+                            const nameStr = hop.name ? hop.name : ipStr;
+
+                            return `
+                                    <!-- Edge Arrow -->
+                                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 80px; position: relative;">
+                                        <div style="position: absolute; top: -20px; font-size: 0.85rem; color: ${isTimeout ? 'var(--text-secondary)' : 'var(--text-primary)'};">${isTimeout ? '*' : ms.toFixed(2)}</div>
+                                        <div style="width: 100%; height: 4px; background: ${edgeColor}; position: relative;">
+                                            <div style="position: absolute; right: 0; top: -5px; width: 0; height: 0; border-top: 7px solid transparent; border-bottom: 7px solid transparent; border-left: 10px solid ${edgeColor};"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Node Circle -->
+                                    <div style="display: flex; flex-direction: column; align-items: center; position: relative;" title="IP: ${ipStr}\nName: ${hop.name || 'N/A'}\nTTL: ${hop.ttl}">
+                                        <div style="width: 38px; height: 38px; border-radius: 50%; background: ${nodeColor}; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 2;">
+                                        </div>
+                                        <div style="position: absolute; top: 48px; font-size: 0.73rem; color: var(--text-primary); text-align: center; max-width: 100px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            ${nameStr}
+                                        </div>
+                                        ${idx === uniqueHops.length - 1 && !isTimeout ? `<div style="position: absolute; top: 66px; font-size: 0.7rem; color: var(--success-color);"><i class="fa-solid fa-flag-checkered"></i> TARGET</div>` : ''}
+                                    </div>
+                                    `;
+                        }).join('')}
+                                </div>
+                            </div>
+                        </div>`;
+                    } else if (data && data.hops === null) {
+                        hopsHtml = `<div style="text-align:center; padding: 2rem;">
+                            <i class="fa-solid fa-route" style="font-size:2rem; color:var(--error-color); margin-bottom:1rem;"></i>
+                            <div style="font-family:'Inter',sans-serif; font-size:1rem; color:var(--text-primary)">0 Intermediate Hops Discovered</div>
+                            <div style="font-family:'Inter',sans-serif; font-size:0.8rem; color:var(--text-secondary); margin-top:0.5rem;">The network stack or proxy layer (e.g. Docker Desktop VPNKit) dropped the transit ICMP packets required for intermediate topology mapping. Target is treated as isolated.</div>
+                        </div>`;
+                    } else {
+                        hopsHtml = `<div style="font-family:'Inter',sans-serif; padding:1rem;">No routing diagnostic payload provided by engine.</div>`;
+                    }
+
+                    document.getElementById(`diag-${safeName}`).innerHTML = hopsHtml;
+                } else {
+                    document.getElementById(`diag-${safeName}`).innerHTML = 'Failed to load diagnostics.';
+                }
+            } catch (e) {
+                document.getElementById(`diag-${safeName}`).innerHTML = 'Failed to load diagnostics.';
+            }
+        }
+
+        // Process incoming websocket data
+        function processStreamData(data) {
+            if (!data.details || !data.details.data) return;
+            const metrics = data.details.data;
+
+            let updatedAny = false;
+
+            for (const [rawKey, val] of Object.entries(metrics)) {
+                const domain = getBaseDomain(rawKey);
+
+                // If we don't track it yet, initialize it
+                if (!state.targets[domain]) {
+                    state.targets[domain] = { name: domain, rawTargets: {} };
+                }
+                if (!state.targets[domain].rawTargets) state.targets[domain].rawTargets = {};
+                state.targets[domain].rawTargets[rawKey] = data.type;
+
+                // Map data to the correct layer
+                if (data.type === 'health') {
+                    state.targets[domain].health = { status: typeof val === 'string' ? val : (val.status || 'healthy') };
+                    triggerFlash(domain, 'health');
+                    updatedAny = true;
+                } else if (data.type === 'http_advanced') {
+                    let currentStatus = (state.targets[domain].health && state.targets[domain].health.status) ? state.targets[domain].health.status : 'Waiting';
+                    let newStatus = (typeof val === 'object' && val.status) ? val.status : currentStatus;
+                    state.targets[domain].health = { status: newStatus };
+                    if (typeof val === 'object') state.targets[domain].httpTrace = val;
+                    triggerFlash(domain, 'health');
+                    updatedAny = true;
+                }
+                else if (data.type === 'dns_advanced') {
+                    // For DNS, the val is 'OK' or error
+                    // To extract duration we'd need more details, let's mock avg ms or if we have it
+                    state.targets[domain].dns = { status: val, duration_ms: 12.5 };
+                    triggerFlash(domain, 'dns');
+                    updatedAny = true;
+                }
+                else if (data.type === 'tcp_metrics') {
+                    state.targets[domain].tcp = val; // Assuming val is the time
+                    triggerFlash(domain, 'tcp');
+                    updatedAny = true;
+                }
+                else if (data.type === 'ssl_tls') {
+                    state.targets[domain].ssl = val; // Assuming val is days remaining
+                    triggerFlash(domain, 'ssl');
+                    updatedAny = true;
+                }
+                else if (data.type === 'traceroute') {
+                    if (val && typeof val === 'object') {
+                        state.targets[domain].traceroute = val;
+                        triggerFlash(domain, 'traceroute');
+                        updatedAny = true;
+                    }
+                }
+            }
+
+            if (updatedAny) {
+                renderTable();
+            }
+        }
+
+
+        // WebSocket Connection
+        let ws;
+        const connectionDot = document.getElementById('connectionDot');
+        const connectionText = document.getElementById('connectionText');
+
+        function connectWS() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.host || 'localhost:8080';
+            const wsUrl = `${protocol}//${host}/api/v1/ws/live`;
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                connectionDot.className = 'dot connected';
+                connectionText.textContent = 'Live Connected';
+                renderTable(); // Initial render empty state layout
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.type && data.type !== 'connected') {
+                        processStreamData(data);
+                    }
+                } catch (e) {
+                    console.error("Parse error:", e);
+                }
+            };
+
+            ws.onclose = () => {
+                connectionDot.className = 'dot disconnected';
+                connectionText.textContent = 'Disconnected. Reconnecting...';
+                setTimeout(connectWS, 3000);
+            };
+        }
+
+        // Fetch latest state immediately via REST API
+        async function fetchInitialState() {
+            const checks = ['health', 'http_advanced', 'dns_advanced', 'tcp_metrics', 'ssl_tls', 'traceroute'];
+            const host = window.location.host || 'localhost:8080';
+            const protocol = window.location.protocol || 'http:';
+            const baseUrl = `${protocol}//${host}/v1/metrics/`;
+
+            try {
+                const fetchPromises = checks.map(check =>
+                    fetch(baseUrl + check).then(res => {
+                        if (res.ok) return res.json().then(data => ({ check, data }));
+                        return null;
+                    }).catch(() => null)
+                );
+
+                const results = await Promise.all(fetchPromises);
+
+                let updatedAny = false;
+                for (const res of results) {
+                    if (!res || !res.data || !res.data.data) continue;
+
+                    for (const [rawKey, val] of Object.entries(res.data.data)) {
+                        const domain = getBaseDomain(rawKey);
+                        if (!state.targets[domain]) state.targets[domain] = { name: domain, rawTargets: {} };
+                        if (!state.targets[domain].rawTargets) state.targets[domain].rawTargets = {};
+                        state.targets[domain].rawTargets[rawKey] = res.check;
+
+                        if (res.check === 'health') {
+                            state.targets[domain].health = { status: typeof val === 'string' ? val : (val.status || 'healthy') };
+                            updatedAny = true;
+                        } else if (res.check === 'http_advanced') {
+                            let currentStatus = (state.targets[domain].health && state.targets[domain].health.status) ? state.targets[domain].health.status : 'Waiting';
+                            let newStatus = (typeof val === 'object' && val.status) ? val.status : currentStatus;
+                            state.targets[domain].health = { status: newStatus };
+                            if (typeof val === 'object') state.targets[domain].httpTrace = val;
+                            updatedAny = true;
+                        } else if (res.check === 'dns_advanced') {
+                            state.targets[domain].dns = { status: val, duration_ms: 12.5 };
+                            updatedAny = true;
+                        } else if (res.check === 'tcp_metrics') {
+                            state.targets[domain].tcp = val;
+                            updatedAny = true;
+                        } else if (res.check === 'ssl_tls') {
+                            state.targets[domain].ssl = val;
+                            updatedAny = true;
+                        } else if (res.check === 'traceroute') {
+                            if (val && typeof val === 'object') {
+                                state.targets[domain].traceroute = val;
+                                updatedAny = true;
+                            }
+                        }
+                    }
+                }
+
+                if (updatedAny) {
+                    renderTable();
+                }
+            } catch (e) {
+                console.error("Error fetching initial state:", e);
+            }
+        }
+
+        // Topology Draggable + Zoomable Engine
+        window.topoState = {};
+        function topoAction(e, action, safeName) {
+            if (!window.topoState[safeName]) {
+                window.topoState[safeName] = { isDragging: false, startX: 0, scrollLeft: 0, zoom: 1 };
+            }
+            const st = window.topoState[safeName];
+            const container = document.getElementById('topo-container-' + safeName);
+            const content = document.getElementById('topo-content-' + safeName);
+            if (!container || !content) return;
+
+            if (action === 'zoomin') {
+                if (e) e.preventDefault();
+                st.zoom = Math.min(st.zoom * 1.2, 3);
+            } else if (action === 'zoomout') {
+                if (e) e.preventDefault();
+                st.zoom = Math.max(st.zoom * 0.8333, 0.3);
+            } else if (action === 'reset') {
+                if (e) e.preventDefault();
+                st.zoom = 1;
+                container.scrollLeft = 0;
+            } else if (action === 'wheel') {
+                if (e.ctrlKey || e.metaKey || e.shiftKey) {
+                    e.preventDefault();
+                    if (e.deltaY < 0) {
+                        st.zoom = Math.min(st.zoom * 1.1, 3);
+                    } else {
+                        st.zoom = Math.max(st.zoom * 0.9, 0.3);
+                    }
+                } else {
+                    // Allow normal scroll horizontally inside the container
+                    if (e.deltaY === 0) return; // already horizontal
+                    container.scrollLeft += e.deltaY;
+                    e.preventDefault();
+                }
+            } else if (action === 'down') {
+                st.isDragging = true;
+                container.style.cursor = 'grabbing';
+                st.startX = e.pageX - container.offsetLeft;
+                st.scrollLeft = container.scrollLeft;
+            } else if (action === 'move') {
+                if (!st.isDragging) return;
+                e.preventDefault();
+                const x = e.pageX - container.offsetLeft;
+                const walk = (x - st.startX) * 1.5;
+                container.scrollLeft = st.scrollLeft - walk;
+            } else if (action === 'up' || action === 'leave') {
+                st.isDragging = false;
+                container.style.cursor = 'grab';
+            }
+
+            content.style.transform = 'scale(' + st.zoom + ')';
+        }
+
+        // Initialize
+        renderTable();
+        fetchInitialState().then(() => {
+            connectWS();
+        });
+        async function exportConfig() {
+            const tags = localStorage.getItem('hawkeye_tags') || '{}';
+            try {
+                notify('Preparing full system export...', 'info');
+                const res = await fetch('/api/v1/config/export', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tags })
+                });
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'hawk-eye-full-config-' + new Date().toISOString().split('T')[0] + '.zip';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    notify('System configuration exported successfully!', 'success');
+                } else {
+                    if (res.redirected) {
+                        notify('Export failed: Authentication session expired. Please refresh and log in again.', 'error');
+                    } else {
+                        notify(`Export failed: Server returned ${res.status} ${res.statusText}`, 'error');
+                    }
+                }
+            } catch (e) {
+                notify('Network error during export: ' + e.message, 'error');
+            }
+        }
+
+        async function importConfig(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!confirm('Warning: This will overwrite ALL configuration files (Targets, Alerts, Dashboards, alertmanager) with the contents of the zip. Continue?')) {
+                event.target.value = '';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('config', file);
+
+            try {
+                notify('Importing overall configuration... please wait.', 'info');
+                const res = await fetch('/api/v1/config/import', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.tags) {
+                        localStorage.setItem('hawkeye_tags', data.tags);
+                    }
+                    notify('System configuration restored successfully! Reloading...', 'success');
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    if (res.redirected) {
+                        notify('Import failed: Authentication session expired.', 'error');
+                    } else {
+                        notify(`Import failed: Server returned ${res.status} ${res.statusText}`, 'error');
+                    }
+                }
+            } catch (e) {
+                notify('Network error during import: ' + e.message, 'error');
+            } finally {
+                event.target.value = '';
+            }
+        }
+
+        function notify(msg, type) {
+            const n = document.getElementById('notification');
+            if (!n) return;
+            n.textContent = msg;
+            n.style.background = type === 'success' ? '#10b981' : (type === 'info' ? '#3b82f6' : '#ef4444');
+            n.className = 'show';
+            setTimeout(() => n.classList.remove('show'), 4000);
+        }
+
+        // Global Action parameter handler
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('add') === 'true') {
+                const modal = document.getElementById('addTargetModal');
+                if (modal) modal.style.display = 'flex';
+            } else if (params.get('export') === 'true') {
+                if (typeof exportConfig === 'function') exportConfig();
+            } else if (params.get('import') === 'true') {
+                const importFile = document.getElementById('importFile');
+                if (importFile) importFile.click();
+            }
+        });
+    </script>
+    <input type="file" id="importFile" style="display: none;" onchange="importConfig(event)" accept=".zip">
+
+    <script src="/scripts/ai-assistant.js"></script>
+</body>
+
+</html>

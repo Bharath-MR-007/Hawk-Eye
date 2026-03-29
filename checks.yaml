@@ -2,22 +2,16 @@ health:
     interval: 10s
     timeout: 5s
     targets:
-        - https://www.google.com
         - https://www.facebook.com
         - https://www.amazon.com
         - https://www.github.com
         - https://linkedin.com
         - https://youtube.com
-        - https://chat.openai.com/
         - https://app.codingrooms.com/signup
 http_advanced:
     interval: 20s
     timeout: 5s
     targets:
-        - url: "https://www.google.com"
-          method: GET
-          expected_status: 200
-          expected_pattern: "Google"
         - url: "https://www.facebook.com"
           method: GET
           expected_status: 200
@@ -33,9 +27,6 @@ http_advanced:
         - url: https://youtube.com
           method: GET
           expected_status: 200
-        - url: https://chat.openai.com/
-          method: GET
-          expected_status: 200
         - url: https://app.codingrooms.com/signup
           method: GET
           expected_status: 200
@@ -43,13 +34,11 @@ ssl_tls:
     interval: 1m
     timeout: 5s
     targets:
-        - "google.com:443"
         - "facebook.com:443"
         - "amazon.com:443"
         - "github.com:443"
         - linkedin.com:443
         - youtube.com:443
-        - chat.openai.com:443
         - app.codingrooms.com:443
 dns_advanced:
     interval: 30s
@@ -58,8 +47,6 @@ dns_advanced:
         - "8.8.8.8"
         - "1.1.1.1"
     queries:
-        - name: "google.com"
-          type: "A"
         - name: "facebook.com"
           type: "A"
         - name: "amazon.com"
@@ -70,28 +57,23 @@ dns_advanced:
           type: A
         - name: youtube.com
           type: A
-        - name: chat.openai.com
-          type: A
         - name: app.codingrooms.com
           type: A
 tcp_metrics:
     interval: 20s
     timeout: 5s
     targets:
-        - "google.com:443"
         - "facebook.com:443"
         - "amazon.com:443"
         - "github.com:443"
         - linkedin.com:443
         - youtube.com:443
-        - chat.openai.com:443
         - app.codingrooms.com:443
 traceroute:
     interval: 60s
     timeout: 5s
+    maxHops: 30
     targets:
-        - addr: "google.com"
-          port: 80
         - addr: "facebook.com"
           port: 80
         - addr: "amazon.com"
@@ -102,19 +84,15 @@ traceroute:
           port: 80
         - addr: youtube.com
           port: 80
-        - addr: chat.openai.com
-          port: 80
         - addr: app.codingrooms.com
           port: 80
 latency:
     interval: 20s
     timeout: 5s
     targets:
-        - https://www.google.com
         - https://www.facebook.com
         - https://www.amazon.com
         - https://www.github.com
         - https://linkedin.com
         - https://youtube.com
-        - https://chat.openai.com/
         - https://app.codingrooms.com/signup

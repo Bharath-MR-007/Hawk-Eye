@@ -5,6 +5,8 @@ services:
     ports:
       - "8080:8080"
     volumes:
+      - ./dashboard.html:/dashboard.html
+      - ./live_dashboard_backup.html:/live_dashboard_backup.html
       - ./checks.yaml:/checks.yaml
       - ./live_dashboard.html:/live_dashboard.html
       - ./inventory.html:/inventory.html

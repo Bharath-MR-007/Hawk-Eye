@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
 
@@ -193,6 +194,48 @@ func (c *NNMIClient) cacheIP(ip string, device *NNMIDevice) {
 	}
 }
 
+func (c *NNMIClient) authenticate(ctx context.Context) error {
+	data := url.Values{}
+	data.Set("grant_type", "password")
+	data.Set("username", c.username)
+	data.Set("password", c.password)
+
+	req, err := http.NewRequestWithContext(ctx, "POST",
+		fmt.Sprintf("%s/idp/oauth2/token", c.baseURL),
+		strings.NewReader(data.Encode()))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("failed to authenticate: status %d", resp.StatusCode)
+	}
+
+	var tokenResp struct {
+		AccessToken string `json:"access_token"`
+		ExpiresIn   int    `json:"expires_in"`
+		TokenType   string `json:"token_type"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
+		return err
+	}
+
+	c.token = tokenResp.AccessToken
+	c.tokenExp = time.Now().Add(time.Duration(tokenResp.ExpiresIn) * time.Second)
+
+	logger.FromContext(ctx).Debug("NNMi OAuth2 token refreshed")
+	return nil
+}
+
 func (c *NNMIClient) ensureValidToken(ctx context.Context) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -200,18 +243,7 @@ func (c *NNMIClient) ensureValidToken(ctx context.Context) error {
 	if c.token != "" && time.Now().Before(c.tokenExp) {
 		return nil
 	}
-
-	// Implementation of token fetch (placeholder logic as actual auth URL is not in prompt)
-	// Usually NNMi uses OAuth2 or a specific /auth endpoint.
-	// For this task, I will implement a mock token fetch or assume basic auth if it's preferred.
-	// But since the requirement says "Bearer", I'll mock a token fetch from a hypothetical endpoint or just return a mock success if we want to proceed with the logic.
-
-	// Mocking token fetch for the sake of completion:
-	c.token = "mock-token-" + time.Now().String()
-	c.tokenExp = time.Now().Add(1 * time.Hour)
-
-	logger.FromContext(ctx).Debug("NNMi token refreshed")
-	return nil
+	return c.authenticate(ctx)
 }
 
 func (c *NNMIClient) GetBaseURL() string {

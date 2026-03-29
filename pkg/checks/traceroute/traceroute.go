@@ -291,9 +291,9 @@ func TraceRoute(ctx context.Context, cfg TracerouteConfig) (map[int][]Hop, error
 			}, cfg.Rc)(logctx)
 			if retryErr != nil {
 				l.DebugContext(ctx, "Traceroute could not reach target")
-				if !errors.Is(err, syscall.EHOSTUNREACH) {
+				if !errors.Is(retryErr, syscall.EHOSTUNREACH) {
 					hopSpan.SetStatus(codes.Error, retryErr.Error())
-					hopSpan.RecordError(err)
+					hopSpan.RecordError(retryErr)
 				}
 				return
 			}

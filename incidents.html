@@ -97,33 +97,11 @@
         /* ══════════════════════════════════════
            SIDEBAR  (dark — matches rest of app)
         ══════════════════════════════════════ */
-        .main-sidebar {
-            width: 260px;
-            background: var(--sb-bg);
-            border-right: 1px solid var(--sb-border);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            z-index: 50;
-        }
+        
 
-        .main-sidebar-header {
-            height: 70px;
-            display: flex;
-            align-items: center;
-            padding: 0 1.5rem;
-            border-bottom: 1px solid var(--sb-border);
-            gap: 12px;
-        }
+        
 
-        .main-sidebar-nav {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1.5rem 0;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
+        
 
         .nav-category {
             padding: 0 1.5rem;
@@ -159,10 +137,7 @@
         .nav-item.active { background: var(--sb-active-bg); color: var(--sb-active); border-left-color: var(--sb-active-accent); }
         .nav-item.active i { color: var(--sb-active-accent); }
 
-        .main-sidebar-footer {
-            padding: 1.2rem 1.5rem;
-            border-top: 1px solid var(--sb-border);
-        }
+        
 
         /* tree nav */
         .tree-parent { justify-content: space-between !important; }
@@ -333,9 +308,10 @@
            PAGE BODY
         ══════════════════════════════════════ */
         .page-body {
-            padding: 2rem 2.5rem;
-            max-width: 1600px;
+            padding: 1.5rem 2rem;
+            max-width: 1800px;
             width: 100%;
+            min-height: 100vh;
         }
 
         /* Page header */
@@ -343,67 +319,73 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .page-title {
-            font-size: 1.65rem;
+            font-size: 1.4rem;
             font-weight: 700;
-            color: #0F172A;
-            margin: 0 0 6px;
-            letter-spacing: -0.01em;
+            color: var(--text-primary);
+            margin: 0 0 4px;
         }
 
         .page-subtitle {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: var(--text-secondary);
             margin: 0;
+            font-weight: 500;
+            letter-spacing: 0.01em;
         }
 
         .btn-back {
             display: flex;
             align-items: center;
-            gap: 8px;
-            background: var(--surface);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
-            padding: 8px 16px;
-            border-radius: var(--radius-sm);
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #F8FAFC;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 10px 18px;
+            border-radius: 999px;
             font-size: 0.85rem;
             font-weight: 600;
             text-decoration: none;
-            transition: all 0.2s;
-            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            letter-spacing: 0.02em;
         }
-        .btn-back:hover { background: var(--table-header); border-color: #CBD5E1; }
+        .btn-back:hover { 
+            background: rgba(255, 255, 255, 0.1); 
+            border-color: rgba(255, 255, 255, 0.3); 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+        }
 
-        /* ── Incidents Table ── */
+        /* NNMi-Style Compact Density Grid */
         .table-shell {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
+            box-shadow: none;
             margin-bottom: 2rem;
+            color: var(--text-primary);
         }
 
         table.incidents-table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            font-size: 0.875rem;
+            border-collapse: collapse;
+            font-size: 0.75rem; /* Tiny data-dense font */
         }
 
         .incidents-table th {
             background: var(--table-header);
-            color: var(--text-header);
-            font-weight: 600;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 14px 16px;
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 0.7rem;
+            text-transform: none;
+            letter-spacing: 0;
+            padding: 6px 8px;
             text-align: left;
-            border-bottom: 1px solid var(--border);
+            border: 1px solid var(--border);
             white-space: nowrap;
         }
 
@@ -414,7 +396,7 @@
             padding-right: 28px;
             transition: background 0.15s;
         }
-        .incidents-table th.sortable:hover { background: #E8EDF3; }
+        .incidents-table th.sortable:hover { background: var(--hover-row); }
         .incidents-table th.sortable::after {
             content: '\f0dc';
             font-family: 'Font Awesome 6 Free';
@@ -429,64 +411,52 @@
         .incidents-table th.sortable.desc::after { content: '\f0dd'; opacity: 1; color: var(--accent); }
 
         .incidents-table td {
-            padding: 14px 16px;
+            padding: 6px 8px;
             color: var(--text-primary);
-            border-bottom: 1px solid #F1F5F9;
-            vertical-align: middle;
-            line-height: 1.45;
+            border: 1px solid var(--border);
+            vertical-align: top;
+            line-height: 1.3;
         }
 
-        .incidents-table tbody tr:last-child td { border-bottom: none; }
-        .incidents-table tbody tr:hover td { background: var(--hover-row); }
-        .incidents-table tbody tr.data-row:nth-child(even) td { background: var(--even-row); }
-        .incidents-table tbody tr.data-row:nth-child(even):hover td { background: var(--hover-row); }
+        .incidents-table tbody tr:nth-child(even) td { background: var(--even-row); }
+        .incidents-table tbody tr:hover td { background: var(--hover-row); cursor: default; }
 
         /* Column filter inputs inside headers */
         .col-filter {
-            margin-top: 6px;
+            margin-top: 4px;
             width: 100%;
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 5px 10px;
-            font-size: 0.75rem;
+            padding: 2px 4px;
+            font-size: 0.7rem;
             color: var(--text-primary);
             outline: none;
             font-family: inherit;
-            transition: border-color 0.2s;
         }
         .col-filter::placeholder { color: var(--text-secondary); }
-        .col-filter:focus { border-color: var(--accent); }
+        .col-filter:focus { border-color: #3B82F6; box-shadow: 0 0 0 1px #3B82F6; }
 
-        /* Status badge */
-        .status-badge {
+        /* Bare Compact Icons matching NNMi styles */
+        .status-icon {
+            font-size: 1.1rem;
             display: inline-flex;
+            justify-content: center;
             align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            white-space: nowrap;
+            width: 16px;
+            height: 16px;
+            vertical-align: text-bottom;
         }
-        .status-open     { background: var(--c-critical-bg); color: var(--c-critical); }
-        .status-pending  { background: var(--c-warning-bg);  color: var(--c-warning); }
-        .status-closed   { background: var(--c-success-bg);  color: var(--c-success); }
-        .status-unknown  { background: var(--c-neutral-bg);  color: var(--c-neutral); }
-
-        /* Severity chip */
-        .sev-chip {
-            display: inline-flex;
-            align-items: center;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 0.72rem;
-            font-weight: 600;
+        .status-open-icon    { color: #EF4444; } /* Red solid circle/X */
+        .status-pending-icon { color: #F59E0B; }
+        .status-closed-icon  { color: #10B981; }
+        
+        .sev-icon {
+            font-size: 1rem;
+            vertical-align: text-bottom;
         }
-        .sev-critical { background: var(--c-critical-bg); color: var(--c-critical); }
-        .sev-warning  { background: var(--c-warning-bg);  color: var(--c-warning); }
-        .sev-info     { background: var(--c-info-bg);     color: var(--c-info); }
-        .sev-unknown  { background: var(--c-neutral-bg);  color: var(--c-neutral); }
+        .sev-critical-icon { color: #EF4444; }
+        .sev-warning-icon  { color: #F59E0B; }
+        .sev-info-icon     { color: #3B82F6; }
 
         /* Note input */
         .note-input {
@@ -507,18 +477,21 @@
 
         /* Incident name link */
         .incident-name {
-            font-weight: 600;
-            color: var(--accent);
+            font-weight: 500;
+            color: #0284C7;
+            font-size: 0.75rem;
+            text-decoration: none;
+        }
+        .incident-name:hover {
+            color: #0369A1;
+            text-decoration: underline;
         }
 
-        /* Target monospace */
+        /* Target monospace stripped */
         .target-mono {
-            font-family: 'Fira Code', 'Cascadia Code', monospace;
-            font-size: 0.8rem;
-            background: var(--table-header);
-            padding: 2px 8px;
-            border-radius: 4px;
-            color: var(--text-header);
+            font-family: monospace;
+            font-size: 0.7rem;
+            color: var(--text-primary);
             display: inline-block;
         }
 
@@ -562,91 +535,227 @@
             .table-shell { overflow-x: auto; }
             .incidents-table { min-width: 700px; }
         }
-    </style>
-    <script>
-        // Preserve theme on light page — incidents is always forced light
-    </script>
+    
+        /* ══ GLOBAL SIDEBAR ═══════════════════════════════════════ */
+        .app-window {
+            display: flex !important;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+        .main-sidebar {
+            width: 230px !important;
+            min-width: 230px !important;
+            background: linear-gradient(175deg,#0b1a2e,#0f2744,#122f52) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            flex-shrink: 0 !important;
+            z-index: 200 !important;
+            border-right: 1px solid rgba(255,255,255,0.08) !important;
+            overflow: hidden !important;
+        }
+        body.light-theme .main-sidebar { background: linear-gradient(175deg,#1a3a6c,#1e4487,#1d4ed8) !important; }
+
+        .main-sidebar-header {
+            height: 62px;
+            display: flex;
+            align-items: center;
+            padding: 0 1.2rem;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+        }
+        .main-sidebar-logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+        .main-sidebar-logo-text .hawk-name {
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: #e0f0ff;
+            letter-spacing: -0.01em;
+        }
+        .main-sidebar-logo-text .hawk-sub {
+            font-size: 0.58rem;
+            color: #ff6ef7;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+        .main-sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.8rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.1) transparent;
+        }
+        .nav-category {
+            padding: 0.9rem 1rem 0.3rem;
+            font-size: 0.6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.4);
+        }
+        .nav-item {
+            display: flex !important;
+            align-items: center !important;
+            padding: 9px 1.2rem !important;
+            color: rgba(200,220,255,0.75) !important;
+            text-decoration: none !important;
+            font-size: 0.8rem !important;
+            font-weight: 600 !important;
+            transition: all 0.15s !important;
+            border-left: 3px solid transparent !important;
+            gap: 11px !important;
+            cursor: pointer !important;
+            background: transparent !important;
+            border-top: none !important;
+            border-right: none !important;
+            border-bottom: none !important;
+            width: 100% !important;
+            text-align: left !important;
+            font-family: inherit !important;
+            box-sizing: border-box !important;
+        }
+        .nav-item i {
+            width: 16px;
+            font-size: 0.9rem;
+            text-align: center;
+            color: rgba(160,200,255,0.6);
+            transition: color 0.15s;
+            flex-shrink: 0;
+        }
+        .nav-item:hover {
+            background: rgba(255,255,255,0.07) !important;
+            color: #e0f0ff !important;
+            border-left-color: rgba(96,165,250,0.5) !important;
+        }
+        .nav-item:hover i { color: #93c5fd; }
+        .nav-item.active {
+            background: rgba(59,130,246,0.22) !important;
+            color: #e0f0ff !important;
+            border-left-color: #60a5fa !important;
+            font-weight: 700 !important;
+        }
+        .nav-item.active i { color: #93c5fd; }
+
+        /* Tree accordion */
+        .tree-parent { justify-content: space-between !important; }
+        .tree-chevron { font-size: 0.6rem; transition: transform 0.2s; width: auto !important; flex-shrink: 0; }
+        .tree-parent.open .tree-chevron { transform: rotate(180deg); }
+        .tree-children {
+            display: none;
+            flex-direction: column;
+            gap: 1px;
+            background: rgba(0,0,0,0.15);
+            border-left: 2px solid rgba(96,165,250,0.25);
+            margin-left: 22px;
+        }
+        .tree-parent.open + .tree-children { display: flex; }
+        .child-item { padding: 7px 1rem !important; font-size: 0.76rem !important; }
+
+        /* App content */
+        .app-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .page-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        /* ══════════════════════════════════════════════════════════ */
+
+        
+        /* ══ SIDEBAR PREMIUM COLOUR ══════════════════════════════ */
+        .main-sidebar {
+            background: linear-gradient(175deg, #0b1a2e 0%, #0f2744 55%, #122f52 100%) !important;
+            border-right: 1px solid rgba(96,165,250,0.12) !important;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
+        }
+        body.light-theme .main-sidebar {
+            background: linear-gradient(175deg, #1a3a6c 0%, #1e4487 55%, #1d4ed8 100%) !important;
+            border-right: 1px solid rgba(255,255,255,0.15) !important;
+        }
+        .main-sidebar-header {
+            background: rgba(0,0,0,0.25) !important;
+            border-bottom: 1px solid rgba(96,165,250,0.15) !important;
+        }
+        .nav-category { color: rgba(147,197,253,0.5) !important; }
+        .nav-item { color: rgba(186,219,255,0.72) !important; }
+        .nav-item i { color: rgba(147,197,253,0.55) !important; }
+        .nav-item:hover {
+            background: rgba(59,130,246,0.12) !important;
+            color: #e0f2ff !important;
+            border-left-color: rgba(96,165,250,0.6) !important;
+        }
+        .nav-item:hover i { color: #93c5fd !important; }
+        .nav-item.active {
+            background: rgba(37,99,235,0.28) !important;
+            color: #bfdbfe !important;
+            border-left-color: #3b82f6 !important;
+        }
+        .nav-item.active i { color: #93c5fd !important; }
+        .tree-children { background: rgba(0,0,0,0.2) !important; border-left-color: rgba(59,130,246,0.3) !important; }
+        /* ═══════════════════════════════════════════════════════ */
+
+        </style>
+    <script src="/scripts/hawk-ui.js"></script>
 </head>
 
 <body>
     <div class="app-window">
         <!-- Left Sidebar -->
-        <aside class="main-sidebar">
-            <div class="main-sidebar-header">
-                <span style="font-size: 1.5rem;">🦅</span>
-                <div style="display: flex; flex-direction: column; line-height: 1.1;">
-                    <span style="font-weight: 700; font-size: 1.25rem; color: #fff;">Hawk-Eye</span>
-                    <span style="font-size: 0.65rem; color: #ff00ff; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
-                </div>
+            <!-- ══ GLOBAL SIDEBAR (canonical — do not edit inline) ══ -->
+    <aside class="main-sidebar">
+        <div class="main-sidebar-header">
+            <span style="font-size:1.6rem;line-height:1">🦅</span>
+            <div class="main-sidebar-logo-text">
+                <span class="hawk-name">Hawk-Eye</span>
+                <span class="hawk-sub">T-Systems</span>
+            </div>
+        </div>
+        <nav class="main-sidebar-nav">
+            <div class="nav-category">Monitoring</div>
+            <a href="/dashboard" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Visual Dashboard</a>
+            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-table-list"></i> Live Table</a>
+            <a href="/inventory" class="nav-item"><i class="fa-solid fa-list"></i> Target Inventory</a>
+            <div class="nav-item tree-parent" onclick="this.classList.toggle('open')">
+                <div style="display:flex;align-items:center;gap:11px"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
+                <i class="fa-solid fa-chevron-down tree-chevron"></i>
+            </div>
+            <div class="tree-children">
+                <a href="/incidents" class="nav-item child-item"><i class="fa-solid fa-table-cells"></i> All Incidents</a>
             </div>
 
-            <nav class="main-sidebar-nav">
-                <div class="nav-category">Monitoring</div>
-                <a href="/dashboard" class="nav-item">
-                    <i class="fa-solid fa-gauge-high"></i> Dashboard
-                </a>
-                <a href="/inventory" class="nav-item">
-                    <i class="fa-solid fa-list"></i> Target Inventory
-                </a>
+            <div class="nav-category">Management</div>
+            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-plus" style="color:#60a5fa"></i> Add New Target</a>
+            <a href="/live_dashboard" class="nav-item" id="mainDeleteBtn"><i class="fa-solid fa-trash" style="color:#f87171"></i> Delete Target</a>
 
-                <div class="nav-item tree-parent open" onclick="this.classList.toggle('open')" style="margin-top: 15px;">
-                    <div style="display: flex; align-items: center; gap: 14px;"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
-                    <i class="fa-solid fa-chevron-down tree-chevron"></i>
-                </div>
-                <div class="tree-children">
-                    <a href="/incidents" class="nav-item child-item active">
-                        <i class="fa-solid fa-table-cells"></i> All Incidents
-                    </a>
-                </div>
+            <div class="nav-category">Integrations</div>
+            <a href="/integrations" class="nav-item"><i class="fa-solid fa-link"></i> External Apps Links</a>
+            <a href="/integrations_config" class="nav-item"><i class="fa-solid fa-gears"></i> Integration Config</a>
 
-                <div class="nav-category">Management</div>
-                <button class="nav-item" onclick="window.location.href='/dashboard?add=true'">
-                    <i class="fa-solid fa-plus" style="color: var(--info-color);"></i> Add New Target
-                </button>
-                <button class="nav-item" onclick="window.location.href='/dashboard'">
-                    <i class="fa-solid fa-trash" style="color: var(--c-critical);"></i> Delete Target
-                </button>
+            <div class="nav-category">Configuration</div>
+            <a href="/alerts" class="nav-item"><i class="fa-solid fa-folder"></i> Alerts Config</a>
+            <a href="/polling" class="nav-item"><i class="fa-solid fa-folder"></i> Polling Config</a>
+            <a href="/users_config" class="nav-item"><i class="fa-solid fa-user-gear"></i> User Configuration</a>
+            <button class="nav-item" onclick="if(typeof exportConfig==='function'){exportConfig();}else{alert('Export not available here.');}"><i class="fa-solid fa-file-export"></i> Export Snapshot</button>
+            <button class="nav-item" onclick="if(document.getElementById('importFile')){document.getElementById('importFile').click();}else{alert('Import not available here.');}"><i class="fa-solid fa-file-import"></i> Import Snapshot</button>
 
-                <div class="nav-category" style="margin-top: 15px;">Integrations</div>
-                <a href="/integrations" class="nav-item">
-                    <i class="fa-solid fa-link"></i> External Apps Links
-                </a>
-                <a href="/integrations_config" class="nav-item">
-                    <i class="fa-solid fa-gears"></i> External Apps Integration Config
-                </a>
-
-                <div class="nav-category" style="margin-top: 15px;">Configuration</div>
-                <a href="/alerts" class="nav-item">
-                    <i class="fa-solid fa-folder"></i> Alerts Config
-                </a>
-                <a href="/polling" class="nav-item">
-                    <i class="fa-solid fa-folder"></i> Polling Config
-                </a>
-                <a href="/users_config" class="nav-item">
-                    <i class="fa-solid fa-user-gear"></i> User Configuration
-                </a>
-                <button class="nav-item" onclick="window.location.href='/dashboard?export=true'">
-                    <i class="fa-solid fa-file-export"></i> Export Snapshot
-                </button>
-                <button class="nav-item" onclick="window.location.href='/dashboard?import=true'">
-                    <i class="fa-solid fa-file-import"></i> Import Snapshot
-                </button>
-
-                <div class="nav-category">Operations</div>
-                <a href="/troubleshooting" class="nav-item">
-                    <i class="fa-solid fa-microchip"></i> Troubleshooting
-                </a>
-                <a href="/device_reachability" class="nav-item">
-                    <i class="fa-solid fa-satellite-dish"></i> Device Reachability
-                </a>
-            </nav>
-
-            <div class="main-sidebar-footer">
-                <button class="nav-item" onclick="document.cookie='hawk_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; window.location.href='/login';" style="color: #ef4444;">
-                    <i class="fa-solid fa-right-from-bracket"></i> Logout
-                </button>
-            </div>
-        </aside>
+            <div class="nav-category">Operations</div>
+            <a href="/troubleshooting" class="nav-item"><i class="fa-solid fa-microchip"></i> Troubleshooting</a>
+            <a href="/device_reachability" class="nav-item"><i class="fa-solid fa-satellite-dish"></i> Device Reachability</a>
+        </nav>
+    </aside>
 
         <!-- Main Content -->
         <main class="app-content">
@@ -689,29 +798,7 @@
             </header>
 
             <script>
-                document.addEventListener('DOMContentLoaded', () => {
-                    // Init theme from localStorage
-                    if (typeof HawkUI !== 'undefined') {
-                        HawkUI.initTheme();
-                        HawkUI.setupEventListeners();
-                    } else {
-                        // Fallback inline in case hawk-ui.js hasn't loaded yet
-                        const saved = localStorage.getItem('hawk_theme') || 'dark';
-                        if (saved === 'light') document.body.classList.add('light-theme');
-                        const icon = document.getElementById('theme-toggle-icon');
-                        if (icon) icon.className = saved === 'light' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
-                        document.getElementById('theme-toggle-btn')?.addEventListener('click', () => {
-                            const isLight = document.body.classList.toggle('light-theme');
-                            localStorage.setItem('hawk_theme', isLight ? 'light' : 'dark');
-                            const ic = document.getElementById('theme-toggle-icon');
-                            if (ic) ic.className = isLight ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
-                        });
-                    }
-                    // User display
-                    const getCookie = n => { const v = `; ${document.cookie}`; const p = v.split(`; ${n}=`); if (p.length === 2) return decodeURIComponent(p.pop().split(';').shift()); };
-                    const user = getCookie('hawk_user');
-                    if (user) document.getElementById('userLabel').textContent = user;
-                });
+                // Left intentionally empty as HawkUI handles DOM ready hook natively across the app.
             </script>
 
             <div class="page-scroll-container">
@@ -824,22 +911,22 @@
 
                     function statusBadge(status) {
                         const map = {
-                            'Open':    ['status-open',    'fa-circle-exclamation', 'Open'],
-                            'Pending': ['status-pending', 'fa-clock',              'Pending'],
-                            'Closed':  ['status-closed',  'fa-circle-check',       'Resolved'],
+                            'Open':    ['status-open-icon',    'fa-circle-xmark'],
+                            'Pending': ['status-pending-icon', 'fa-triangle-exclamation'],
+                            'Closed':  ['status-closed-icon',  'fa-circle-check'],
                         };
-                        const [cls, icon, label] = map[status] || ['status-unknown', 'fa-circle', status];
-                        return `<span class="status-badge ${cls}"><i class="fa-solid ${icon}"></i>${label}</span>`;
+                        const [cls, icon] = map[status] || ['status-unknown-icon', 'fa-circle'];
+                        return `<span class="status-icon ${cls}" title="${status}"><i class="fa-solid ${icon}"></i></span>`;
                     }
 
                     function severityChip(sev) {
                         const map = {
-                            critical: 'sev-critical',
-                            warning:  'sev-warning',
-                            info:     'sev-info',
+                            critical: ['sev-critical-icon', 'fa-circle-xmark'],
+                            warning:  ['sev-warning-icon',  'fa-triangle-exclamation'],
+                            info:     ['sev-info-icon',     'fa-circle-info'],
                         };
-                        const cls = map[sev] || 'sev-unknown';
-                        return `<span class="sev-chip ${cls}">${sev}</span>`;
+                        const [cls, icon] = map[sev] || ['sev-unknown-icon', 'fa-circle'];
+                        return `<span class="sev-icon ${cls}" title="${sev}"><i class="fa-solid ${icon}"></i></span>`;
                     }
 
                     async function loadIncidents() {
@@ -909,11 +996,11 @@
                                     tr.setAttribute('data-desc',   inc.description);
                                     const noteValue = savedNotes[inc.uniqueKey] || '';
                                     tr.innerHTML = `
-                                        <td>${statusBadge(inc.status)}</td>
-                                        <td style="color:var(--text-secondary); font-size:0.8rem;">${inc.openedTime}</td>
+                                        <td style="text-align: center;">${statusBadge(inc.status)}</td>
+                                        <td style="color:var(--text-secondary); font-size:0.7rem;">${inc.openedTime}</td>
                                         <td><span class="incident-name">${inc.id}</span></td>
                                         <td><span class="target-mono">${inc.target}</span></td>
-                                        <td>${severityChip(inc.severity)}</td>
+                                        <td style="text-align: center;">${severityChip(inc.severity)}</td>
                                         <td style="font-size:0.85rem; line-height:1.5;">${inc.description}</td>
                                         <td>
                                             <input type="text" class="note-input" value="${noteValue}"
@@ -938,5 +1025,7 @@
             </div>
         </main>
     </div>
+
+    <script src="/scripts/ai-assistant.js"></script>
 </body>
 </html>

@@ -105,6 +105,13 @@ func (s *Hawkeye) startupAPI(ctx context.Context) error {
 			http.Redirect(w, r, "/dashboard", http.StatusFound)
 		}},
 		{Path: "/dashboard", Method: http.MethodGet, Handler: withAuth(func(w http.ResponseWriter, r *http.Request) {
+			if _, err := os.Stat("/dashboard.html"); err == nil {
+				http.ServeFile(w, r, "/dashboard.html")
+				return
+			}
+			http.ServeFile(w, r, "dashboard.html")
+		})},
+		{Path: "/live_dashboard", Method: http.MethodGet, Handler: withAuth(func(w http.ResponseWriter, r *http.Request) {
 			if _, err := os.Stat("/live_dashboard.html"); err == nil {
 				http.ServeFile(w, r, "/live_dashboard.html")
 				return

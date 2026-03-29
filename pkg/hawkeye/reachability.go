@@ -50,6 +50,8 @@ func (s *Hawkeye) handleReachabilityTest(w http.ResponseWriter, r *http.Request)
 		res = s.testSNMP(req.Target, req.Timeout)
 	case "tcp":
 		res = s.testTCP(req.Target, req.Timeout)
+	case "netconf":
+		res = s.testNetConf(req.Target, req.Timeout)
 	default:
 		res = ReachabilityResponse{Success: false, Message: "Unsupported protocol: " + req.Protocol}
 	}
@@ -65,9 +67,16 @@ func (s *Hawkeye) testICMP(target string, timeout int) ReachabilityResponse {
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {
 		cmd = exec.Command("ping", "-n", "1", "-w", strconv.Itoa(timeout), target)
-	} else {
-		// Mac/Linux
+	} else if runtime.GOOS == "darwin" {
+		// macOS
 		cmd = exec.Command("ping", "-c", "1", "-W", strconv.Itoa(timeout), target)
+	} else {
+		// Linux/RHEL (iputils-ping -W takes seconds, not milliseconds)
+		timeoutSec := timeout / 1000
+		if timeoutSec < 1 {
+			timeoutSec = 1
+		}
+		cmd = exec.Command("ping", "-c", "1", "-W", strconv.Itoa(timeoutSec), target)
 	}
 
 	err := cmd.Run()
@@ -119,6 +128,39 @@ func (s *Hawkeye) testTCP(target string, timeout int) ReachabilityResponse {
 	return ReachabilityResponse{
 		Success: true,
 		Message: fmt.Sprintf("TCP Connected to port %s", port),
+		Latency: latency,
+	}
+}
+
+func (s *Hawkeye) testNetConf(target string, timeout int) ReachabilityResponse {
+	host := target
+	port := "830"
+
+	// If target has port, split it
+	if strings.Contains(target, ":") {
+		h, p, err := net.SplitHostPort(target)
+		if err == nil {
+			host = h
+			port = p
+		}
+	}
+
+	start := time.Now()
+	conn, err := net.DialTimeout("tcp", net.JoinHostPort(host, port), time.Duration(timeout)*time.Millisecond)
+	latency := float64(time.Since(start).Milliseconds())
+
+	if err != nil {
+		return ReachabilityResponse{
+			Success: false,
+			Message: fmt.Sprintf("NetConf Connection failed to %s: %v", port, err),
+			Latency: latency,
+		}
+	}
+	defer conn.Close()
+
+	return ReachabilityResponse{
+		Success: true,
+		Message: fmt.Sprintf("NetConf Connected to port %s (SSH subsystem)", port),
 		Latency: latency,
 	}
 }

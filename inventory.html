@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Target Inventory - TOSI Monitoring</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="/scripts/hawk-ui.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -18,6 +19,21 @@
             --info-color: #3b82f6;
             --header-bg: #1e2128;
             --card-hover: #232730;
+            --hover-row: #232730;
+            --even-row: #14161B;
+        }
+
+        body.light-theme {
+            --bg-dark: #f8fafc;
+            --surface-color: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --info-color: #2563eb;
+            --header-bg: #f1f5f9;
+            --card-hover: #f1f5f9;
+            --hover-row: #E0E7FF;
+            --even-row: #F8FAFC;
         }
 
         body {
@@ -40,34 +56,11 @@
         }
 
         /* Sidebar Styles */
-        .main-sidebar {
-            width: 260px;
-            background-color: #12141c;
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            z-index: 50;
-        }
+        
 
-        .main-sidebar-header {
-            height: 70px;
-            display: flex;
-            align-items: center;
-            padding: 0 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            background: var(--surface-color);
-            gap: 12px;
-        }
+        
 
-        .main-sidebar-nav {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1.5rem 0;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
+        
 
         .nav-category {
             padding: 0 1.5rem;
@@ -126,13 +119,7 @@
             color: var(--accent-purple, #8b5cf6);
         }
 
-        .main-sidebar-footer {
-            padding: 1.5rem;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        
 
         .app-content {
             flex: 1;
@@ -401,99 +388,262 @@
             padding: 8px 1rem !important;
             font-size: 0.8rem !important;
         }
-    </style>
+    
+    .drawer-row {
+        display: none;
+        background: var(--surface-highlight);
+    }
+    .drawer-row.active {
+        display: table-row;
+    }
+    .drawer-content {
+        padding: 20px;
+        border: 1px solid var(--border-color);
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+    }
+    .drawer-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    .drawer-section {
+        background: rgba(0,0,0,0.2);
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    .drawer-section h3 {
+        margin-top: 0;
+        margin-bottom: 12px;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        /* ══ GLOBAL SIDEBAR ═══════════════════════════════════════ */
+        .app-window {
+            display: flex !important;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+        .main-sidebar {
+            width: 230px !important;
+            min-width: 230px !important;
+            background: linear-gradient(175deg,#0b1a2e,#0f2744,#122f52) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            flex-shrink: 0 !important;
+            z-index: 200 !important;
+            border-right: 1px solid rgba(255,255,255,0.08) !important;
+            overflow: hidden !important;
+        }
+        body.light-theme .main-sidebar { background: linear-gradient(175deg,#1a3a6c,#1e4487,#1d4ed8) !important; }
+
+        .main-sidebar-header {
+            height: 62px;
+            display: flex;
+            align-items: center;
+            padding: 0 1.2rem;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+        }
+        .main-sidebar-logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+        .main-sidebar-logo-text .hawk-name {
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: #e0f0ff;
+            letter-spacing: -0.01em;
+        }
+        .main-sidebar-logo-text .hawk-sub {
+            font-size: 0.58rem;
+            color: #ff6ef7;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+        .main-sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.8rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.1) transparent;
+        }
+        .nav-category {
+            padding: 0.9rem 1rem 0.3rem;
+            font-size: 0.6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.4);
+        }
+        .nav-item {
+            display: flex !important;
+            align-items: center !important;
+            padding: 9px 1.2rem !important;
+            color: rgba(200,220,255,0.75) !important;
+            text-decoration: none !important;
+            font-size: 0.8rem !important;
+            font-weight: 600 !important;
+            transition: all 0.15s !important;
+            border-left: 3px solid transparent !important;
+            gap: 11px !important;
+            cursor: pointer !important;
+            background: transparent !important;
+            border-top: none !important;
+            border-right: none !important;
+            border-bottom: none !important;
+            width: 100% !important;
+            text-align: left !important;
+            font-family: inherit !important;
+            box-sizing: border-box !important;
+        }
+        .nav-item i {
+            width: 16px;
+            font-size: 0.9rem;
+            text-align: center;
+            color: rgba(160,200,255,0.6);
+            transition: color 0.15s;
+            flex-shrink: 0;
+        }
+        .nav-item:hover {
+            background: rgba(255,255,255,0.07) !important;
+            color: #e0f0ff !important;
+            border-left-color: rgba(96,165,250,0.5) !important;
+        }
+        .nav-item:hover i { color: #93c5fd; }
+        .nav-item.active {
+            background: rgba(59,130,246,0.22) !important;
+            color: #e0f0ff !important;
+            border-left-color: #60a5fa !important;
+            font-weight: 700 !important;
+        }
+        .nav-item.active i { color: #93c5fd; }
+
+        /* Tree accordion */
+        .tree-parent { justify-content: space-between !important; }
+        .tree-chevron { font-size: 0.6rem; transition: transform 0.2s; width: auto !important; flex-shrink: 0; }
+        .tree-parent.open .tree-chevron { transform: rotate(180deg); }
+        .tree-children {
+            display: none;
+            flex-direction: column;
+            gap: 1px;
+            background: rgba(0,0,0,0.15);
+            border-left: 2px solid rgba(96,165,250,0.25);
+            margin-left: 22px;
+        }
+        .tree-parent.open + .tree-children { display: flex; }
+        .child-item { padding: 7px 1rem !important; font-size: 0.76rem !important; }
+
+        /* App content */
+        .app-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .page-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        /* ══════════════════════════════════════════════════════════ */
+
+        
+        /* ══ SIDEBAR PREMIUM COLOUR ══════════════════════════════ */
+        .main-sidebar {
+            background: linear-gradient(175deg, #0b1a2e 0%, #0f2744 55%, #122f52 100%) !important;
+            border-right: 1px solid rgba(96,165,250,0.12) !important;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
+        }
+        body.light-theme .main-sidebar {
+            background: linear-gradient(175deg, #1a3a6c 0%, #1e4487 55%, #1d4ed8 100%) !important;
+            border-right: 1px solid rgba(255,255,255,0.15) !important;
+        }
+        .main-sidebar-header {
+            background: rgba(0,0,0,0.25) !important;
+            border-bottom: 1px solid rgba(96,165,250,0.15) !important;
+        }
+        .nav-category { color: rgba(147,197,253,0.5) !important; }
+        .nav-item { color: rgba(186,219,255,0.72) !important; }
+        .nav-item i { color: rgba(147,197,253,0.55) !important; }
+        .nav-item:hover {
+            background: rgba(59,130,246,0.12) !important;
+            color: #e0f2ff !important;
+            border-left-color: rgba(96,165,250,0.6) !important;
+        }
+        .nav-item:hover i { color: #93c5fd !important; }
+        .nav-item.active {
+            background: rgba(37,99,235,0.28) !important;
+            color: #bfdbfe !important;
+            border-left-color: #3b82f6 !important;
+        }
+        .nav-item.active i { color: #93c5fd !important; }
+        .tree-children { background: rgba(0,0,0,0.2) !important; border-left-color: rgba(59,130,246,0.3) !important; }
+        /* ═══════════════════════════════════════════════════════ */
+
+        </style>
 </head>
 
 <body>
     <div class="app-window">
         <!-- Left Sidebar -->
-        <aside class="main-sidebar">
-                                                                                                                                                                                                <div class="main-sidebar-header">
-                <span style="font-size: 1.5rem;">🦅</span>
-                <div style="display: flex; flex-direction: column; line-height: 1.1;">
-                    <span style="font-weight: 700; font-size: 1.25rem;">Hawk-Eye</span>
-                    <span
-                        style="font-size: 0.65rem; color: #ff00ff; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
-                </div>
+            <!-- ══ GLOBAL SIDEBAR (canonical — do not edit inline) ══ -->
+    <aside class="main-sidebar">
+        <div class="main-sidebar-header">
+            <span style="font-size:1.6rem;line-height:1">🦅</span>
+            <div class="main-sidebar-logo-text">
+                <span class="hawk-name">Hawk-Eye</span>
+                <span class="hawk-sub">T-Systems</span>
+            </div>
+        </div>
+        <nav class="main-sidebar-nav">
+            <div class="nav-category">Monitoring</div>
+            <a href="/dashboard" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Visual Dashboard</a>
+            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-table-list"></i> Live Table</a>
+            <a href="/inventory" class="nav-item"><i class="fa-solid fa-list"></i> Target Inventory</a>
+            <div class="nav-item tree-parent" onclick="this.classList.toggle('open')">
+                <div style="display:flex;align-items:center;gap:11px"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
+                <i class="fa-solid fa-chevron-down tree-chevron"></i>
+            </div>
+            <div class="tree-children">
+                <a href="/incidents" class="nav-item child-item"><i class="fa-solid fa-table-cells"></i> All Incidents</a>
             </div>
 
+            <div class="nav-category">Management</div>
+            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-plus" style="color:#60a5fa"></i> Add New Target</a>
+            <a href="/live_dashboard" class="nav-item" id="mainDeleteBtn"><i class="fa-solid fa-trash" style="color:#f87171"></i> Delete Target</a>
 
+            <div class="nav-category">Integrations</div>
+            <a href="/integrations" class="nav-item"><i class="fa-solid fa-link"></i> External Apps Links</a>
+            <a href="/integrations_config" class="nav-item"><i class="fa-solid fa-gears"></i> Integration Config</a>
 
+            <div class="nav-category">Configuration</div>
+            <a href="/alerts" class="nav-item"><i class="fa-solid fa-folder"></i> Alerts Config</a>
+            <a href="/polling" class="nav-item"><i class="fa-solid fa-folder"></i> Polling Config</a>
+            <a href="/users_config" class="nav-item"><i class="fa-solid fa-user-gear"></i> User Configuration</a>
+            <button class="nav-item" onclick="if(typeof exportConfig==='function'){exportConfig();}else{alert('Export not available here.');}"><i class="fa-solid fa-file-export"></i> Export Snapshot</button>
+            <button class="nav-item" onclick="if(document.getElementById('importFile')){document.getElementById('importFile').click();}else{alert('Import not available here.');}"><i class="fa-solid fa-file-import"></i> Import Snapshot</button>
 
-
-
-
-
-
-
-
-
-
-
-                                                                                                                                                                                                                                                                                                <nav class="main-sidebar-nav">
-                <div class="nav-category">Monitoring</div>
-                <a href="/dashboard" class="nav-item">
-                    <i class="fa-solid fa-gauge-high"></i> Dashboard
-                </a>
-                <a href="/inventory" class="nav-item active">
-                    <i class="fa-solid fa-list"></i> Target Inventory
-                </a>
-
-                <div class="nav-item tree-parent" onclick="this.classList.toggle('open')" style="margin-top: 15px;">
-                    <div style="display: flex; align-items: center; gap: 14px;"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
-                    <i class="fa-solid fa-chevron-down tree-chevron"></i>
-                </div>
-                <div class="tree-children">
-                    <a href="/incidents" class="nav-item child-item">
-                        <i class="fa-solid fa-table-cells"></i> All Incidents
-                    </a>
-                </div>
-
-                <div class="nav-category">Management</div>
-                <button class="nav-item" onclick="if(document.getElementById('addTargetModal')) { document.getElementById('addTargetModal').style.display='flex'; } else { window.location.href='/dashboard?add=true'; }">
-                    <i class="fa-solid fa-plus" style="color: var(--info-color);"></i> Add New Target
-                </button>
-                <button class="nav-item" onclick="if(typeof deleteSelectedTargets === 'function') { deleteSelectedTargets(); } else { window.location.href='/dashboard'; }">
-                    <i class="fa-solid fa-trash" style="color: var(--error-color);"></i> Delete Target
-                </button>
-
-                <div class="nav-category" style="margin-top: 15px;">Integrations</div>
-                <a href="/integrations" class="nav-item">
-                    <i class="fa-solid fa-link"></i> External Apps Links
-                </a>
-                <a href="/integrations_config" class="nav-item">
-                    <i class="fa-solid fa-gears"></i> External Apps Integration Config
-                </a>
-
-                <div class="nav-category" style="margin-top: 15px;">Configuration</div>
-                <a href="/alerts" class="nav-item">
-                    <i class="fa-solid fa-folder"></i> Alerts Config
-                </a>
-                <a href="/polling" class="nav-item">
-                    <i class="fa-solid fa-folder"></i> Polling Config
-                </a>
-                <a href="/users_config" class="nav-item">
-                    <i class="fa-solid fa-user-gear"></i> User Configuration
-                </a>
-                <button class="nav-item" onclick="if(typeof exportConfig === 'function') { exportConfig(); } else { window.location.href='/dashboard?export=true'; }">
-                    <i class="fa-solid fa-file-export"></i> Export Snapshot
-                </button>
-                <button class="nav-item" onclick="if(document.getElementById('importFile')) { document.getElementById('importFile').click(); } else { window.location.href='/dashboard?import=true'; }">
-                    <i class="fa-solid fa-file-import"></i> Import Snapshot
-                </button>
-
-                <div class="nav-category">Operations</div>
-                <a href="/troubleshooting" class="nav-item">
-                    <i class="fa-solid fa-microchip"></i> Troubleshooting
-                </a>
-                <a href="/device_reachability" class="nav-item">
-                    <i class="fa-solid fa-satellite-dish"></i> Device Reachability
-                </a>
-            </nav>
-
-            <div class="main-sidebar-footer">
-            </div>
-        </aside>
+            <div class="nav-category">Operations</div>
+            <a href="/troubleshooting" class="nav-item"><i class="fa-solid fa-microchip"></i> Troubleshooting</a>
+            <a href="/device_reachability" class="nav-item"><i class="fa-solid fa-satellite-dish"></i> Device Reachability</a>
+        </nav>
+    </aside>
 
         <main class="app-content">
             <!-- Top Navbar -->
@@ -543,6 +693,12 @@
                         </div>
                         </div>
 
+                        <button id="theme-toggle-btn"
+                            style="background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); width: 34px; height: 34px; margin-right: 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
+                            title="Toggle Dark / Light Mode">
+                            <i id="theme-toggle-icon" class="fa-solid fa-sun"></i>
+                        </button>
+
                         <div
                             style="display: flex; align-items: center; padding: 6px; background: transparent; border-radius: 50%;">
                             <i class="fa-solid fa-user-circle"
@@ -579,41 +735,37 @@
                     <style>
                         table.inventory-table {
                             width: 100%;
-                            border-collapse: separate;
-                            border-spacing: 0;
-                            font-size: 0.85rem;
+                            border-collapse: collapse;
+                            font-size: 0.75rem; /* Tiny data-dense font */
                             color: var(--text-primary);
                             background: var(--surface-color);
-                            border-radius: 8px;
-                            overflow: hidden;
                             border: 1px solid var(--border-color);
                             margin-bottom: 2rem;
                         }
 
                         .inventory-table th {
-                            background: rgba(255, 255, 255, 0.03);
+                            background: var(--header-bg);
+                            color: var(--text-primary);
+                            font-weight: 700;
+                            font-size: 0.7rem;
+                            text-transform: none;
+                            letter-spacing: 0;
+                            padding: 6px 8px;
                             text-align: left;
-                            padding: 12px 16px;
-                            color: var(--text-secondary);
-                            font-weight: 600;
-                            text-transform: uppercase;
-                            letter-spacing: 0.05em;
-                            border-bottom: 2px solid var(--border-color);
+                            border: 1px solid var(--border-color);
+                            white-space: nowrap;
                         }
 
                         .inventory-table td {
-                            padding: 12px 16px;
-                            border-bottom: 1px solid var(--border-color);
-                            vertical-align: middle;
+                            padding: 6px 8px;
+                            color: var(--text-primary);
+                            border: 1px solid var(--border-color);
+                            vertical-align: top;
+                            line-height: 1.3;
                         }
 
-                        .inventory-table tr:last-child td {
-                            border-bottom: none;
-                        }
-
-                        .inventory-table tr:hover {
-                            background: rgba(255, 255, 255, 0.02);
-                        }
+                        .inventory-table tbody tr:nth-child(even) td { background: var(--even-row); }
+                        .inventory-table tbody tr:hover td { background: var(--hover-row); cursor: default; }
 
                         .tag-badge {
                             display: inline-block;
@@ -710,6 +862,7 @@
                         try { return JSON.parse(localStorage.getItem('hawkeye_tags')) || {}; } catch { return {}; }
                     }
 
+                    let activeDrawerDomain = null;
                     async function loadInventory() {
                         const container = document.getElementById('inventoryContainer');
                         const groupBy = document.getElementById('groupBySelect').value;
@@ -763,23 +916,28 @@
                                 table.className = 'inventory-table';
 
                                 const thead = document.createElement('thead');
+                                thead.id = 'inventoryTableHead';
                                 thead.innerHTML = `
                                     <tr>
-                                        <th class="sortable" style="vertical-align: top; width: 35%;" onclick="sortTable(0, 'inventoryTable')">
+                                        <th class="sortable" style="vertical-align: top; width: 30%;" onclick="sortTable(0, 'inventoryTable')">
                                             <div style="margin-bottom: 6px;">Target</div>
                                             <input type="text" id="colTarget" placeholder="Filter Target..." style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: white; padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; box-sizing: border-box;" oninput="applyColFilters()" onclick="event.stopPropagation()">
                                         </th>
-                                        <th class="sortable" style="vertical-align: top; width: 20%;" onclick="sortTable(1, 'inventoryTable')">
+                                        <th class="sortable" style="vertical-align: top; width: 15%;" onclick="sortTable(1, 'inventoryTable')">
                                             <div style="margin-bottom: 6px;">Added Time</div>
                                             <input type="text" id="colAdded" placeholder="Filter Time..." style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: white; padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; box-sizing: border-box;" oninput="applyColFilters()" onclick="event.stopPropagation()">
                                         </th>
-                                        <th class="sortable" style="vertical-align: top; width: 20%;" onclick="sortTable(2, 'inventoryTable')">
+                                        <th class="sortable" style="vertical-align: top; width: 15%;" onclick="sortTable(2, 'inventoryTable')">
                                             <div style="margin-bottom: 6px;">Modified Time</div>
                                             <input type="text" id="colModified" placeholder="Filter Time..." style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: white; padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; box-sizing: border-box;" oninput="applyColFilters()" onclick="event.stopPropagation()">
                                         </th>
                                         <th class="sortable" style="vertical-align: top; width: 25%;" onclick="sortTable(3, 'inventoryTable')">
                                             <div style="margin-bottom: 6px;">Tags</div>
                                             <input type="text" id="colTags" placeholder="Filter Tags..." style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: white; padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; box-sizing: border-box;" oninput="applyColFilters()" onclick="event.stopPropagation()">
+                                        </th>
+                                        <th style="vertical-align: top; width: 15%; text-align: center;">
+                                            <div style="margin-bottom: 6px;">NNMi</div>
+                                            <div style="font-size:0.65rem; color:var(--text-secondary); margin-top:2px;">Topology Node Check</div>
                                         </th>
                                     </tr>
                                 `;
@@ -797,7 +955,7 @@
                                     if (groups[groupName].length > 0 && groupName !== "_ungrouped") {
                                         const groupTr = document.createElement('tr');
                                         groupTr.className = 'group-header';
-                                        groupTr.innerHTML = `<td colspan="4" style="background: rgba(139, 92, 246, 0.05); color: var(--accent-purple); font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px;"><i class="fa-solid fa-layer-group"></i> ${groupName} (${groups[groupName].length})</td>`;
+                                        groupTr.innerHTML = `<td colspan="5" style="background: rgba(139, 92, 246, 0.05); color: var(--accent-purple); font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px;"><i class="fa-solid fa-layer-group"></i> ${groupName} (${groups[groupName].length})</td>`;
                                         tbody.appendChild(groupTr);
                                     }
 
@@ -816,6 +974,9 @@
 
                                         const tr = document.createElement('tr');
                                         tr.className = 'data-row';
+                                        tr.style.cursor = 'pointer';
+                                        const safeName = t.replace(/\./g, '-');
+                                        tr.onclick = () => toggleDrawer(t);
                                         tr.setAttribute('data-target', t);
                                         tr.setAttribute('data-added', targetMeta[t].added);
                                         tr.setAttribute('data-modified', targetMeta[t].modified);
@@ -831,8 +992,32 @@
                                             <td style="color: var(--text-secondary); font-size: 0.8rem;">${targetMeta[t].added}</td>
                                             <td style="color: var(--text-secondary); font-size: 0.8rem;">${targetMeta[t].modified}</td>
                                             <td>${tagsHtml}</td>
+                                            <td style="text-align: center;">
+                                                <button onclick="event.stopPropagation(); checkNNMiNode('${t}', this)" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: var(--info-color); padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                                                    <i class="fa-solid fa-satellite-dish"></i> Check Node
+                                                </button>
+                                                <a onclick="event.stopPropagation()" href="/target_detail?target=${encodeURIComponent(t)}" style="margin-left:8px; color:var(--info-color); text-decoration:none;" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                                            </td>
                                         `;
                                         tbody.appendChild(tr);
+
+                                        const dr = document.createElement('tr');
+                                        dr.id = `drawer-${safeName}`;
+                                        dr.className = 'drawer-row';
+                                        dr.innerHTML = `
+                                            <td colspan="5" style="padding: 0; border: none;">
+                                                <div class="drawer-content">
+                                                    <div style="margin-top: 1rem; padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.15);" id="network-panel-${safeName}">
+                                                        <h3 style="margin-top: 0; margin-bottom: 0px; font-size: 0.9rem; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-route" style="color:var(--text-secondary)"></i> Network Target Hop Topology (Traceroute)</h3>
+                                                        <div id="diag-${safeName}" style="white-space: normal; margin-top: 1rem;">
+                                                            <div style="color:var(--text-secondary); font-size: 0.85rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px;"></i> Fetching target diagnostic topology...</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        `;
+                                        tbody.appendChild(dr);
+
                                     });
                                 });
 
@@ -923,11 +1108,47 @@
                         });
                     }
 
+                    window.checkNNMiNode = async function(targetName, btnElement) {
+                        btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
+                        btnElement.style.opacity = '0.7';
+                        btnElement.disabled = true;
+
+                        try {
+                            // Extract just the domain/IP without port
+                            const cleanName = targetName.split(':')[0];
+                            const res = await fetch(`/api/v1/integrations/nnmi/nodes?name=${encodeURIComponent(cleanName)}`);
+                            if (res.ok) {
+                                const nodes = await res.json();
+                                if (nodes && nodes.length > 0) {
+                                    const node = nodes[0];
+                                    btnElement.innerHTML = `<i class="fa-solid fa-check"></i> Found (${node.status || 'Active'})`;
+                                    btnElement.style.background = 'rgba(16, 185, 129, 0.1)';
+                                    btnElement.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                                    btnElement.style.color = '#10b981';
+                                } else {
+                                    btnElement.innerHTML = '<i class="fa-solid fa-xmark"></i> Not Found';
+                                    btnElement.style.background = 'rgba(244, 63, 94, 0.1)';
+                                    btnElement.style.borderColor = 'rgba(244, 63, 94, 0.3)';
+                                    btnElement.style.color = '#f43f5e';
+                                }
+                            } else {
+                                throw new Error('API Error');
+                            }
+                        } catch (e) {
+                            btnElement.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Check Failed';
+                            btnElement.style.background = 'rgba(245, 158, 11, 0.1)';
+                            btnElement.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+                            btnElement.style.color = '#f59e0b';
+                        }
+                    };
+
                     loadInventory();
                 </script>
             </div>
         </main>
     </div>
+
+    <script src="/scripts/ai-assistant.js"></script>
 </body>
 
 </html>
