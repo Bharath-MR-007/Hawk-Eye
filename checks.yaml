@@ -8,6 +8,13 @@ health:
         - https://linkedin.com
         - https://youtube.com
         - https://app.codingrooms.com/signup
+        - https://www.udemy.com/
+        - https://www.screener.in/
+        - https://www.opentext.com/
+        - https://www.cisco.com/
+        - https://www.cisco.com/
+        - https://www.cisco.com/
+        - https://www.cisco.com/
 http_advanced:
     interval: 20s
     timeout: 5s
@@ -30,6 +37,27 @@ http_advanced:
         - url: https://app.codingrooms.com/signup
           method: GET
           expected_status: 200
+        - url: https://www.udemy.com/
+          method: GET
+          expected_status: 200
+        - url: https://www.screener.in/
+          method: GET
+          expected_status: 200
+        - url: https://www.opentext.com/
+          method: GET
+          expected_status: 200
+        - url: https://www.cisco.com/
+          method: GET
+          expected_status: 200
+        - url: https://www.cisco.com/
+          method: GET
+          expected_status: 200
+        - url: https://www.cisco.com/
+          method: GET
+          expected_status: 200
+        - url: https://www.cisco.com/
+          method: GET
+          expected_status: 200
 ssl_tls:
     interval: 1m
     timeout: 5s
@@ -40,6 +68,13 @@ ssl_tls:
         - linkedin.com:443
         - youtube.com:443
         - app.codingrooms.com:443
+        - www.udemy.com:443
+        - www.screener.in:443
+        - www.opentext.com:443
+        - www.cisco.com:443
+        - www.cisco.com:443
+        - www.cisco.com:443
+        - www.cisco.com:443
 dns_advanced:
     interval: 30s
     timeout: 5s
@@ -59,6 +94,20 @@ dns_advanced:
           type: A
         - name: app.codingrooms.com
           type: A
+        - name: www.udemy.com
+          type: A
+        - name: www.screener.in
+          type: A
+        - name: www.opentext.com
+          type: A
+        - name: www.cisco.com
+          type: A
+        - name: www.cisco.com
+          type: A
+        - name: www.cisco.com
+          type: A
+        - name: www.cisco.com
+          type: A
 tcp_metrics:
     interval: 20s
     timeout: 5s
@@ -69,6 +118,13 @@ tcp_metrics:
         - linkedin.com:443
         - youtube.com:443
         - app.codingrooms.com:443
+        - www.udemy.com:443
+        - www.screener.in:443
+        - www.opentext.com:443
+        - www.cisco.com:443
+        - www.cisco.com:443
+        - www.cisco.com:443
+        - www.cisco.com:443
 traceroute:
     interval: 60s
     timeout: 5s
@@ -86,6 +142,20 @@ traceroute:
           port: 80
         - addr: app.codingrooms.com
           port: 80
+        - addr: www.udemy.com
+          port: 80
+        - addr: www.screener.in
+          port: 80
+        - addr: www.opentext.com
+          port: 80
+        - addr: www.cisco.com
+          port: 80
+        - addr: www.cisco.com
+          port: 80
+        - addr: www.cisco.com
+          port: 80
+        - addr: www.cisco.com
+          port: 80
 latency:
     interval: 20s
     timeout: 5s
@@ -96,3 +166,10 @@ latency:
         - https://linkedin.com
         - https://youtube.com
         - https://app.codingrooms.com/signup
+        - https://www.udemy.com/
+        - https://www.screener.in/
+        - https://www.opentext.com/
+        - https://www.cisco.com/
+        - https://www.cisco.com/
+        - https://www.cisco.com/
+        - https://www.cisco.com/

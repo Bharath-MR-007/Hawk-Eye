@@ -37,7 +37,9 @@
 
         .layout {
             display: flex;
-            min-height: 100vh;
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
         }
 
         .toc {
@@ -344,6 +346,9 @@
         
         
         
+        
+        
+        
         .help-dropdown-content::before {
             content: '';
             position: absolute;
@@ -533,45 +538,67 @@
 <div class="app-window">
     <!-- ══ GLOBAL SIDEBAR (canonical — do not edit inline) ══ -->
     <aside class="main-sidebar">
-        <div class="main-sidebar-header">
-            <span style="font-size:1.6rem;line-height:1">🦅</span>
-            <div class="main-sidebar-logo-text">
-                <span class="hawk-name">Hawk-Eye</span>
-                <span class="hawk-sub">T-Systems</span>
-            </div>
-        </div>
-        <nav class="main-sidebar-nav">
-            <div class="nav-category">Monitoring</div>
-            <a href="/dashboard" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Visual Dashboard</a>
-            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-table-list"></i> Live Table</a>
-            <a href="/inventory" class="nav-item"><i class="fa-solid fa-list"></i> Target Inventory</a>
-            <div class="nav-item tree-parent" onclick="this.classList.toggle('open')">
-                <div style="display:flex;align-items:center;gap:11px"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
-                <i class="fa-solid fa-chevron-down tree-chevron"></i>
-            </div>
-            <div class="tree-children">
-                <a href="/incidents" class="nav-item child-item"><i class="fa-solid fa-table-cells"></i> All Incidents</a>
+                                            <div class="main-sidebar-header">
+                <span style="font-size: 1.5rem;">🦅</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                    <span style="font-weight: 700; font-size: 1.25rem;">Hawk-Eye</span>
+                    <span
+                        style="font-size: 0.65rem; color: #ff00ff; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
+                </div>
             </div>
 
-            <div class="nav-category">Management</div>
-            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-plus" style="color:#60a5fa"></i> Add New Target</a>
-            <a href="/live_dashboard" class="nav-item" id="mainDeleteBtn"><i class="fa-solid fa-trash" style="color:#f87171"></i> Delete Target</a>
 
-            <div class="nav-category">Integrations</div>
-            <a href="/integrations" class="nav-item"><i class="fa-solid fa-link"></i> External Apps Links</a>
-            <a href="/integrations_config" class="nav-item"><i class="fa-solid fa-gears"></i> Integration Config</a>
 
-            <div class="nav-category">Configuration</div>
-            <a href="/alerts" class="nav-item"><i class="fa-solid fa-folder"></i> Alerts Config</a>
-            <a href="/polling" class="nav-item"><i class="fa-solid fa-folder"></i> Polling Config</a>
-            <a href="/users_config" class="nav-item"><i class="fa-solid fa-user-gear"></i> User Configuration</a>
-            <button class="nav-item" onclick="if(typeof exportConfig==='function'){exportConfig();}else{alert('Export not available here.');}"><i class="fa-solid fa-file-export"></i> Export Snapshot</button>
-            <button class="nav-item" onclick="if(document.getElementById('importFile')){document.getElementById('importFile').click();}else{alert('Import not available here.');}"><i class="fa-solid fa-file-import"></i> Import Snapshot</button>
+                                            <nav class="main-sidebar-nav">
+                <div class="nav-category">Monitoring</div>
+                <a href="/dashboard" class="nav-item">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </a>
+                <a href="/inventory" class="nav-item">
+                    <i class="fa-solid fa-list"></i> Target Inventory
+                </a>
+                <a href="/target_detail" class="nav-item">
+                    <i class="fa-solid fa-route"></i> Tracepath
+                </a>
+                <a href="/incidents" class="nav-item">
+                    <i class="fa-solid fa-magnifying-glass"></i> All Incidents
+                </a>
 
-            <div class="nav-category">Operations</div>
-            <a href="/troubleshooting" class="nav-item"><i class="fa-solid fa-microchip"></i> Troubleshooting</a>
-            <a href="/device_reachability" class="nav-item"><i class="fa-solid fa-satellite-dish"></i> Device Reachability</a>
-        </nav>
+
+
+                <div class="nav-category" style="margin-top: 15px;">Integrations</div>
+                <a href="/integrations" class="nav-item">
+                    <i class="fa-solid fa-link"></i> External Apps Links
+                </a>
+                <a href="/integrations_config" class="nav-item">
+                    <i class="fa-solid fa-gears"></i> Integration Config
+                </a>
+
+                <div class="nav-category" style="margin-top: 15px;">Configuration</div>
+                <a href="/alerts" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Alerts Config
+                </a>
+                <a href="/polling" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Polling Config
+                </a>
+                <a href="/users_config" class="nav-item">
+                    <i class="fa-solid fa-user-gear"></i> User Configuration
+                </a>
+                <button class="nav-item" onclick="if(typeof exportConfig === 'function') { exportConfig(); } else { window.location.href='/dashboard?export=true'; }">
+                    <i class="fa-solid fa-file-export"></i> Export Snapshot
+                </button>
+                <button class="nav-item" onclick="if(document.getElementById('importFile')) { document.getElementById('importFile').click(); } else { window.location.href='/dashboard?import=true'; }">
+                    <i class="fa-solid fa-file-import"></i> Import Snapshot
+                </button>
+
+                <div class="nav-category" style="margin-top: 15px;">Operations</div>
+                <a href="/troubleshooting" class="nav-item">
+                    <i class="fa-solid fa-microchip"></i> Troubleshooting
+                </a>
+                <a href="/device_reachability" class="nav-item">
+                    <i class="fa-solid fa-satellite-dish"></i> Device Reachability
+                </a>
+            </nav>
     </aside>
     <div class="layout">
         <nav class="toc">

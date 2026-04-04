@@ -17,6 +17,21 @@ cd observability_ai_assistant
 pip install -r requirements.txt
 ```
 
+### Docker
+
+Build and run the AI assistant in a container:
+
+```bash
+# Build the Docker image
+docker build -t hawk-eye-ai-assistant .
+
+# Run the MCP server
+docker run -p 8000:8000 hawk-eye-ai-assistant
+
+# Or run the CLI (if needed)
+docker run -it hawk-eye-ai-assistant python -m observability_ai_assistant.assistant
+```
+
 ## Running the Assistant
 
 1. **Start the MCP Server**:

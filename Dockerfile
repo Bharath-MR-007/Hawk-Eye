@@ -2,8 +2,17 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-FROM alpine:3.22 as prep
+# Build stage
+FROM golang:1.24-alpine AS builder
+RUN apk add --no-cache git
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o hawkeye main.go
 
+# Prep stage for user
+FROM alpine:3.22 AS prep
 RUN apk add --no-cache ca-certificates
 RUN adduser \
     --disabled-password \
@@ -12,12 +21,12 @@ RUN adduser \
     --uid 65532 \
     hawkeye
 
-
-FROM scratch
+# Final stage
+FROM alpine:3.22
+RUN apk add --no-cache iputils
 COPY --from=prep /etc/passwd /etc/passwd
 COPY --from=prep /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY hawkeye ./
+COPY --from=builder /app/hawkeye /hawkeye
 
 USER hawkeye
-
 ENTRYPOINT ["/hawkeye"]

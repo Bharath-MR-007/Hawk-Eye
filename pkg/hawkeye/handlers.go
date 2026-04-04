@@ -132,6 +132,13 @@ func (s *Hawkeye) startupAPI(ctx context.Context) error {
 			}
 			http.ServeFile(w, r, "incidents.html")
 		})},
+		{Path: "/incident_drilldown", Method: http.MethodGet, Handler: withAuth(func(w http.ResponseWriter, r *http.Request) {
+			if _, err := os.Stat("/incident_drilldown.html"); err == nil {
+				http.ServeFile(w, r, "/incident_drilldown.html")
+				return
+			}
+			http.ServeFile(w, r, "incident_drilldown.html")
+		})},
 		{Path: "/integrations", Method: http.MethodGet, Handler: withAuth(func(w http.ResponseWriter, r *http.Request) {
 			if _, err := os.Stat("/integrations.html"); err == nil {
 				http.ServeFile(w, r, "/integrations.html")

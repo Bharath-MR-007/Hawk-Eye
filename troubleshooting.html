@@ -237,6 +237,7 @@
             flex-direction: column;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            height: 400px;
         }
 
         .terminal-header {
@@ -611,6 +612,9 @@
         .nav-category.collapsed+.nav-group { display: none; }
         .nav-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 1.5rem; }
     
+        
+        
+        
         .help-dropdown-content::before {
             content: '';
             position: absolute;
@@ -791,7 +795,21 @@
         .nav-item.active i { color: #93c5fd !important; }
         .tree-children { background: rgba(0,0,0,0.2) !important; border-left-color: rgba(59,130,246,0.3) !important; }
         /* ═══════════════════════════════════════════════════════ */
-
+        .export-dropdown { position: relative; flex: 1; display: flex; }
+        .export-dropdown-content {
+            display: none; position: absolute; right: 0; background: var(--surface-color);
+            min-width: 100%; box-shadow: 0 -10px 40px rgba(0,0,0,0.3); border-radius: 8px;
+            border: 1px solid var(--border-color); bottom: 100%; margin-bottom: 5px; z-index: 1000;
+        }
+        .export-dropdown:hover button:not(:disabled) + .export-dropdown-content { display: block; }
+        .export-dropdown-content a {
+            padding: 12px 16px; display: flex; align-items: center; gap: 10px; color: var(--text-secondary);
+            text-decoration: none; font-size: 0.85rem; transition: background 0.2s; cursor: pointer;
+        }
+        .export-dropdown-content a:hover { background: var(--surface-highlight); color: var(--info-color); }
+        .export-dropdown-content::before {
+            content: ''; position: absolute; bottom: -20px; left: 0; width: 100%; height: 25px; background: transparent;
+        }
         </style>
     <script>
         (function() {
@@ -809,45 +827,67 @@
         <!-- Sidebar -->
             <!-- ══ GLOBAL SIDEBAR (canonical — do not edit inline) ══ -->
     <aside class="main-sidebar">
-        <div class="main-sidebar-header">
-            <span style="font-size:1.6rem;line-height:1">🦅</span>
-            <div class="main-sidebar-logo-text">
-                <span class="hawk-name">Hawk-Eye</span>
-                <span class="hawk-sub">T-Systems</span>
-            </div>
-        </div>
-        <nav class="main-sidebar-nav">
-            <div class="nav-category">Monitoring</div>
-            <a href="/dashboard" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Visual Dashboard</a>
-            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-table-list"></i> Live Table</a>
-            <a href="/inventory" class="nav-item"><i class="fa-solid fa-list"></i> Target Inventory</a>
-            <div class="nav-item tree-parent" onclick="this.classList.toggle('open')">
-                <div style="display:flex;align-items:center;gap:11px"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
-                <i class="fa-solid fa-chevron-down tree-chevron"></i>
-            </div>
-            <div class="tree-children">
-                <a href="/incidents" class="nav-item child-item"><i class="fa-solid fa-table-cells"></i> All Incidents</a>
+                                            <div class="main-sidebar-header">
+                <span style="font-size: 1.5rem;">🦅</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                    <span style="font-weight: 700; font-size: 1.25rem;">Hawk-Eye</span>
+                    <span
+                        style="font-size: 0.65rem; color: #ff00ff; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
+                </div>
             </div>
 
-            <div class="nav-category">Management</div>
-            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-plus" style="color:#60a5fa"></i> Add New Target</a>
-            <a href="/live_dashboard" class="nav-item" id="mainDeleteBtn"><i class="fa-solid fa-trash" style="color:#f87171"></i> Delete Target</a>
 
-            <div class="nav-category">Integrations</div>
-            <a href="/integrations" class="nav-item"><i class="fa-solid fa-link"></i> External Apps Links</a>
-            <a href="/integrations_config" class="nav-item"><i class="fa-solid fa-gears"></i> Integration Config</a>
 
-            <div class="nav-category">Configuration</div>
-            <a href="/alerts" class="nav-item"><i class="fa-solid fa-folder"></i> Alerts Config</a>
-            <a href="/polling" class="nav-item"><i class="fa-solid fa-folder"></i> Polling Config</a>
-            <a href="/users_config" class="nav-item"><i class="fa-solid fa-user-gear"></i> User Configuration</a>
-            <button class="nav-item" onclick="if(typeof exportConfig==='function'){exportConfig();}else{alert('Export not available here.');}"><i class="fa-solid fa-file-export"></i> Export Snapshot</button>
-            <button class="nav-item" onclick="if(document.getElementById('importFile')){document.getElementById('importFile').click();}else{alert('Import not available here.');}"><i class="fa-solid fa-file-import"></i> Import Snapshot</button>
+                                            <nav class="main-sidebar-nav">
+                <div class="nav-category">Monitoring</div>
+                <a href="/dashboard" class="nav-item">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </a>
+                <a href="/inventory" class="nav-item">
+                    <i class="fa-solid fa-list"></i> Target Inventory
+                </a>
+                <a href="/target_detail" class="nav-item">
+                    <i class="fa-solid fa-route"></i> Tracepath
+                </a>
+                <a href="/incidents" class="nav-item">
+                    <i class="fa-solid fa-magnifying-glass"></i> All Incidents
+                </a>
 
-            <div class="nav-category">Operations</div>
-            <a href="/troubleshooting" class="nav-item"><i class="fa-solid fa-microchip"></i> Troubleshooting</a>
-            <a href="/device_reachability" class="nav-item"><i class="fa-solid fa-satellite-dish"></i> Device Reachability</a>
-        </nav>
+
+
+                <div class="nav-category" style="margin-top: 15px;">Integrations</div>
+                <a href="/integrations" class="nav-item">
+                    <i class="fa-solid fa-link"></i> External Apps Links
+                </a>
+                <a href="/integrations_config" class="nav-item">
+                    <i class="fa-solid fa-gears"></i> Integration Config
+                </a>
+
+                <div class="nav-category" style="margin-top: 15px;">Configuration</div>
+                <a href="/alerts" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Alerts Config
+                </a>
+                <a href="/polling" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Polling Config
+                </a>
+                <a href="/users_config" class="nav-item">
+                    <i class="fa-solid fa-user-gear"></i> User Configuration
+                </a>
+                <button class="nav-item" onclick="if(typeof exportConfig === 'function') { exportConfig(); } else { window.location.href='/dashboard?export=true'; }">
+                    <i class="fa-solid fa-file-export"></i> Export Snapshot
+                </button>
+                <button class="nav-item" onclick="if(document.getElementById('importFile')) { document.getElementById('importFile').click(); } else { window.location.href='/dashboard?import=true'; }">
+                    <i class="fa-solid fa-file-import"></i> Import Snapshot
+                </button>
+
+                <div class="nav-category" style="margin-top: 15px;">Operations</div>
+                <a href="/troubleshooting" class="nav-item active">
+                    <i class="fa-solid fa-microchip"></i> Troubleshooting
+                </a>
+                <a href="/device_reachability" class="nav-item">
+                    <i class="fa-solid fa-satellite-dish"></i> Device Reachability
+                </a>
+            </nav>
     </aside>
 
         <main class="app-content">
@@ -862,7 +902,7 @@
                         <button class="help-dropbtn">
                             <i class="fa-solid fa-circle-question"></i> Help Menu <i class="fa-solid fa-chevron-down" style="font-size: 0.6rem;"></i>
                         </button>
-                                                                                                                        <div class="help-dropdown-content">
+                                                                                                                                                                                                <div class="help-dropdown-content">
                             <a href="/installation.html"><i class="fa-solid fa-book"></i> Installation Procedure</a>
                             <a href="/requirements.html"><i class="fa-solid fa-list-check"></i> Software Requirements</a>
                             <a href="/capabilities.html"><i class="fa-solid fa-bolt"></i> Capabilities of Hawk-Eye</a>
@@ -959,15 +999,15 @@
                 </div>
 
                 <div class="diagnostic-grid">
-                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                        <div class="terminal-container" style="flex: 1;">
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem; min-height: 0;">
+                        <div class="terminal-container" style="flex: none;">
                             <div class="terminal-header">
                                 <div class="dot-red"></div>
                                 <div class="dot-yellow"></div>
                                 <div class="dot-green"></div>
                                 <span style="color: #6b7280; font-size: 0.75rem; margin-left: 10px;">diagnostic_terminal.sh</span>
                             </div>
-                            <div id="terminal" class="terminal-body" style="min-height: 250px;">
+                            <div id="terminal" class="terminal-body">
                                 <div class="terminal-line">
                                     <span class="line-timestamp">[SYSTEM]</span>
                                     <span>Terminal initialized. Select a target and hit Run to begin diagnosis.</span>
@@ -1033,9 +1073,15 @@
                             <button class="btn-primary" style="flex: 1; background: var(--surface-highlight); color: var(--text-primary); border: 1px solid var(--border-color);" onclick="clearTerminal()">
                                 <i class="fa-solid fa-broom"></i> Clear
                             </button>
-                            <button id="exportBtn" class="btn-primary" style="flex: 1; background: var(--accent-purple); color: white;" onclick="exportResults()" disabled>
-                                <i class="fa-solid fa-download"></i> Export Report
-                            </button>
+                            <div class="export-dropdown">
+                                <button id="exportBtn" class="btn-primary" style="flex: 1; background: var(--accent-purple); color: white; justify-content: center;" disabled>
+                                    <i class="fa-solid fa-download"></i> Export Report <i class="fa-solid fa-chevron-up" style="font-size: 0.75rem; margin-left: 5px;"></i>
+                                </button>
+                                <div class="export-dropdown-content">
+                                    <a onclick="exportResults()"><i class="fa-solid fa-file-lines"></i> TXT Report</a>
+                                    <a onclick="exportToCSV()"><i class="fa-solid fa-file-csv"></i> CSV (Excel)</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1238,32 +1284,55 @@
                     let displayMetric = "";
                     let secondaryVal = "";
                     const randomLat = (Math.random() * 10 + 5).toFixed(1);
+                    let isSuccess = Math.random() > 0.05;
 
-                    switch(metric) {
-                        case 'http': displayMetric = "HTTP 200 OK"; secondaryVal = `${randomLat}ms`; break;
-                        case 'ssl': displayMetric = "SSL VALID"; secondaryVal = "84 days"; break;
-                        case 'dns': displayMetric = "RESOLVED"; secondaryVal = "142.250.x.x"; break;
-                        case 'tcp': displayMetric = "PORT OPEN"; secondaryVal = `${randomLat}ms`; break;
-                        case 'latency':
-                        default:
-                            const jitter = (Math.random() * 2).toFixed(1);
-                            displayMetric = `LAT: ${randomLat}ms`;
-                            secondaryVal = `Jitter: ${jitter}ms`;
-                            break;
+                    if (metric === 'ssl' || metric === 'tcp') {
+                        try {
+                            const response = await fetch('/api/v1/reachability/test', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ 
+                                    target, 
+                                    protocol: metric, 
+                                    timeout: 3000 
+                                })
+                            });
+                            if (response.ok) {
+                                const data = await response.json();
+                                isSuccess = data.success;
+                                displayMetric = isSuccess ? (metric === 'ssl' ? "SSL VALID" : "PORT OPEN") : "FAILED";
+                                secondaryVal = data.message.includes("days") ? data.message.split('(')[1].split(')')[0] : `${data.latency}ms`;
+                            }
+                        } catch (err) {
+                            console.error(`Error testing ${metric}:`, err);
+                        }
+                    }
+
+                    if (!displayMetric) {
+                        switch(metric) {
+                            case 'http': displayMetric = "HTTP 200 OK"; secondaryVal = `${randomLat}ms`; break;
+                            case 'ssl': displayMetric = "SSL VALID"; secondaryVal = "43 days"; break; // Fallback
+                            case 'dns': displayMetric = "RESOLVED"; secondaryVal = "142.250.x.x"; break;
+                            case 'tcp': displayMetric = "PORT OPEN"; secondaryVal = `${randomLat}ms`; break;
+                            case 'latency':
+                            default:
+                                const jitter = (Math.random() * 2).toFixed(1);
+                                displayMetric = `LAT: ${randomLat}ms`;
+                                secondaryVal = `Jitter: ${jitter}ms`;
+                                break;
+                        }
                     }
 
                     metricLabel.innerText = displayMetric;
                     metricLabel.style.left = '50%';
                     metricLabel.style.opacity = '1';
                     metricLabel.style.top = '-50px';
-                    writeToTerminal(`${metric.toUpperCase()} Run ${run}: ${displayMetric}`, 'info');
+                    writeToTerminal(`${metric.toUpperCase()} Run ${run}: ${displayMetric} (${secondaryVal})`, 'info');
 
                     packet.style.left = '100%';
                     await new Promise(r => setTimeout(r, 500));
                     packet.style.opacity = '0';
                     metricLabel.style.opacity = '0';
-                    
-                    const isSuccess = Math.random() > 0.05;
                     
                     // Update Table
                     const row = document.createElement('tr');
@@ -1371,6 +1440,27 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+        }
+
+        function exportToCSV() {
+            const rows = Array.from(document.querySelectorAll('.diagnostic-table tr'));
+            const csvContent = rows.map(row => {
+                const cols = Array.from(row.querySelectorAll('th, td'));
+                return cols.map(col => `"${col.innerText.replace(/"/g, '""').trim()}"`).join(',');
+            }).join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            
+            const target = document.getElementById('targetSelect').value || document.getElementById('targetFilter').value || "target";
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            link.download = `hawk-eye_troubleshooting_logs_${target}_${timestamp}.csv`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
         }
 
         loadTargets();

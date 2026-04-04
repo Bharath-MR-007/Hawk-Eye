@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Device Reachability - Hawk-Eye</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
 
@@ -392,6 +394,9 @@
         .help-dropdown-content a:hover { background: var(--surface-highlight); color: var(--info-color); }
 
     
+        
+        
+        
         .help-dropdown-content::before {
             content: '';
             position: absolute;
@@ -571,6 +576,13 @@
         }
         .nav-item.active i { color: #93c5fd !important; }
         .tree-children { background: rgba(0,0,0,0.2) !important; border-left-color: rgba(59,130,246,0.3) !important; }
+        .multi-select-container { position: relative; width: 100%; }
+        .multi-select-trigger { width: 100%; background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; color: var(--text-primary); font-size: 0.9rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .multi-select-menu { position: absolute; top: 100%; left: 0; right: 0; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; margin-top: 5px; display: none; z-index: 100; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); padding: 8px; }
+        .multi-select-menu.open { display: block; }
+        .multi-select-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; color: var(--text-secondary); font-size: 0.8rem; }
+        .multi-select-item:hover { background: var(--bg-dark); color: var(--text-primary); }
+        .multi-select-item input { accent-color: var(--accent-purple); }
         /* ═══════════════════════════════════════════════════════ */
 
         </style>
@@ -581,45 +593,67 @@
         <!-- Sidebar -->
             <!-- ══ GLOBAL SIDEBAR (canonical — do not edit inline) ══ -->
     <aside class="main-sidebar">
-        <div class="main-sidebar-header">
-            <span style="font-size:1.6rem;line-height:1">🦅</span>
-            <div class="main-sidebar-logo-text">
-                <span class="hawk-name">Hawk-Eye</span>
-                <span class="hawk-sub">T-Systems</span>
-            </div>
-        </div>
-        <nav class="main-sidebar-nav">
-            <div class="nav-category">Monitoring</div>
-            <a href="/dashboard" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Visual Dashboard</a>
-            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-table-list"></i> Live Table</a>
-            <a href="/inventory" class="nav-item"><i class="fa-solid fa-list"></i> Target Inventory</a>
-            <div class="nav-item tree-parent" onclick="this.classList.toggle('open')">
-                <div style="display:flex;align-items:center;gap:11px"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
-                <i class="fa-solid fa-chevron-down tree-chevron"></i>
-            </div>
-            <div class="tree-children">
-                <a href="/incidents" class="nav-item child-item"><i class="fa-solid fa-table-cells"></i> All Incidents</a>
+                                            <div class="main-sidebar-header">
+                <span style="font-size: 1.5rem;">🦅</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                    <span style="font-weight: 700; font-size: 1.25rem;">Hawk-Eye</span>
+                    <span
+                        style="font-size: 0.65rem; color: #ff00ff; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
+                </div>
             </div>
 
-            <div class="nav-category">Management</div>
-            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-plus" style="color:#60a5fa"></i> Add New Target</a>
-            <a href="/live_dashboard" class="nav-item" id="mainDeleteBtn"><i class="fa-solid fa-trash" style="color:#f87171"></i> Delete Target</a>
 
-            <div class="nav-category">Integrations</div>
-            <a href="/integrations" class="nav-item"><i class="fa-solid fa-link"></i> External Apps Links</a>
-            <a href="/integrations_config" class="nav-item"><i class="fa-solid fa-gears"></i> Integration Config</a>
 
-            <div class="nav-category">Configuration</div>
-            <a href="/alerts" class="nav-item"><i class="fa-solid fa-folder"></i> Alerts Config</a>
-            <a href="/polling" class="nav-item"><i class="fa-solid fa-folder"></i> Polling Config</a>
-            <a href="/users_config" class="nav-item"><i class="fa-solid fa-user-gear"></i> User Configuration</a>
-            <button class="nav-item" onclick="if(typeof exportConfig==='function'){exportConfig();}else{alert('Export not available here.');}"><i class="fa-solid fa-file-export"></i> Export Snapshot</button>
-            <button class="nav-item" onclick="if(document.getElementById('importFile')){document.getElementById('importFile').click();}else{alert('Import not available here.');}"><i class="fa-solid fa-file-import"></i> Import Snapshot</button>
+                                            <nav class="main-sidebar-nav">
+                <div class="nav-category">Monitoring</div>
+                <a href="/dashboard" class="nav-item">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </a>
+                <a href="/inventory" class="nav-item">
+                    <i class="fa-solid fa-list"></i> Target Inventory
+                </a>
+                <a href="/target_detail" class="nav-item">
+                    <i class="fa-solid fa-route"></i> Tracepath
+                </a>
+                <a href="/incidents" class="nav-item">
+                    <i class="fa-solid fa-magnifying-glass"></i> All Incidents
+                </a>
 
-            <div class="nav-category">Operations</div>
-            <a href="/troubleshooting" class="nav-item"><i class="fa-solid fa-microchip"></i> Troubleshooting</a>
-            <a href="/device_reachability" class="nav-item"><i class="fa-solid fa-satellite-dish"></i> Device Reachability</a>
-        </nav>
+
+
+                <div class="nav-category" style="margin-top: 15px;">Integrations</div>
+                <a href="/integrations" class="nav-item">
+                    <i class="fa-solid fa-link"></i> External Apps Links
+                </a>
+                <a href="/integrations_config" class="nav-item">
+                    <i class="fa-solid fa-gears"></i> Integration Config
+                </a>
+
+                <div class="nav-category" style="margin-top: 15px;">Configuration</div>
+                <a href="/alerts" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Alerts Config
+                </a>
+                <a href="/polling" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Polling Config
+                </a>
+                <a href="/users_config" class="nav-item">
+                    <i class="fa-solid fa-user-gear"></i> User Configuration
+                </a>
+                <button class="nav-item" onclick="if(typeof exportConfig === 'function') { exportConfig(); } else { window.location.href='/dashboard?export=true'; }">
+                    <i class="fa-solid fa-file-export"></i> Export Snapshot
+                </button>
+                <button class="nav-item" onclick="if(document.getElementById('importFile')) { document.getElementById('importFile').click(); } else { window.location.href='/dashboard?import=true'; }">
+                    <i class="fa-solid fa-file-import"></i> Import Snapshot
+                </button>
+
+                <div class="nav-category" style="margin-top: 15px;">Operations</div>
+                <a href="/troubleshooting" class="nav-item">
+                    <i class="fa-solid fa-microchip"></i> Troubleshooting
+                </a>
+                <a href="/device_reachability" class="nav-item active">
+                    <i class="fa-solid fa-satellite-dish"></i> Device Reachability
+                </a>
+            </nav>
     </aside>
 
         <main class="app-content">
@@ -634,7 +668,7 @@
                         <button class="help-dropbtn">
                             <i class="fa-solid fa-circle-question"></i> Help Menu <i class="fa-solid fa-chevron-down" style="font-size: 0.6rem;"></i>
                         </button>
-                                                <div class="help-dropdown-content">
+                                                                                                                        <div class="help-dropdown-content">
                             <a href="/installation.html"><i class="fa-solid fa-book"></i> Installation Procedure</a>
                             <a href="/requirements.html"><i class="fa-solid fa-list-check"></i> Software Requirements</a>
                             <a href="/capabilities.html"><i class="fa-solid fa-bolt"></i> Capabilities of Hawk-Eye</a>
@@ -669,13 +703,32 @@
                         <textarea id="targetList" class="custom-textarea" placeholder="Enter IP addresses, one per line...&#10;8.8.8.8&#10;google.com"></textarea>
                     </div>
                     <div class="control-group">
-                        <label class="control-label">Protocol</label>
-                        <select id="protocolSelect" class="custom-select">
-                            <option value="icmp">ICMP (Ping)</option>
-                            <option value="snmp">SNMP (v2c)</option>
-                            <option value="tcp">TCP (Port 80/443)</option>
-                            <option value="netconf">NetConf (Port 830)</option>
-                        </select>
+                        <label class="control-label">Protocol (Multi-select)</label>
+                        <div class="multi-select-container">
+                            <div class="multi-select-trigger" onclick="toggleProtoMenu()">
+                                <span id="selectedProtoText">ICMP (Ping)</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+                            <div id="protoMenu" class="multi-select-menu">
+                                <div class="multi-select-item" onclick="event.stopPropagation()">
+                                    <input type="checkbox" class="proto-checkbox" value="icmp" id="proto-icmp" checked onchange="updateSelectedProto()">
+                                    <label for="proto-icmp">ICMP (Ping)</label>
+                                </div>
+                                <div class="multi-select-item" onclick="event.stopPropagation()">
+                                    <input type="checkbox" class="proto-checkbox" value="snmp" id="proto-snmp" onchange="updateSelectedProto()">
+                                    <label for="proto-snmp">SNMP (v2c)</label>
+                                </div>
+                                <div class="multi-select-item" onclick="event.stopPropagation()">
+                                    <input type="checkbox" class="proto-checkbox" value="tcp" id="proto-tcp" onchange="updateSelectedProto()">
+                                    <label for="proto-tcp">TCP (Port 80/443)</label>
+                                </div>
+                                <div class="multi-select-item" onclick="event.stopPropagation()">
+                                    <input type="checkbox" class="proto-checkbox" value="netconf" id="proto-netconf" onchange="updateSelectedProto()">
+                                    <label for="proto-netconf">NetConf (Port 830)</label>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="text" id="communityInput" class="custom-input" placeholder="Community (optional)" style="display: none; margin-top: 5px;">
                     </div>
                     <div class="control-group">
                         <label class="control-label">Timeout (ms)</label>
@@ -712,10 +765,16 @@
                     </div>
 
                     <div class="results-table-container">
-                        <div class="results-table-header">
-                            <h3 style="margin: 0; font-size: 0.95rem; color: var(--info-color);">Execution Summary</h3>
-                            <div id="summaryStats" style="font-size: 0.8rem; color: var(--text-secondary);">
-                                0 Targets Tested
+                        <div class="results-table-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <h3 style="margin: 0; font-size: 0.95rem; color: var(--info-color);">Execution Summary</h3>
+                                <div id="summaryStats" style="font-size: 0.8rem; color: var(--text-secondary);">
+                                    0 Tests Executed
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-secondary" onclick="exportToCSV()" style="font-size: 0.8rem; padding: 6px 12px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--surface-highlight); color: var(--text-primary); cursor: pointer;"><i class="fa-solid fa-file-csv"></i> Export CSV (Excel)</button>
+                                <button class="btn-secondary" onclick="exportToTXT()" style="font-size: 0.8rem; padding: 6px 12px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--surface-highlight); color: var(--text-primary); cursor: pointer;"><i class="fa-solid fa-file-lines"></i> Export Report (.txt)</button>
                             </div>
                         </div>
                         <table class="diagnostic-table">
@@ -771,73 +830,159 @@
             terminal.innerHTML = '<div class="terminal-line"><span class="line-timestamp">[SYSTEM]</span><span>Console cleared. Ready.</span></div>';
         }
 
+        function toggleProtoMenu() {
+            document.getElementById('protoMenu').classList.toggle('open');
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.closest('.multi-select-container')) {
+                const p = document.getElementById('protoMenu');
+                if(p) p.classList.remove('open');
+            }
+        }
+
+        function updateSelectedProto() {
+            const checked = Array.from(document.querySelectorAll('.proto-checkbox:checked'));
+            const textEl = document.getElementById('selectedProtoText');
+            if (checked.length === 0) {
+                textEl.innerText = "Select protocol...";
+            } else if (checked.length === 1) {
+                textEl.innerText = checked[0].nextElementSibling.innerText;
+            } else {
+                textEl.innerText = `${checked.length} protocols selected`;
+            }
+            toggleCommunity();
+        }
+
+        function toggleCommunity() {
+            const checked = Array.from(document.querySelectorAll('.proto-checkbox:checked'));
+            let hasSnmp = checked.some(cb => cb.value === 'snmp');
+            const commInput = document.getElementById('communityInput');
+            if (hasSnmp) {
+                commInput.style.display = 'block';
+            } else {
+                commInput.style.display = 'none';
+            }
+        }
+
         async function runReachabilityCheck() {
             const targetsInput = document.getElementById('targetList').value.trim();
-            const protocol = document.getElementById('protocolSelect').value;
+            const checked = Array.from(document.querySelectorAll('.proto-checkbox:checked'));
+            const selectedProtocols = checked.map(cb => cb.value);
             const timeout = parseInt(document.getElementById('timeoutInput').value) || 1000;
             const repeatCount = parseInt(document.getElementById('repeatInput').value) || 1;
+            const community = document.getElementById('communityInput').value.trim();
 
             if (!targetsInput) {
                 alert("Please enter at least one target IP or hostname.");
                 return;
             }
+            if (selectedProtocols.length === 0) {
+                alert("Please select at least one protocol.");
+                return;
+            }
 
-            const targets = targetsInput.split(/[\n\r,]+/).map(t => t.trim()).filter(t => t !== "");
+            const targets = targetsInput.split('\n').map(t => t.trim()).filter(t => t);
             
             runBtn.disabled = true;
-            runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
-            resultsBody.innerHTML = '';
-            clearTerminal();
+            runBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Running Tests...';
 
-            writeToTerminal(`Starting batch reachability check for ${targets.length} targets (${repeatCount} runs each) via ${protocol.toUpperCase()}...`, 'info');
+            resultsBody.innerHTML = '';
+            let count = 0;
+            const totalRuns = targets.length * selectedProtocols.length * repeatCount;
+
+            writeToTerminal(`Starting batch reachability check for ${targets.length} targets via ${selectedProtocols.join(', ')}...`, 'info');
 
             for (const target of targets) {
-                for (let i = 1; i <= repeatCount; i++) {
-                    const runLabel = repeatCount > 1 ? ` (Run ${i}/${repeatCount})` : '';
-                    writeToTerminal(`Testing ${target}${runLabel}...`, 'info');
-                    
-                    try {
-                        const response = await fetch('/api/v1/reachability/test', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ target, protocol, timeout })
-                        });
+                for (const protocol of selectedProtocols) {
+                    for (let i = 0; i < repeatCount; i++) {
+                        const runLabel = repeatCount > 1 ? ` (Run ${i + 1}/${repeatCount})` : '';
+                        writeToTerminal(`Testing ${target} [${protocol.toUpperCase()}]${runLabel}...`, 'info');
 
-                        if (!response.ok) {
-                            const errText = await response.text();
-                            throw new Error(`HTTP ${response.status}: ${errText.trim()}`);
+                        try {
+                            const response = await fetch('/api/v1/reachability/test', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ target, protocol, timeout, community })
+                            });
+
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+
+                            const data = await response.json();
+                            
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td><strong>${target}</strong></td>
+                                <td><span class="protocol-badge protocol-${protocol}">${protocol.toUpperCase()}</span></td>
+                                <td><span class="status-badge ${data.success ? 'status-online' : 'status-offline'}">${data.success ? 'ONLINE' : 'OFFLINE'}</span></td>
+                                <td><span class="message-cell">${data.message || 'No additional details'}</span></td>
+                                <td style="color: var(--info-color); font-weight: 500;">${data.latency} ms</td>
+                            `;
+                            resultsBody.appendChild(row);
+
+                            if (data.success) {
+                                writeToTerminal(`${target} [${protocol.toUpperCase()}]${runLabel}: ${data.message} (${data.latency}ms)`, 'success');
+                            } else {
+                                writeToTerminal(`[ERROR] ${target} [${protocol.toUpperCase()}]${runLabel}: ${data.message || 'Timeout'}`, 'error');
+                            }
+
+                            count++;
+                            document.getElementById('summaryStats').innerText = `${count} / ${totalRuns} Tests Executed`;
+
+                        } catch (error) {
+                            writeToTerminal(`[ERROR] ${target} [${protocol.toUpperCase()}]${runLabel}: Network error or backend unreachable.`, 'error');
+                            console.error("Reachability check failed:", error);
                         }
-
-                        const data = await response.json();
-                        
-                        const row = document.createElement('tr');
-                        const statusClass = data.success ? 'status-online' : 'status-offline';
-                        const statusLabel = data.success ? 'ONLINE' : 'OFFLINE';
-                        
-                        row.innerHTML = `
-                            <td style="font-weight: 600;">${target}${runLabel}</td>
-                            <td><span style="color: var(--accent-purple); font-weight: 700;">${protocol.toUpperCase()}</span></td>
-                        <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
-                        <td style="font-family: 'Fira Code', monospace; font-size: 0.75rem;">${data.message || (data.success ? 'Packet Received' : 'Timed Out')}</td>
-                        <td style="font-weight: 600; color: var(--info-color);">${data.latency ? data.latency + ' ms' : '--'}</td>
-                    `;
-                    resultsBody.appendChild(row);
-
-                        if (data.success) {
-                            writeToTerminal(`${target}${runLabel}: Success (${data.latency}ms)`, 'success');
-                        } else {
-                            writeToTerminal(`${target}${runLabel}: ${data.message || 'Timeout'}`, 'error');
-                        }
-
-                    } catch (err) {
-                        writeToTerminal(`Error checking ${target}${runLabel}: ${err.message}`, 'error');
                     }
                 }
             }
 
-            document.getElementById('summaryStats').innerText = `${targets.length * repeatCount} Tests Executed`;
             runBtn.disabled = false;
             runBtn.innerHTML = '<i class="fa-solid fa-satellite-dish"></i> Run Reachability Check';
+        }
+
+        function exportToCSV() {
+            const rows = Array.from(document.querySelectorAll('.diagnostic-table tr'));
+            const csvContent = rows.map(row => {
+                const cols = Array.from(row.querySelectorAll('th, td'));
+                return cols.map(col => `"${col.innerText.replace(/"/g, '""')}"`).join(',');
+            }).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'hawk-eye_reachability_results.csv';
+            link.click();
+        }
+
+        function exportToTXT() {
+            const now = new Date();
+            const timestamp = now.toISOString().replace(/[:.]/g, '-');
+            const filename = `hawk-eye_reachability_results_${timestamp}.txt`;
+
+            let content = `HAWK-EYE REACHABILITY REPORT\n`;
+            content += `============================\n`;
+            content += `Date: ${now.toLocaleString()}\n\n`;
+            content += `TERMINAL LOGS\n`;
+            content += `-------------\n`;
+            
+            const lines = terminal.querySelectorAll('.terminal-line');
+            lines.forEach(line => {
+                const ts = line.querySelector('.line-timestamp')?.innerText || '';
+                const text = line.innerText.replace(ts, '').trim();
+                content += `${ts} ${text}\n`;
+            });
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
     </script>
 

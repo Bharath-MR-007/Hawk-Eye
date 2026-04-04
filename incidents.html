@@ -260,11 +260,16 @@
             border: 1px solid var(--border);
             overflow: hidden;
         }
+        
+        
+        
         .help-dropdown-content::before {
             content: '';
             position: absolute;
-            top: -20px; left: 0;
-            width: 100%; height: 25px;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 25px;
             background: transparent;
         }
         .help-dropdown:hover .help-dropdown-content { display: block; }
@@ -528,12 +533,112 @@
             font-weight: 500;
         }
 
+        /* ── Drill-down Expanded Row ── */
+        .drilldown-expanded-row {
+            background: rgba(0,0,0,0.15);
+            border-bottom: 1px solid var(--border);
+        }
+        .drilldown-expanded-row td {
+            padding: 1.5rem !important;
+        }
+        .drilldown-grid {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 12px;
+            font-size: 0.85rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .drilldown-label { color: var(--text-secondary); font-weight: 600; text-align: right; padding-right: 1rem; border-right: 1px solid var(--border); }
+        .drilldown-value { color: var(--text-primary); word-break: break-word; }
+        
+        .auto-close-alert {
+            grid-column: 1 / -1;
+            background: rgba(16, 185, 129, 0.1);
+            color: #10B981;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            display: flex; align-items: center; gap: 8px;
+        }
+
         /* ── Responsive ── */
         @media (max-width: 768px) {
             .page-body { padding: 1rem; }
             .page-header { flex-direction: column; gap: 1rem; }
             .table-shell { overflow-x: auto; }
             .incidents-table { min-width: 700px; }
+        }
+
+        /* ── Context Menu ── */
+        .context-menu {
+            display: none;
+            position: absolute;
+            z-index: 10000;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-md);
+            min-width: 200px;
+            padding: 6px 0;
+            font-size: 0.8rem;
+        }
+        .context-menu ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .context-menu li {
+            padding: 8px 16px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: background 0.15s;
+            display: flex;
+            align-items: center;
+        }
+        .context-menu li:hover {
+            background: var(--hover-row);
+            color: var(--accent);
+        }
+        .context-menu li i {
+            margin-right: 12px;
+            width: 16px;
+            text-align: center;
+            opacity: 0.8;
+        }
+        .context-menu .has-submenu {
+            position: relative;
+        }
+        .context-menu .has-submenu::after {
+            content: "\f0da";
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.7rem;
+            opacity: 0.5;
+        }
+        .context-submenu {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: -6px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-md);
+            min-width: 180px;
+            padding: 6px 0;
+        }
+        .context-menu .has-submenu:hover .context-submenu {
+            display: block;
         }
     
         /* ══ GLOBAL SIDEBAR ═══════════════════════════════════════ */
@@ -716,45 +821,67 @@
         <!-- Left Sidebar -->
             <!-- ══ GLOBAL SIDEBAR (canonical — do not edit inline) ══ -->
     <aside class="main-sidebar">
-        <div class="main-sidebar-header">
-            <span style="font-size:1.6rem;line-height:1">🦅</span>
-            <div class="main-sidebar-logo-text">
-                <span class="hawk-name">Hawk-Eye</span>
-                <span class="hawk-sub">T-Systems</span>
-            </div>
-        </div>
-        <nav class="main-sidebar-nav">
-            <div class="nav-category">Monitoring</div>
-            <a href="/dashboard" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Visual Dashboard</a>
-            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-table-list"></i> Live Table</a>
-            <a href="/inventory" class="nav-item"><i class="fa-solid fa-list"></i> Target Inventory</a>
-            <div class="nav-item tree-parent" onclick="this.classList.toggle('open')">
-                <div style="display:flex;align-items:center;gap:11px"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
-                <i class="fa-solid fa-chevron-down tree-chevron"></i>
-            </div>
-            <div class="tree-children">
-                <a href="/incidents" class="nav-item child-item"><i class="fa-solid fa-table-cells"></i> All Incidents</a>
+                                            <div class="main-sidebar-header">
+                <span style="font-size: 1.5rem;">🦅</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                    <span style="font-weight: 700; font-size: 1.25rem;">Hawk-Eye</span>
+                    <span
+                        style="font-size: 0.65rem; color: #ff00ff; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
+                </div>
             </div>
 
-            <div class="nav-category">Management</div>
-            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-plus" style="color:#60a5fa"></i> Add New Target</a>
-            <a href="/live_dashboard" class="nav-item" id="mainDeleteBtn"><i class="fa-solid fa-trash" style="color:#f87171"></i> Delete Target</a>
 
-            <div class="nav-category">Integrations</div>
-            <a href="/integrations" class="nav-item"><i class="fa-solid fa-link"></i> External Apps Links</a>
-            <a href="/integrations_config" class="nav-item"><i class="fa-solid fa-gears"></i> Integration Config</a>
 
-            <div class="nav-category">Configuration</div>
-            <a href="/alerts" class="nav-item"><i class="fa-solid fa-folder"></i> Alerts Config</a>
-            <a href="/polling" class="nav-item"><i class="fa-solid fa-folder"></i> Polling Config</a>
-            <a href="/users_config" class="nav-item"><i class="fa-solid fa-user-gear"></i> User Configuration</a>
-            <button class="nav-item" onclick="if(typeof exportConfig==='function'){exportConfig();}else{alert('Export not available here.');}"><i class="fa-solid fa-file-export"></i> Export Snapshot</button>
-            <button class="nav-item" onclick="if(document.getElementById('importFile')){document.getElementById('importFile').click();}else{alert('Import not available here.');}"><i class="fa-solid fa-file-import"></i> Import Snapshot</button>
+                                            <nav class="main-sidebar-nav">
+                <div class="nav-category">Monitoring</div>
+                <a href="/dashboard" class="nav-item">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </a>
+                <a href="/inventory" class="nav-item">
+                    <i class="fa-solid fa-list"></i> Target Inventory
+                </a>
+                <a href="/target_detail" class="nav-item">
+                    <i class="fa-solid fa-route"></i> Tracepath
+                </a>
+                <a href="/incidents" class="nav-item active">
+                    <i class="fa-solid fa-magnifying-glass"></i> All Incidents
+                </a>
 
-            <div class="nav-category">Operations</div>
-            <a href="/troubleshooting" class="nav-item"><i class="fa-solid fa-microchip"></i> Troubleshooting</a>
-            <a href="/device_reachability" class="nav-item"><i class="fa-solid fa-satellite-dish"></i> Device Reachability</a>
-        </nav>
+
+
+                <div class="nav-category" style="margin-top: 15px;">Integrations</div>
+                <a href="/integrations" class="nav-item">
+                    <i class="fa-solid fa-link"></i> External Apps Links
+                </a>
+                <a href="/integrations_config" class="nav-item">
+                    <i class="fa-solid fa-gears"></i> Integration Config
+                </a>
+
+                <div class="nav-category" style="margin-top: 15px;">Configuration</div>
+                <a href="/alerts" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Alerts Config
+                </a>
+                <a href="/polling" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Polling Config
+                </a>
+                <a href="/users_config" class="nav-item">
+                    <i class="fa-solid fa-user-gear"></i> User Configuration
+                </a>
+                <button class="nav-item" onclick="if(typeof exportConfig === 'function') { exportConfig(); } else { window.location.href='/dashboard?export=true'; }">
+                    <i class="fa-solid fa-file-export"></i> Export Snapshot
+                </button>
+                <button class="nav-item" onclick="if(document.getElementById('importFile')) { document.getElementById('importFile').click(); } else { window.location.href='/dashboard?import=true'; }">
+                    <i class="fa-solid fa-file-import"></i> Import Snapshot
+                </button>
+
+                <div class="nav-category" style="margin-top: 15px;">Operations</div>
+                <a href="/troubleshooting" class="nav-item">
+                    <i class="fa-solid fa-microchip"></i> Troubleshooting
+                </a>
+                <a href="/device_reachability" class="nav-item">
+                    <i class="fa-solid fa-satellite-dish"></i> Device Reachability
+                </a>
+            </nav>
     </aside>
 
         <!-- Main Content -->
@@ -774,11 +901,11 @@
                             <i class="fa-solid fa-circle-question"></i> Help Menu
                             <i class="fa-solid fa-chevron-down" style="font-size: 0.6rem;"></i>
                         </button>
-                        <div class="help-dropdown-content">
+                                                                                                <div class="help-dropdown-content">
                             <a href="/installation.html"><i class="fa-solid fa-book"></i> Installation Procedure</a>
                             <a href="/requirements.html"><i class="fa-solid fa-list-check"></i> Software Requirements</a>
                             <a href="/capabilities.html"><i class="fa-solid fa-bolt"></i> Capabilities of Hawk-Eye</a>
-                            <a href="/integrations_guide"><i class="fa-solid fa-layer-group"></i> Integration Guide</a>
+                            <a href="/integrations_guide.html"><i class="fa-solid fa-layer-group"></i> Integration Guide</a>
                             <a href="/architecture.html"><i class="fa-solid fa-diagram-project"></i> Product Architecture</a>
                             <a href="/usermanual.html"><i class="fa-solid fa-file-lines"></i> User Manual</a>
                             <a href="/admindoc.html"><i class="fa-solid fa-user-shield"></i> Admin Document</a>
@@ -833,6 +960,17 @@
                         localStorage.setItem('hawkeye_incident_notes', JSON.stringify(notes));
                     }
 
+                    function getSavedMeta() {
+                        try { return JSON.parse(localStorage.getItem('hawkeye_incident_meta')) || {}; } catch { return {}; }
+                    }
+
+                    function updateMeta(incidentKey, key, value) {
+                        const meta = getSavedMeta();
+                        if (!meta[incidentKey]) meta[incidentKey] = {};
+                        meta[incidentKey][key] = value;
+                        localStorage.setItem('hawkeye_incident_meta', JSON.stringify(meta));
+                    }
+
                     async function fetchRealIncidents() {
                         const host = window.location.hostname || 'localhost';
                         const protocol = window.location.protocol || 'http:';
@@ -845,9 +983,11 @@
                                 const id = a.labels.alertname || 'Unknown Alert';
                                 const target = a.labels.target || a.labels.instance || 'System';
                                 return {
-                                    uniqueKey: `${id}-${target}`,
+                                    uniqueKey: `${id}-${target}-${a.activeAt}`,
+                                    groupKey: `${id}::${target}`,
                                     id, target,
                                     status: a.state === 'firing' ? 'Open' : (a.state === 'pending' ? 'Pending' : 'Closed'),
+                                    lifecycle: a.labels.lifecycle_state || (a.state === 'firing' ? 'In Progress' : (a.state === 'pending' ? 'Registered' : 'Closed')),
                                     openedTime: new Date(a.activeAt).toLocaleString(),
                                     description: a.annotations?.description || a.annotations?.summary || 'No description provided',
                                     severity: a.labels.severity || 'unknown'
@@ -892,6 +1032,7 @@
                             document.getElementById('filterTime')?.value.toLowerCase() || '',
                             document.getElementById('filterName')?.value.toLowerCase() || '',
                             document.getElementById('filterTarget')?.value.toLowerCase() || '',
+                            document.getElementById('filterAssigned')?.value.toLowerCase() || '',
                             document.getElementById('filterDesc')?.value.toLowerCase() || '',
                             document.getElementById('filterNotes')?.value.toLowerCase() || '',
                         ];
@@ -901,6 +1042,7 @@
                                 tr.getAttribute('data-time').toLowerCase(),
                                 tr.getAttribute('data-name').toLowerCase(),
                                 tr.getAttribute('data-target').toLowerCase(),
+                                tr.getAttribute('data-assigned').toLowerCase(),
                                 tr.getAttribute('data-desc').toLowerCase(),
                                 (tr.querySelector('.note-input')?.value || '').toLowerCase(),
                             ];
@@ -929,13 +1071,88 @@
                         return `<span class="sev-icon ${cls}" title="${sev}"><i class="fa-solid ${icon}"></i></span>`;
                     }
 
+                    function lifecycleSymbol(lc) {
+                        const svgs = {
+                            'Registered': `<svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 4 C16 4 19 7 19 11 L16 11 L20 16 L24 11 L21 11 C21 6 17 2 12 2 Z" fill="#69b59e" stroke="#10253f" stroke-width="1.5" stroke-linejoin="round"/>
+                                <path d="M12 20 C8 20 5 17 5 13 L8 13 L4 8 L0 13 L3 13 C3 18 7 22 12 22 Z" fill="#455fa1" stroke="#10253f" stroke-width="1.5" stroke-linejoin="round"/>
+                            </svg>`,
+                            'In Progress': `<svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 18 C 4 9, 10 5, 17 5 L 17 1 L 23 7 L 17 13 L 17 9 C 12 9, 8 11.5, 8 18 Z" fill="#7C86AD" stroke="#2A2C40" stroke-width="1.5" stroke-linejoin="round"/>
+                            </svg>`,
+                            'Completed': `<svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="10" fill="#4BBA94" stroke="#123E2A" stroke-width="1.5"/>
+                                <path d="M6 12.5 L10 16.5 L17 7" fill="none" stroke="#0A1856" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>`,
+                            'Closed': `<svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 18 C 20 9, 14 5, 7 5 L 7 1 L 1 7 L 7 13 L 7 9 C 12 9, 16 11.5, 16 18 Z" fill="#9BA1A5" stroke="#3A3F42" stroke-width="1.5" stroke-linejoin="round"/>
+                                <rect x="14" y="16" width="4" height="6" fill="#A87C7C" stroke="#3A3F42" stroke-width="1.5"/>
+                            </svg>`
+                        };
+                        const iconHtml = svgs[lc] || svgs['Closed'];
+                        return `<span style="display:inline-flex; align-items:center; justify-content:center; width:100%; cursor:help;" title="${lc}">${iconHtml}</span>`;
+                    }
+
                     async function loadIncidents() {
                         const container = document.getElementById('inventoryContainer');
                         try {
-                            const incidents = await fetchRealIncidents();
+                            const freshIncidents = await fetchRealIncidents();
                             const savedNotes = getSavedNotes();
+                            const savedMeta = getSavedMeta();
 
-                            if (incidents.length === 0) {
+                            // Load history and merge
+                            let history = {};
+                            try { history = JSON.parse(localStorage.getItem('hawkeye_incident_history')) || {}; } catch(e){}
+
+                            // Add newly fetched to history
+                            freshIncidents.forEach(inc => {
+                                history[inc.uniqueKey] = inc;
+                                if(inc.status === 'Closed') {
+                                    history[inc.uniqueKey].autoClosedDisplay = false; // native closed
+                                }
+                            });
+
+                            // For every incident in history, check if it's missing in current
+                            const currentKeys = new Set(freshIncidents.map(inc => inc.uniqueKey));
+                            Object.keys(history).forEach(key => {
+                                if (!currentKeys.has(key)) {
+                                    // missing from prometheus => auto closed
+                                    if (history[key].status !== 'Closed') {
+                                        history[key].status = 'Closed';
+                                        history[key].lifecycle = 'Closed';
+                                        history[key].autoClosedDisplay = true;
+                                        history[key].closureNotes = 'System automatically closed this incident because the issue is no longer present in Prometheus monitoring telemetry.';
+                                    }
+                                }
+                            });
+                            localStorage.setItem('hawkeye_incident_history', JSON.stringify(history));
+
+                            // Group incidents by groupKey (id + target)
+                            const grouped = {};
+                            const allIncidents = Object.values(history);
+                            
+                            allIncidents.forEach(inc => {
+                                if (!inc.groupKey) inc.groupKey = `${inc.id}::${inc.target}`;
+                                if (!grouped[inc.groupKey]) grouped[inc.groupKey] = [];
+                                grouped[inc.groupKey].push(inc);
+                            });
+
+                            const deduplicatedIncidents = [];
+                            Object.values(grouped).forEach(group => {
+                                // Sort descending by openedTime (most recent first)
+                                group.sort((a, b) => new Date(b.openedTime) - new Date(a.openedTime));
+                                
+                                // Take highest priority status (Open > Pending > Closed)
+                                const hasOpen = group.find(i => (savedMeta[i.uniqueKey]?.status || i.status) === 'Open');
+                                const hasPending = group.find(i => (savedMeta[i.uniqueKey]?.status || i.status) === 'Pending');
+                                
+                                let activeInc = hasOpen || hasPending || group[0];
+                                activeInc.count = group.length;
+                                
+                                deduplicatedIncidents.push(activeInc);
+                            });
+
+                            if (deduplicatedIncidents.length === 0) {
                                 container.innerHTML = `
                                     <div class="table-shell">
                                         <div class="empty-state">
@@ -957,25 +1174,31 @@
                             table.innerHTML = `
                                 <thead>
                                     <tr>
-                                        <th class="sortable" style="width:10%;" onclick="sortTable(0,'incidentTable')">Status</th>
-                                        <th class="sortable" style="width:14%; vertical-align:top;" onclick="sortTable(1,'incidentTable')">
+                                        <th class="sortable" style="width:8%;" onclick="sortTable(0,'incidentTable')">Status</th>
+                                        <th class="sortable" style="width:5%; text-align:center;" onclick="sortTable(1,'incidentTable')">Lifecycle</th>
+                                        <th class="sortable" style="width:13%; vertical-align:top;" onclick="sortTable(2,'incidentTable')">
                                             <div>Opened Time</div>
                                             <input type="text" id="filterTime" class="col-filter" placeholder="Filter..." oninput="applyFilters()" onclick="event.stopPropagation()">
                                         </th>
-                                        <th class="sortable" style="width:16%; vertical-align:top;" onclick="sortTable(2,'incidentTable')">
+                                        <th class="sortable" style="width:15%; vertical-align:top;" onclick="sortTable(3,'incidentTable')">
                                             <div>Incident Name</div>
                                             <input type="text" id="filterName" class="col-filter" placeholder="Filter..." oninput="applyFilters()" onclick="event.stopPropagation()">
                                         </th>
-                                        <th class="sortable" style="width:14%; vertical-align:top;" onclick="sortTable(3,'incidentTable')">
+                                        <th class="sortable" style="width:13%; vertical-align:top;" onclick="sortTable(4,'incidentTable')">
                                             <div>Target</div>
                                             <input type="text" id="filterTarget" class="col-filter" placeholder="Filter..." oninput="applyFilters()" onclick="event.stopPropagation()">
                                         </th>
-                                        <th class="sortable" style="width:8%;" onclick="sortTable(4,'incidentTable')">Severity</th>
-                                        <th class="sortable" style="width:26%; vertical-align:top;" onclick="sortTable(5,'incidentTable')">
+                                        <th class="sortable" style="width:8%;" onclick="sortTable(5,'incidentTable')">Severity</th>
+                                        <th class="sortable" style="width:10%; vertical-align:top;" onclick="sortTable(6,'incidentTable')">
+                                            <div>Assigned To</div>
+                                            <input type="text" id="filterAssigned" class="col-filter" placeholder="Filter..." oninput="applyFilters()" onclick="event.stopPropagation()">
+                                        </th>
+                                        <th class="sortable" style="width:18%; vertical-align:top;" onclick="sortTable(7,'incidentTable')">
                                             <div>Description</div>
                                             <input type="text" id="filterDesc" class="col-filter" placeholder="Filter..." oninput="applyFilters()" onclick="event.stopPropagation()">
                                         </th>
-                                        <th class="sortable" style="width:12%; vertical-align:top;" onclick="sortTable(6,'incidentTable')">
+                                        <th class="sortable" style="width:5%;" onclick="sortTable(8,'incidentTable')">Count</th>
+                                        <th class="sortable" style="width:10%; vertical-align:top;" onclick="sortTable(9,'incidentTable')">
                                             <div>Notes</div>
                                             <input type="text" id="filterNotes" class="col-filter" placeholder="Filter..." oninput="applyFilters()" onclick="event.stopPropagation()">
                                         </th>
@@ -985,27 +1208,44 @@
                             const tbody = document.createElement('tbody');
                             tbody.id = 'incidentBody';
 
-                            incidents
+                            deduplicatedIncidents
                                 .sort((a, b) => (a.status === 'Open' ? -1 : 1))
                                 .forEach(inc => {
                                     const tr = document.createElement('tr');
                                     tr.className = 'data-row';
+                                    tr.style.cursor = 'pointer'; // indicates it is clickable
+                                    
+                                    const meta = savedMeta[inc.uniqueKey] || {};
+                                    const status = meta.status || inc.status;
+                                    const lifecycle = meta.lifecycle || inc.lifecycle;
+                                    const assignedTo = meta.assignedTo || inc.labels?.assigned_to || inc.annotations?.assigned || 'Unassigned';
+                                    
+                                    tr.setAttribute('data-uniqueKey', inc.uniqueKey);
                                     tr.setAttribute('data-time',   inc.openedTime);
                                     tr.setAttribute('data-name',   inc.id);
                                     tr.setAttribute('data-target', inc.target);
+                                    tr.setAttribute('data-assigned', assignedTo);
                                     tr.setAttribute('data-desc',   inc.description);
+                                    
+                                    tr.dataset.groupKey = inc.groupKey;
+
                                     const noteValue = savedNotes[inc.uniqueKey] || '';
                                     tr.innerHTML = `
-                                        <td style="text-align: center;">${statusBadge(inc.status)}</td>
+                                        <td style="text-align: center;">${statusBadge(status)}</td>
+                                        <td style="text-align: center;">${lifecycleSymbol(lifecycle)}</td>
+                                        <td style="color:var(--text-secondary); font-size:0.7rem;">${inc.openedTime}</td>
                                         <td style="color:var(--text-secondary); font-size:0.7rem;">${inc.openedTime}</td>
                                         <td><span class="incident-name">${inc.id}</span></td>
                                         <td><span class="target-mono">${inc.target}</span></td>
                                         <td style="text-align: center;">${severityChip(inc.severity)}</td>
+                                        <td style="font-size:0.75rem; color:var(--accent); font-weight:600;"><i class="fa-solid fa-user" style="font-size:0.6rem; margin-right:4px;"></i>${assignedTo}</td>
                                         <td style="font-size:0.85rem; line-height:1.5;">${inc.description}</td>
+                                        <td style="text-align: center; font-weight: 600;"><span class="badge" style="background: rgba(69, 95, 161, 0.2); color: #8eade6; border-radius: 4px; padding: 2px 6px;">${inc.count}</span></td>
                                         <td>
                                             <input type="text" class="note-input" value="${noteValue}"
                                                 placeholder="Add note..."
-                                                onchange="saveNote('${inc.uniqueKey}', this.value)">
+                                                onchange="saveNote('${inc.uniqueKey}', this.value)"
+                                                onclick="event.stopPropagation()">
                                         </td>`;
                                     tbody.appendChild(tr);
                                 });
@@ -1021,10 +1261,133 @@
                     }
 
                     loadIncidents();
+
+                    /* ── Context Menu Logic ── */
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const ctxMenu = document.getElementById('incidentContextMenu');
+                        let activeCtxIncident = null;
+
+                        document.addEventListener('click', () => {
+                            if(ctxMenu) ctxMenu.style.display = 'none';
+                        });
+
+                        document.addEventListener('contextmenu', (e) => {
+                            const tr = e.target.closest('tr.data-row');
+                            if (tr && tr.closest('#incidentTable') && ctxMenu) {
+                                e.preventDefault(); // hide native menu
+                                activeCtxIncident = tr.getAttribute('data-uniquekey');
+                                
+                                // Populate the Assign To dropdown dynamically
+                                const assignList = document.getElementById('ctxAssignUserList');
+                                if (assignList) {
+                                    let users = [];
+                                    try {
+                                        users = JSON.parse(localStorage.getItem('hawkeye_users')) || [{username: 'admin'}];
+                                    } catch(e) { users = [{username: 'admin'}]; }
+                                    
+                                    assignList.innerHTML = `<li onclick="ctxAction('AssignUser: Unassigned')"><i class="fa-solid fa-user-xmark" style="color: var(--text-secondary)"></i> Unassigned</li>`;
+                                    users.forEach(u => {
+                                        assignList.innerHTML += `<li onclick="ctxAction('AssignUser: ${u.username}')"><i class="fa-solid fa-user" style="color: var(--accent)"></i> ${u.username}</li>`;
+                                    });
+                                }
+
+                                ctxMenu.style.display = 'block';
+                                
+                                let x = e.pageX;
+                                let y = e.pageY;
+                                if (x + ctxMenu.offsetWidth > window.innerWidth) {
+                                    x = window.innerWidth - ctxMenu.offsetWidth - 10;
+                                }
+                                if (y + ctxMenu.offsetHeight > window.innerHeight) {
+                                    y = window.innerHeight - ctxMenu.offsetHeight - 10;
+                                }
+                                
+                                ctxMenu.style.left = x + 'px';
+                                ctxMenu.style.top = y + 'px';
+                            } else if (ctxMenu) {
+                                ctxMenu.style.display = 'none';
+                            }
+                        });
+
+                        window.ctxAction = function(action) {
+                            if (!activeCtxIncident) return;
+                            
+                            const currentUser = document.getElementById('userLabel')?.textContent || 'admin';
+                            
+                            if (action.startsWith('AssignUser: ')) {
+                                const user = action.split(': ')[1];
+                                updateMeta(activeCtxIncident, 'assignedTo', user);
+                            } else if (action === 'Own Incident') {
+                                updateMeta(activeCtxIncident, 'assignedTo', currentUser);
+                            } else if (action.startsWith('Set Lifecycle: ')) {
+                                const lc = action.split(': ')[1];
+                                updateMeta(activeCtxIncident, 'lifecycle', lc);
+                                if (lc === 'Closed' || lc === 'Completed') {
+                                    updateMeta(activeCtxIncident, 'status', 'Closed');
+                                    updateMeta(activeCtxIncident, 'autoClosedDisplay', false);
+                                } else if (lc === 'In Progress') {
+                                    updateMeta(activeCtxIncident, 'status', 'Open');
+                                } else if (lc === 'Registered') {
+                                    updateMeta(activeCtxIncident, 'status', 'Pending');
+                                }
+                            } else if (action === 'Close Incident') {
+                                const notes = prompt("Enter closure notes (optional):");
+                                updateMeta(activeCtxIncident, 'status', 'Closed');
+                                updateMeta(activeCtxIncident, 'lifecycle', 'Closed');
+                                if (notes) updateMeta(activeCtxIncident, 'closureNotes', notes);
+                                updateMeta(activeCtxIncident, 'autoClosedDisplay', false);
+                            }
+                            
+                            // Re-render table to immediately show effects locally
+                            loadIncidents();
+                        };
+
+                        // Drill-down Redirect Handler
+                        document.addEventListener('click', (e) => {
+                            const tr = e.target.closest('tr.data-row');
+                            if (tr && !e.target.closest('input') && e.button !== 2 && tr.dataset.groupKey) {
+                                window.location.href = '/incident_drilldown?group=' + encodeURIComponent(tr.dataset.groupKey);
+                            }
+                        });
+                    });
                 </script>
             </div>
         </main>
     </div>
+
+    <!-- Context Menu HTML -->
+    <div id="incidentContextMenu" class="context-menu">
+        <ul>
+            <li class="has-submenu" title="Assign incident to a team member">
+                <i class="fa-solid fa-user-plus"></i> Assign To
+                <ul class="context-submenu" id="ctxAssignUserList">
+                    <!-- Populated dynamically -->
+                </ul>
+            </li>
+            <li onclick="ctxAction('Own Incident')" title="Take ownership of this incident">
+                <i class="fa-solid fa-user-check"></i> Own Incident
+            </li>
+            <li class="has-submenu" title="Update NNMi Lifecycle State">
+                <i class="fa-solid fa-timeline"></i> Change LifeCycle To
+                <ul class="context-submenu">
+                    <li onclick="ctxAction('Set Lifecycle: Registered')">
+                        <i class="fa-solid fa-star" style="color: #3B82F6"></i> Registered
+                    </li>
+                    <li onclick="ctxAction('Set Lifecycle: In Progress')">
+                        <i class="fa-solid fa-spinner" style="color: #F59E0B"></i> In Progress
+                    </li>
+                    <li onclick="ctxAction('Set Lifecycle: Completed')">
+                        <i class="fa-solid fa-check-double" style="color: #10B981"></i> Completed
+                    </li>
+                </ul>
+            </li>
+            <li onclick="ctxAction('Close Incident')" style="color: var(--error-color); border-top: 1px solid var(--border); margin-top: 4px; padding-top: 8px;">
+                <i class="fa-solid fa-circle-xmark"></i> Close Incident
+            </li>
+        </ul>
+    </div>
+
+
 
     <script src="/scripts/ai-assistant.js"></script>
 </body>

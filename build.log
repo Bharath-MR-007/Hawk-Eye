@@ -1,0 +1,76 @@
+ Image sparrow-hawkeye Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 554B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 794B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/golang:1.24-alpine
+#3 DONE 2.9s
+
+#4 [internal] load metadata for docker.io/library/alpine:3.22
+#4 DONE 2.9s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 2B done
+#5 DONE 0.0s
+
+#6 [builder 1/7] FROM docker.io/library/golang:1.24-alpine@sha256:8bee1901f1e530bfb4a7850aa7a479d17ae3a18beb6e09064ed54cfd245b7191
+#6 DONE 0.0s
+
+#7 [prep 1/3] FROM docker.io/library/alpine:3.22@sha256:55ae5d250caebc548793f321534bc6a8ef1d116f334f18f4ada1b2daad3251b2
+#7 DONE 0.0s
+
+#8 [internal] load build context
+#8 transferring context: 63.79kB 0.0s done
+#8 DONE 0.0s
+
+#9 [builder 4/7] COPY go.mod go.sum ./
+#9 CACHED
+
+#10 [builder 2/7] RUN apk add --no-cache git
+#10 CACHED
+
+#11 [builder 3/7] WORKDIR /app
+#11 CACHED
+
+#12 [builder 5/7] RUN go mod download
+#12 CACHED
+
+#13 [builder 6/7] COPY . .
+#13 DONE 0.1s
+
+#14 [builder 7/7] RUN CGO_ENABLED=0 GOOS=linux go build -o hawkeye main.go
+#14 DONE 6.4s
+
+#15 [stage-2 2/5] RUN apk add --no-cache iputils
+#15 CACHED
+
+#16 [prep 3/3] RUN adduser     --disabled-password     --shell "/sbin/nologin"     --no-create-home     --uid 65532     hawkeye
+#16 CACHED
+
+#17 [prep 2/3] RUN apk add --no-cache ca-certificates
+#17 CACHED
+
+#18 [stage-2 3/5] COPY --from=prep /etc/passwd /etc/passwd
+#18 CACHED
+
+#19 [stage-2 4/5] COPY --from=prep /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+#19 CACHED
+
+#20 [stage-2 5/5] COPY --from=builder /app/hawkeye /hawkeye
+#20 CACHED
+
+#21 exporting to image
+#21 exporting layers done
+#21 writing image sha256:fff2a174f5a997cf4eb43ac7867a4dda89f98dba0c9455d4f19c43324f0c12a0 done
+#21 naming to docker.io/library/sparrow-hawkeye done
+#21 DONE 0.0s
+
+#22 resolving provenance for metadata file
+#22 DONE 0.0s
+ Image sparrow-hawkeye Built 
+ Container prometheus Running 
+ Container hawkeye Running 

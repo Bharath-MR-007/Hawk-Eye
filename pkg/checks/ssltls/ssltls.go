@@ -134,7 +134,15 @@ func getCertExpiry(target string, timeout time.Duration) (float64, error) {
 	}
 	defer conn.Close()
 
-	config := &tls.Config{InsecureSkipVerify: true}
+	host, _, err := net.SplitHostPort(target)
+	if err != nil {
+		host = target
+	}
+
+	config := &tls.Config{
+		InsecureSkipVerify: true,
+		ServerName:         host,
+	}
 	tlsConn := tls.Client(conn, config)
 	if err := tlsConn.Handshake(); err != nil {
 		return 0, err

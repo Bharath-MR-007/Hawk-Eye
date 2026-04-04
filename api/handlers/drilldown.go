@@ -61,7 +61,6 @@ func (h *DrillDownHandler) listTargets(w http.ResponseWriter, r *http.Request) {
 		s := strings.ToLower(t)
 		s = strings.TrimPrefix(s, "https://")
 		s = strings.TrimPrefix(s, "http://")
-		s = strings.TrimPrefix(s, "www.")
 		if idx := strings.Index(s, ":"); idx != -1 {
 			s = s[:idx]
 		}

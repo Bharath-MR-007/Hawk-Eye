@@ -28,17 +28,14 @@ def generate_nav(active_page):
                 <a href="/inventory" class="nav-item{' active' if active_page == 'inventory' else ''}">
                     <i class="fa-solid fa-list"></i> Target Inventory
                 </a>
+                <a href="/target_detail" class="nav-item{' active' if active_page == 'target_detail' else ''}">
+                    <i class="fa-solid fa-route"></i> Tracepath
+                </a>
                 <a href="/incidents" class="nav-item{' active' if active_page == 'incidents' else ''}">
                     <i class="fa-solid fa-magnifying-glass"></i> All Incidents
                 </a>
 
-                <div class="nav-category">Management</div>
-                <button class="nav-item" onclick="if(document.getElementById('addTargetModal')) {{ document.getElementById('addTargetModal').style.display='flex'; }} else {{ window.location.href='/dashboard?add=true'; }}">
-                    <i class="fa-solid fa-plus" style="color: var(--info-color);"></i> Add New Target
-                </button>
-                <button class="nav-item" id="mainDeleteBtn" onclick="if(typeof deleteSelectedTargets === 'function') {{ deleteSelectedTargets(); }} else {{ window.location.href='/dashboard'; }}">
-                    <i class="fa-solid fa-trash" style="color: var(--error-color);"></i> Delete Target
-                </button>
+
 
                 <div class="nav-category" style="margin-top: 15px;">Integrations</div>
                 <a href="/integrations" class="nav-item{' active' if active_page == 'integrations' else ''}">
@@ -101,6 +98,7 @@ for fpath in files:
     elif "polling" in fpath: active_page = "polling"
     elif "users_config" in fpath: active_page = "users_config"
     elif "device_reachability" in fpath: active_page = "device_reachability"
+    elif "target_detail" in fpath: active_page = "target_detail"
     elif "troubleshooting" in fpath: active_page = "troubleshooting"
     elif "integrations_config" in fpath: active_page = "integrations_config"
     elif "integrations" in fpath: active_page = "integrations"

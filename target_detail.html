@@ -803,6 +803,9 @@
             }
         }
     
+        
+        
+        
         .help-dropdown-content::before {
             content: '';
             position: absolute;
@@ -880,45 +883,67 @@
 <div class="app-window">
     <!-- ══ GLOBAL SIDEBAR (canonical — do not edit inline) ══ -->
     <aside class="main-sidebar">
-        <div class="main-sidebar-header">
-            <span style="font-size:1.6rem;line-height:1">🦅</span>
-            <div class="main-sidebar-logo-text">
-                <span class="hawk-name">Hawk-Eye</span>
-                <span class="hawk-sub">T-Systems</span>
-            </div>
-        </div>
-        <nav class="main-sidebar-nav">
-            <div class="nav-category">Monitoring</div>
-            <a href="/dashboard" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Visual Dashboard</a>
-            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-table-list"></i> Live Table</a>
-            <a href="/inventory" class="nav-item"><i class="fa-solid fa-list"></i> Target Inventory</a>
-            <div class="nav-item tree-parent" onclick="this.classList.toggle('open')">
-                <div style="display:flex;align-items:center;gap:11px"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
-                <i class="fa-solid fa-chevron-down tree-chevron"></i>
-            </div>
-            <div class="tree-children">
-                <a href="/incidents" class="nav-item child-item"><i class="fa-solid fa-table-cells"></i> All Incidents</a>
+                                            <div class="main-sidebar-header">
+                <span style="font-size: 1.5rem;">🦅</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                    <span style="font-weight: 700; font-size: 1.25rem;">Hawk-Eye</span>
+                    <span
+                        style="font-size: 0.65rem; color: #ff00ff; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
+                </div>
             </div>
 
-            <div class="nav-category">Management</div>
-            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-plus" style="color:#60a5fa"></i> Add New Target</a>
-            <a href="/live_dashboard" class="nav-item" id="mainDeleteBtn"><i class="fa-solid fa-trash" style="color:#f87171"></i> Delete Target</a>
 
-            <div class="nav-category">Integrations</div>
-            <a href="/integrations" class="nav-item"><i class="fa-solid fa-link"></i> External Apps Links</a>
-            <a href="/integrations_config" class="nav-item"><i class="fa-solid fa-gears"></i> Integration Config</a>
 
-            <div class="nav-category">Configuration</div>
-            <a href="/alerts" class="nav-item"><i class="fa-solid fa-folder"></i> Alerts Config</a>
-            <a href="/polling" class="nav-item"><i class="fa-solid fa-folder"></i> Polling Config</a>
-            <a href="/users_config" class="nav-item"><i class="fa-solid fa-user-gear"></i> User Configuration</a>
-            <button class="nav-item" onclick="if(typeof exportConfig==='function'){exportConfig();}else{alert('Export not available here.');}"><i class="fa-solid fa-file-export"></i> Export Snapshot</button>
-            <button class="nav-item" onclick="if(document.getElementById('importFile')){document.getElementById('importFile').click();}else{alert('Import not available here.');}"><i class="fa-solid fa-file-import"></i> Import Snapshot</button>
+                                            <nav class="main-sidebar-nav">
+                <div class="nav-category">Monitoring</div>
+                <a href="/dashboard" class="nav-item">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </a>
+                <a href="/inventory" class="nav-item">
+                    <i class="fa-solid fa-list"></i> Target Inventory
+                </a>
+                <a href="/target_detail" class="nav-item active">
+                    <i class="fa-solid fa-route"></i> Tracepath
+                </a>
+                <a href="/incidents" class="nav-item">
+                    <i class="fa-solid fa-magnifying-glass"></i> All Incidents
+                </a>
 
-            <div class="nav-category">Operations</div>
-            <a href="/troubleshooting" class="nav-item"><i class="fa-solid fa-microchip"></i> Troubleshooting</a>
-            <a href="/device_reachability" class="nav-item"><i class="fa-solid fa-satellite-dish"></i> Device Reachability</a>
-        </nav>
+
+
+                <div class="nav-category" style="margin-top: 15px;">Integrations</div>
+                <a href="/integrations" class="nav-item">
+                    <i class="fa-solid fa-link"></i> External Apps Links
+                </a>
+                <a href="/integrations_config" class="nav-item">
+                    <i class="fa-solid fa-gears"></i> Integration Config
+                </a>
+
+                <div class="nav-category" style="margin-top: 15px;">Configuration</div>
+                <a href="/alerts" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Alerts Config
+                </a>
+                <a href="/polling" class="nav-item">
+                    <i class="fa-solid fa-folder"></i> Polling Config
+                </a>
+                <a href="/users_config" class="nav-item">
+                    <i class="fa-solid fa-user-gear"></i> User Configuration
+                </a>
+                <button class="nav-item" onclick="if(typeof exportConfig === 'function') { exportConfig(); } else { window.location.href='/dashboard?export=true'; }">
+                    <i class="fa-solid fa-file-export"></i> Export Snapshot
+                </button>
+                <button class="nav-item" onclick="if(document.getElementById('importFile')) { document.getElementById('importFile').click(); } else { window.location.href='/dashboard?import=true'; }">
+                    <i class="fa-solid fa-file-import"></i> Import Snapshot
+                </button>
+
+                <div class="nav-category" style="margin-top: 15px;">Operations</div>
+                <a href="/troubleshooting" class="nav-item">
+                    <i class="fa-solid fa-microchip"></i> Troubleshooting
+                </a>
+                <a href="/device_reachability" class="nav-item">
+                    <i class="fa-solid fa-satellite-dish"></i> Device Reachability
+                </a>
+            </nav>
     </aside>
 
     <div class="app-content">
@@ -926,7 +951,20 @@
         <div class="topbar">
             <div class="topbar-left">
                 <a href="/inventory" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Inventory</a>
-                <div class="target-title">Path Trace — <span id="hostTitle">…</span></div>
+                <div class="target-title" style="display: flex; align-items: center; gap: 8px;">
+                    Path Trace — 
+                    <div style="position: relative; display: flex; align-items: center;" id="targetDropdownContainer">
+                        <input type="text" id="hostTitle" 
+                            placeholder="Search or select target..." 
+                            autocomplete="off"
+                            style="background: rgba(255,255,255,0.05); color: var(--accent); font-family: 'Fira Code', monospace; font-size: 1.1rem; font-weight: 700; border: 1px solid var(--border); border-radius: 6px; padding: 4px 30px 4px 10px; outline: none; width: 280px; margin-left: 2px;">
+                        
+                        <i class="fa-solid fa-chevron-down" style="position: absolute; right: 12px; color: var(--text-secondary); pointer-events: none; font-size: 0.8rem;"></i>
+                        
+                        <div id="targetDropdownList" style="display: none; position: absolute; top: calc(100% + 4px); left: 0; width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; max-height: 250px; overflow-y: auto; z-index: 9999; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+                        </div>
+                    </div>
+                </div>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <div class="method-selector"
@@ -1066,9 +1104,119 @@
         <script>
             // ── helpers ──────────────────
             const params = new URLSearchParams(location.search);
-            const host = params.get('host') || params.get('target') || 'unknown';
-            document.getElementById('hostTitle').textContent = host;
-            document.title = `Path Trace — ${host} | Hawk-Eye`;
+            let rawHost = params.get('host') || params.get('target') || '';
+            let host = rawHost.toLowerCase().trim().replace(/^https?:\/\//, '').split('/')[0];
+            let allTargets = [];
+
+            function changeTarget(val) {
+                if (!val) return;
+                let cleanVal = val.toLowerCase().trim().replace(/^https?:\/\//, '').split('/')[0];
+                if (cleanVal && cleanVal !== host) {
+                    window.location.href = '/target_detail?target=' + encodeURIComponent(cleanVal);
+                }
+            }
+            
+            const inputEl = document.getElementById('hostTitle');
+            const ddlEl = document.getElementById('targetDropdownList');
+
+            function renderDropdown(filterText = '') {
+                ddlEl.innerHTML = '';
+                const ftext = filterText.trim();
+                const filtered = allTargets.filter(t => t.toLowerCase().includes(ftext.toLowerCase()));
+                
+                if (ftext !== '' && !allTargets.some(t => t.toLowerCase() === ftext.toLowerCase())) {
+                    const customDiv = document.createElement('div');
+                    customDiv.innerHTML = `<i class="fa-solid fa-satellite-dish" style="color:var(--accent);margin-right:8px;"></i>Trace custom: <b>${ftext}</b>`;
+                    customDiv.style.padding = "8px 12px";
+                    customDiv.style.cursor = "pointer";
+                    customDiv.style.fontSize = "0.9rem";
+                    customDiv.style.fontFamily = "'Fira Code', monospace";
+                    customDiv.style.borderBottom = "1px solid var(--border)";
+                    customDiv.style.color = "var(--text-primary)";
+                    customDiv.style.background = "rgba(139, 92, 246, 0.05)";
+                    customDiv.onmouseenter = () => customDiv.style.background = "rgba(139, 92, 246, 0.2)";
+                    customDiv.onmouseleave = () => customDiv.style.background = "rgba(139, 92, 246, 0.05)";
+                    customDiv.onclick = () => {
+                        inputEl.value = ftext;
+                        ddlEl.style.display = 'none';
+                        changeTarget(ftext);
+                    };
+                    ddlEl.appendChild(customDiv);
+                }
+
+                if (filtered.length === 0 && ftext === '') {
+                    ddlEl.innerHTML = '<div style="padding: 8px 12px; color: var(--text-secondary); font-size: 0.85rem; font-family: \'Inter\', sans-serif;">No targets found</div>';
+                    return;
+                }
+                
+                filtered.forEach(t => {
+                    const div = document.createElement('div');
+                    div.textContent = t;
+                    div.style.padding = "8px 12px";
+                    div.style.cursor = "pointer";
+                    div.style.fontSize = "0.9rem";
+                    div.style.fontFamily = "'Fira Code', monospace";
+                    div.style.borderBottom = "1px solid var(--border)";
+                    div.style.color = "var(--text-primary)";
+                    div.onmouseenter = () => div.style.background = "rgba(139, 92, 246, 0.15)";
+                    div.onmouseleave = () => div.style.background = "transparent";
+                    div.onclick = () => {
+                        inputEl.value = t;
+                        ddlEl.style.display = 'none';
+                        changeTarget(t);
+                    };
+                    ddlEl.appendChild(div);
+                });
+            }
+
+            inputEl.addEventListener('focus', () => {
+                inputEl.select(); // Highlight text so user can just start typing to replace
+                renderDropdown(''); // Show all items initially on focus regardless of current input
+                ddlEl.style.display = 'block';
+            });
+            
+            inputEl.addEventListener('input', (e) => {
+                renderDropdown(e.target.value);
+                ddlEl.style.display = 'block';
+            });
+            
+            // Check if user hit enter
+            inputEl.addEventListener('keydown', (e) => {
+                if(e.key === 'Enter') {
+                    // if exact match in list or just taking their input
+                    changeTarget(inputEl.value);
+                    ddlEl.style.display = 'none';
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                const container = document.getElementById('targetDropdownContainer');
+                if (!container.contains(e.target)) {
+                    ddlEl.style.display = 'none';
+                    if(host && !inputEl.value.trim()) {
+                        inputEl.value = host; // restore
+                    }
+                }
+            });
+
+            async function initTargetSelection() {
+                try {
+                    const res = await fetch('/api/v1/targets');
+                    allTargets = await res.json();
+                    
+                    if (!host && allTargets && allTargets.length > 0) {
+                        host = allTargets[0];
+                        window.history.replaceState(null, '', '/target_detail?target=' + encodeURIComponent(host));
+                    }
+                } catch(e) {
+                    console.error("Failed to load targets", e);
+                }
+                
+                inputEl.value = host;
+                if (host) document.title = `Path Trace — ${host} | Hawk-Eye`;
+                
+                if(host) loadTrace();
+            }
 
             function sevClass(latency, loss) {
                 if (loss >= 50 || latency >= 300) return 'critical';
@@ -1652,7 +1800,7 @@
                 }
             }
 
-            loadTrace();
+            initTargetSelection();
 
             // ── Grab to Pan Implementation ──
             const slider = document.querySelector('.topology-scroll');

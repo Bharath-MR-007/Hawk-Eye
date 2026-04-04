@@ -15,6 +15,8 @@ import (
 	"github.com/Bharath-MR-007/hawk-eye/internal/logger"
 	"github.com/Bharath-MR-007/hawk-eye/internal/nnmi"
 	"gopkg.in/yaml.v3"
+	"net/url"
+	"strings"
 )
 
 const nnmiConfigFile = "nnmi_config.yaml"
@@ -143,21 +145,26 @@ func (s *Hawkeye) handleTestNnmi(w http.ResponseWriter, r *http.Request) {
 		scheme = "https"
 	}
 
-	url := fmt.Sprintf("%s://%s:%d/nnm/rest/version", scheme, fe.Host, fe.Port)
-	log.InfoContext(r.Context(), "Testing NNMi connection", "url", url)
+	urlStr := fmt.Sprintf("%s://%s:%d/idp/oauth2/token", scheme, fe.Host, fe.Port)
+	log.InfoContext(r.Context(), "Testing NNMi OAuth connection", "url", urlStr)
 
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{Transport: tr, Timeout: 8 * time.Second}
+	data := url.Values{}
+	data.Set("grant_type", "password")
+	data.Set("username", fe.User)
+	data.Set("password", fe.Password)
 
-	req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(r.Context(), http.MethodPost, urlStr, strings.NewReader(data.Encode()))
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{"success":false,"message":"Failed to build request: ` + err.Error() + `"}`))
 		return
 	}
-	req.SetBasicAuth(fe.User, fe.Password)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr, Timeout: 8 * time.Second}
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -168,15 +175,13 @@ func (s *Hawkeye) handleTestNnmi(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
-	success := resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusUnauthorized
-	msg := fmt.Sprintf("HTTP %d from NNMi server", resp.StatusCode)
 	if resp.StatusCode == http.StatusOK {
-		msg = "Connection successful! NNMi REST API is reachable."
-	} else if resp.StatusCode == http.StatusUnauthorized {
-		msg = "Server reachable but credentials are invalid (HTTP 401). Update user/password."
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"success":true,"message":"Connection successful! OAuth token acquired."}`))
+		return
 	}
 
-	log.InfoContext(r.Context(), "NNMi test complete", "status", resp.StatusCode)
+	msg := fmt.Sprintf("HTTP %d from NNMi server. Invalid credentials or OAuth token scheme.", resp.StatusCode)
 	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write([]byte(fmt.Sprintf(`{"success":%v,"message":"%s"}`, success, msg)))
+	_, _ = w.Write([]byte(fmt.Sprintf(`{"success":false,"message":"%s"}`, msg)))
 }

@@ -13,6 +13,7 @@ services:
       - ./alerts_config.html:/alerts_config.html
       - ./polling_config.html:/polling_config.html
       - ./incidents.html:/incidents.html
+      - ./incident_drilldown.html:/incident_drilldown.html
       - ./integrations.html:/integrations.html
       - ./integrations_config.html:/integrations_config.html
       - ./integrations_guide.html:/integrations_guide.html
@@ -163,6 +164,24 @@ services:
     restart: unless-stopped
     depends_on:
       - elasticsearch
+
+  ai-assistant:
+    build: ./observability_ai_assistant
+    container_name: ai-assistant
+    ports:
+      - "8000:8000"
+    command: ["python", "web_api.py"]
+    environment:
+      - HAWKEYE_URL=http://hawkeye:8080
+      - PROMETHEUS_URL=http://prometheus:9090
+      - ALERTMANAGER_URL=http://alertmanager:9093
+      - GRAFANA_URL=http://grafana:3000
+      - THANOS_QUERY_URL=http://thanos-query:10904
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - OLLAMA_HOST=http://host.docker.internal:11434
+    networks:
+      - monitoring
+    restart: always
 
 networks:
   monitoring:

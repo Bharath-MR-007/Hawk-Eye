@@ -83,16 +83,11 @@ func (c *NNMIClient) FindDeviceByIP(ctx context.Context, ip string) (*NNMIDevice
 		return cached.Device, nil
 	}
 
-	// For now, if no token management is implemented, we might use Basic Auth or a simple token
-	// The prompt mentioned a Bearer token. If the auth flow is not provided, I'll assume we need to fetch it.
-	// But the prompt says "ensureValidToken". I'll implement a stub or a simple basic-to-token if needed.
-	// Given the prompt's snippet, I'll follow it as much as possible.
-
 	if err := c.ensureValidToken(ctx); err != nil {
 		return nil, err
 	}
 
-	searchURL := fmt.Sprintf("%s/nnmi/api/topo/v1/ipaddress?ipValue=%s", c.baseURL, url.QueryEscape(ip))
+	searchURL := fmt.Sprintf("%s/nnmi/api/topo/v1/node?managementAddress=%s", c.baseURL, url.QueryEscape(ip))
 	req, err := http.NewRequestWithContext(ctx, "GET", searchURL, nil)
 	if err != nil {
 		return nil, err
@@ -116,23 +111,28 @@ func (c *NNMIClient) FindDeviceByIP(ctx context.Context, ip string) (*NNMIDevice
 	}
 
 	var ipResult struct {
-		Embedded struct {
+		Links struct {
 			Items []struct {
-				HostedOnID string `json:"hostedOnId"`
+				Href  string `json:"href"`
+				Title string `json:"title"`
 			} `json:"items"`
-		} `json:"_embedded"`
+		} `json:"_links"`
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&ipResult); err != nil {
 		return nil, err
 	}
 
-	if len(ipResult.Embedded.Items) == 0 {
+	if len(ipResult.Links.Items) == 0 {
 		c.cacheIP(ip, nil)
 		return &NNMIDevice{InNNMi: false}, nil
 	}
 
-	nodeUUID := ipResult.Embedded.Items[0].HostedOnID
+	// href contains something like "/nnmi/api/topo/v1/node/6e4fdf30-7ddc-45a9-939c-ff4223f2d31c"
+	href := ipResult.Links.Items[0].Href
+	parts := strings.Split(href, "/")
+	nodeUUID := parts[len(parts)-1]
+	
 	device, err := c.getNodeByUUID(ctx, nodeUUID)
 	if err != nil {
 		return nil, err

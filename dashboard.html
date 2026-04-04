@@ -890,43 +890,60 @@
         <!-- ══ GLOBAL SIDEBAR (canonical — do not edit inline) ══ -->
     <aside class="main-sidebar">
         <div class="main-sidebar-header">
-            <span style="font-size:1.6rem;line-height:1">🦅</span>
-            <div class="main-sidebar-logo-text">
-                <span class="hawk-name">Hawk-Eye</span>
-                <span class="hawk-sub">T-Systems</span>
+            <span style="font-size: 1.5rem;">🦅</span>
+            <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                <span style="font-weight: 700; font-size: 1.25rem;">Hawk-Eye</span>
+                <span style="font-size: 0.65rem; color: #ff00ff; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
             </div>
         </div>
+
         <nav class="main-sidebar-nav">
             <div class="nav-category">Monitoring</div>
-            <a href="/dashboard" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Visual Dashboard</a>
-            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-table-list"></i> Live Table</a>
-            <a href="/inventory" class="nav-item"><i class="fa-solid fa-list"></i> Target Inventory</a>
-            <div class="nav-item tree-parent" onclick="this.classList.toggle('open')">
-                <div style="display:flex;align-items:center;gap:11px"><i class="fa-solid fa-magnifying-glass"></i> Incident Browsing</div>
-                <i class="fa-solid fa-chevron-down tree-chevron"></i>
-            </div>
-            <div class="tree-children">
-                <a href="/incidents" class="nav-item child-item"><i class="fa-solid fa-table-cells"></i> All Incidents</a>
-            </div>
+            <a href="/dashboard" class="nav-item active">
+                <i class="fa-solid fa-gauge-high"></i> Dashboard
+            </a>
+            <a href="/inventory" class="nav-item">
+                <i class="fa-solid fa-list"></i> Target Inventory
+            </a>
+            <a href="/target_detail" class="nav-item">
+                <i class="fa-solid fa-route"></i> Tracepath
+            </a>
+            <a href="/incidents" class="nav-item">
+                <i class="fa-solid fa-magnifying-glass"></i> All Incidents
+            </a>
 
-            <div class="nav-category">Management</div>
-            <a href="/live_dashboard" class="nav-item"><i class="fa-solid fa-plus" style="color:#60a5fa"></i> Add New Target</a>
-            <a href="/live_dashboard" class="nav-item" id="mainDeleteBtn"><i class="fa-solid fa-trash" style="color:#f87171"></i> Delete Target</a>
+            <div class="nav-category" style="margin-top: 15px;">Integrations</div>
+            <a href="/integrations" class="nav-item">
+                <i class="fa-solid fa-link"></i> External Apps Links
+            </a>
+            <a href="/integrations_config" class="nav-item">
+                <i class="fa-solid fa-gears"></i> Integration Config
+            </a>
 
-            <div class="nav-category">Integrations</div>
-            <a href="/integrations" class="nav-item"><i class="fa-solid fa-link"></i> External Apps Links</a>
-            <a href="/integrations_config" class="nav-item"><i class="fa-solid fa-gears"></i> Integration Config</a>
+            <div class="nav-category" style="margin-top: 15px;">Configuration</div>
+            <a href="/alerts" class="nav-item">
+                <i class="fa-solid fa-folder"></i> Alerts Config
+            </a>
+            <a href="/polling" class="nav-item">
+                <i class="fa-solid fa-folder"></i> Polling Config
+            </a>
+            <a href="/users_config" class="nav-item">
+                <i class="fa-solid fa-user-gear"></i> User Configuration
+            </a>
+            <button class="nav-item" onclick="if(typeof exportConfig === 'function') { exportConfig(); } else { window.location.href='/dashboard?export=true'; }">
+                <i class="fa-solid fa-file-export"></i> Export Snapshot
+            </button>
+            <button class="nav-item" onclick="if(document.getElementById('importFile')) { document.getElementById('importFile').click(); } else { window.location.href='/dashboard?import=true'; }">
+                <i class="fa-solid fa-file-import"></i> Import Snapshot
+            </button>
 
-            <div class="nav-category">Configuration</div>
-            <a href="/alerts" class="nav-item"><i class="fa-solid fa-folder"></i> Alerts Config</a>
-            <a href="/polling" class="nav-item"><i class="fa-solid fa-folder"></i> Polling Config</a>
-            <a href="/users_config" class="nav-item"><i class="fa-solid fa-user-gear"></i> User Configuration</a>
-            <button class="nav-item" onclick="if(typeof exportConfig==='function'){exportConfig();}else{alert('Export not available here.');}"><i class="fa-solid fa-file-export"></i> Export Snapshot</button>
-            <button class="nav-item" onclick="if(document.getElementById('importFile')){document.getElementById('importFile').click();}else{alert('Import not available here.');}"><i class="fa-solid fa-file-import"></i> Import Snapshot</button>
-
-            <div class="nav-category">Operations</div>
-            <a href="/troubleshooting" class="nav-item"><i class="fa-solid fa-microchip"></i> Troubleshooting</a>
-            <a href="/device_reachability" class="nav-item"><i class="fa-solid fa-satellite-dish"></i> Device Reachability</a>
+            <div class="nav-category" style="margin-top: 15px;">Operations</div>
+            <a href="/troubleshooting" class="nav-item">
+                <i class="fa-solid fa-microchip"></i> Troubleshooting
+            </a>
+            <a href="/device_reachability" class="nav-item">
+                <i class="fa-solid fa-satellite-dish"></i> Device Reachability
+            </a>
         </nav>
     </aside>
 
@@ -1006,14 +1023,9 @@
             <button class="filter-pill status-warning" data-filter="warning" onclick="setStatusFilter('warning')">🟡 Warning</button>
             <button class="filter-pill status-critical" data-filter="critical" onclick="setStatusFilter('critical')">🔴 Critical</button>
         </div>
-        <div class="filter-pills" id="tagFilters">
+        <div class="filter-bar" id="tagFilters">
             <button class="filter-pill active" data-tag="all" onclick="setTagFilter('all')">All Types</button>
-            <button class="filter-pill" data-tag="shopping" onclick="setTagFilter('shopping')">🛍️ Shopping</button>
-            <button class="filter-pill" data-tag="edu" onclick="setTagFilter('edu')">🎓 Edu</button>
-            <button class="filter-pill" data-tag="social" onclick="setTagFilter('social')">💬 Social</button>
-            <button class="filter-pill" data-tag="git" onclick="setTagFilter('git')">💻 Git</button>
-            <button class="filter-pill" data-tag="business" onclick="setTagFilter('business')">💼 Business</button>
-            <button class="filter-pill" data-tag="ent" onclick="setTagFilter('ent')">🎬 Media</button>
+            <!-- Tags will be dynamically injected here -->
         </div>
     </div>
 
@@ -1064,12 +1076,12 @@
 <script>
 // ── Data & State ────────────────────────────────
 const TARGETS_META = {
-    'amazon.com':       { tag: 'shopping', icon: '🛍️',  label: 'Amazon' },
-    'app.codingrooms.com': { tag: 'edu',  icon: '🎓',  label: 'CodingRooms' },
-    'facebook.com':     { tag: 'social',  icon: '💬',  label: 'Facebook' },
-    'github.com':       { tag: 'git',     icon: '💻',  label: 'GitHub' },
-    'linkedin.com':     { tag: 'business',icon: '💼',  label: 'LinkedIn' },
-    'youtube.com':      { tag: 'ent',     icon: '🎬',  label: 'YouTube' },
+    'amazon.com':       { tag: 'Shopping', icon: '🛍️',  label: 'Amazon' },
+    'app.codingrooms.com': { tag: 'Edu',  icon: '🎓',  label: 'CodingRooms' },
+    'facebook.com':     { tag: 'Social',  icon: '💬',  label: 'Facebook' },
+    'github.com':       { tag: 'Git',     icon: '💻',  label: 'GitHub' },
+    'linkedin.com':     { tag: 'Business',icon: '💼',  label: 'LinkedIn' },
+    'youtube.com':      { tag: 'Media',     icon: '🎬',  label: 'YouTube' },
 };
 
 let activeStatusFilter = 'all';
@@ -1185,14 +1197,22 @@ async function loadDashboard() {
             }
         }
 
+        let tagMap = {};
+        try { tagMap = JSON.parse(localStorage.getItem('hawkeye_tags')) || {}; } catch(e) {}
+        
+        let uniqueTags = new Set();
+        
         allTargets = Object.entries(targetMap)
-            .filter(([name]) => {
-                // Exclude entries that only have SSL data and no health/latency
-                // (these would be ghost :443 entries that didn't merge properly)
-                return true;
-            })
+            .filter(([name]) => true)
             .map(([name, data]) => {
-                const meta = TARGETS_META[name] || { tag: 'other', icon: '🌐', label: name };
+                let meta = TARGETS_META[name] ? { ...TARGETS_META[name] } : { tag: 'Other', icon: '🌐', label: name };
+                
+                // Override tag from hawkeye_tags if it exists
+                if (tagMap[name] && tagMap[name].length > 0) {
+                    meta.tag = tagMap[name][0];
+                }
+                uniqueTags.add(meta.tag);
+                
                 const lat = data.latencyMs;  // already in ms, null if no data
                 const latStatus = lat !== null ? latencyStatus(lat) : 'ok';
 
@@ -1220,6 +1240,17 @@ async function loadDashboard() {
                     lastSuccess: new Date().toLocaleTimeString(),      // live check = just fetched
                 };
             });
+            
+        // Build dynamic filters
+        const filterContainer = document.getElementById('tagFilters');
+        let filtersHtml = `<button class="filter-pill ${activeTagFilter === 'all' ? 'active' : ''}" data-tag="all" onclick="setTagFilter('all')">All Types</button>`;
+        const iconMap = { 'Shopping': '🛍️', 'Edu': '🎓', 'Social': '💬', 'Git': '💻', 'Business': '💼', 'Media': '🎬', 'Other': '🌐' };
+        Array.from(uniqueTags).sort().forEach(tag => {
+            const icon = iconMap[tag] || '🏷️';
+            const isActive = activeTagFilter === tag ? 'active' : '';
+            if(tag) filtersHtml += `<button class="filter-pill ${isActive}" data-tag="${tag}" onclick="setTagFilter('${tag}')">${icon} ${tag}</button>`;
+        });
+        filterContainer.innerHTML = filtersHtml;
 
 
         if (allTargets.length === 0) {
@@ -1497,9 +1528,78 @@ function renderAlerts() {
 loadDashboard();
 // Auto-refresh every 60 seconds
 setInterval(loadDashboard, 60000);
+// ── Snapshot Export / Import ───────────────────────
+async function exportConfig() {
+    const tags = localStorage.getItem('hawkeye_tags') || '{}';
+    try {
+        const res = await fetch('/api/v1/config/export', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tags })
+        });
+        if (res.ok) {
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'hawk-eye-full-config-' + new Date().toISOString().split('T')[0] + '.zip';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            alert('System configuration exported successfully!');
+        } else {
+            alert(`Export failed: Server returned ${res.status} ${res.statusText}`);
+        }
+    } catch (e) {
+        alert('Network error during export: ' + e.message);
+    }
+}
+
+async function importConfig(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!confirm('Warning: This will overwrite ALL configuration files (Targets, Alerts, Dashboards, alertmanager) with the contents of the zip. Continue?')) {
+        event.target.value = '';
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('config', file);
+
+    try {
+        const res = await fetch('/api/v1/config/import', {
+            method: 'POST',
+            body: formData
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.tags) {
+                localStorage.setItem('hawkeye_tags', data.tags);
+            }
+            alert('System configuration restored successfully! Reloading...');
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            alert(`Import failed: Server returned ${res.status} ${res.statusText}`);
+        }
+    } catch (e) {
+        alert('Network error during import: ' + e.message);
+    } finally {
+        event.target.value = '';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('export') === 'true') {
+        if (typeof exportConfig === 'function') exportConfig();
+    } else if (params.get('import') === 'true') {
+        const importFile = document.getElementById('importFile');
+        if (importFile) importFile.click();
+    }
+});
 </script>
 
-
-    <script src="/scripts/ai-assistant.js"></script>
+<input type="file" id="importFile" style="display: none;" onchange="importConfig(event)" accept=".zip">    <script src="/scripts/ai-assistant.js"></script>
 </body>
 </html>

@@ -105,12 +105,11 @@ const HawkUI = {
             { label: 'Visual Dashboard',    icon: 'fa-gauge-high',     href: '/dashboard' },
             { label: 'Live Table',          icon: 'fa-table-list',     href: '/live_dashboard' },
             { label: 'Target Inventory',    icon: 'fa-list',           href: '/inventory' },
+            { label: 'Tracepath',           icon: 'fa-route',          href: '/target_detail' },
             { label: 'Incident Browsing', icon: 'fa-magnifying-glass', href: null, children: [
                 { label: 'All Incidents',   icon: 'fa-table-cells',    href: '/incidents' },
             ]},
-            { section: 'Management' },
-            { label: 'Add New Target',      icon: 'fa-plus',           href: '/dashboard?add=true',           style: 'color:#60a5fa' },
-            { label: 'Delete Target',       icon: 'fa-trash',          href: '/live_dashboard',       style: 'color:#f87171', id: 'mainDeleteBtn' },
+
             { section: 'Integrations' },
             { label: 'External Apps Links', icon: 'fa-link',           href: '/integrations' },
             { label: 'Integration Config',  icon: 'fa-gears',          href: '/integrations_config' },

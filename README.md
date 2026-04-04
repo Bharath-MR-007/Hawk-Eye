@@ -42,6 +42,12 @@ SPDX-License-Identifier: CC-BY-4.0
     - [Optional Capabilities](#optional-capabilities)
     - [Traceroute Prometheus Metrics](#traceroute-prometheus-metrics)
     - [Traceroute API Metrics](#traceroute-api-metrics)
+- [API Reference](#api-reference)
+  - [Getting Started](#getting-started)
+  - [List Targets](#list-targets)
+  - [Get Target Summary](#get-target-summary)
+  - [Get Layer Metrics](#get-layer-metrics)
+  - [Real-time Updates (WebSocket)](#real-time-updates-websocket)
 - [API](#api)
 - [Metrics, Telemetry \& Dashboards](#metrics-telemetry--dashboards)
   - [Prometheus Integration](#prometheus-integration)
@@ -630,6 +636,274 @@ Is roughly equal to this:
 
 ```
 
+## API Reference
+
+### Getting Started
+
+The `hawkeye` exposes a comprehensive REST API for accessing monitoring data and managing configurations.
+
+**Base URL:** `http://localhost:8080`
+
+**Authentication:** All endpoints support optional bearer token authentication via the `Authorization` header.
+
+```bash
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  http://localhost:8080/api/v1/targets
+```
+
+### List Targets
+
+Get all monitored targets with their current status.
+
+**Endpoint:** `GET /api/v1/targets`
+
+**cURL Example:**
+```bash
+curl -X GET http://localhost:8080/api/v1/targets \
+  -H "Content-Type: application/json"
+```
+
+**Python Example:**
+```python
+import requests
+
+response = requests.get("http://localhost:8080/api/v1/targets")
+targets = response.json()
+for target in targets.get('targets', []):
+    print(f"{target['name']}: {target['status']}")
+```
+
+**JavaScript/Node.js Example:**
+```javascript
+const targets = await fetch('http://localhost:8080/api/v1/targets')
+  .then(res => res.json());
+console.log(targets);
+```
+
+**Response Example:**
+```json
+{
+  "targets": [
+    {
+      "id": "target-1",
+      "name": "api.example.com",
+      "status": "healthy",
+      "lastCheck": "2025-03-30T10:30:00Z",
+      "checks": ["health", "latency", "dns"]
+    },
+    {
+      "id": "target-2",
+      "name": "db.example.com",
+      "status": "degraded",
+      "lastCheck": "2025-03-30T10:29:45Z",
+      "checks": ["health", "latency"]
+    }
+  ]
+}
+```
+
+### Get Target Summary
+
+Get detailed information about a specific target.
+
+**Endpoint:** `GET /api/v1/targets/{target}/summary`
+
+**Path Parameters:**
+- `target` (required): Target identifier or hostname
+
+**cURL Example:**
+```bash
+curl -X GET http://localhost:8080/api/v1/targets/api.example.com/summary \
+  -H "Content-Type: application/json"
+```
+
+**Python Example:**
+```python
+import requests
+import json
+
+target = "api.example.com"
+response = requests.get(f"http://localhost:8080/api/v1/targets/{target}/summary")
+summary = response.json()
+print(json.dumps(summary, indent=2))
+```
+
+**Response Example:**
+```json
+{
+  "target": "api.example.com",
+  "status": "healthy",
+  "lastCheck": "2025-03-30T10:30:00Z",
+  "checks": {
+    "health": {
+      "status": "up",
+      "statusCode": 200,
+      "responseTime": "125ms"
+    },
+    "latency": {
+      "avgLatency": "45ms",
+      "minLatency": "38ms",
+      "maxLatency": "92ms",
+      "packetLoss": "0%"
+    },
+    "dns": {
+      "status": "resolved",
+      "resolvedIPs": ["192.0.2.1", "192.0.2.2"]
+    }
+  }
+}
+```
+
+### Get Layer Metrics
+
+Get historical metrics for a specific check layer.
+
+**Endpoint:** `GET /api/v1/targets/{target}/layers/{layer}`
+
+**Path Parameters:**
+- `target` (required): Target identifier
+- `layer` (required): Check type (`health`, `latency`, `dns`, `traceroute`)
+
+**Query Parameters:**
+- `start` (optional): Start time (RFC3339 format)
+- `end` (optional): End time (RFC3339 format)
+- `limit` (optional): Maximum number of records (default: 100)
+
+**cURL Example:**
+```bash
+curl -X GET "http://localhost:8080/api/v1/targets/api.example.com/layers/latency?limit=50" \
+  -H "Content-Type: application/json"
+```
+
+**Python Example:**
+```python
+import requests
+from datetime import datetime, timedelta
+
+target = "api.example.com"
+layer = "latency"
+
+# Get last hour of data
+end = datetime.utcnow()
+start = end - timedelta(hours=1)
+
+params = {
+    'start': start.isoformat() + 'Z',
+    'end': end.isoformat() + 'Z',
+    'limit': 100
+}
+
+response = requests.get(
+    f"http://localhost:8080/api/v1/targets/{target}/layers/{layer}",
+    params=params
+)
+metrics = response.json()
+
+for metric in metrics.get('metrics', []):
+    print(f"{metric['timestamp']}: {metric['value']} {metric.get('unit', '')}")
+```
+
+**Response Example:**
+```json
+{
+  "layer": "latency",
+  "target": "api.example.com",
+  "metrics": [
+    {
+      "timestamp": "2025-03-30T10:30:00Z",
+      "value": 45.2,
+      "unit": "ms"
+    },
+    {
+      "timestamp": "2025-03-30T10:29:00Z",
+      "value": 42.8,
+      "unit": "ms"
+    }
+  ]
+}
+```
+
+### Real-time Updates (WebSocket)
+
+Connect to the WebSocket endpoint for real-time monitoring updates.
+
+**Endpoint:** `ws://localhost:8080/api/v1/ws`
+
+**JavaScript Example:**
+```javascript
+const ws = new WebSocket('ws://localhost:8080/api/v1/ws');
+
+ws.onopen = () => {
+  console.log('Connected to Hawk-Eye');
+  // Subscribe to specific targets
+  ws.send(JSON.stringify({
+    type: 'subscribe',
+    targets: ['api.example.com', 'db.example.com']
+  }));
+};
+
+ws.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+  console.log('Update received:', message);
+  
+  switch(message.type) {
+    case 'metric_update':
+      console.log(`${message.target}: ${message.metric.value}${message.metric.unit}`);
+      break;
+    case 'status_change':
+      console.log(`${message.target} status changed to ${message.status}`);
+      break;
+  }
+};
+
+ws.onerror = (error) => {
+  console.error('WebSocket error:', error);
+};
+
+ws.onclose = () => {
+  console.log('Disconnected from Hawk-Eye');
+};
+```
+
+**Python Example (using websockets):**
+```python
+import asyncio
+import json
+import websockets
+
+async def monitor():
+    uri = "ws://localhost:8080/api/v1/ws"
+    async with websockets.connect(uri) as websocket:
+        # Subscribe to targets
+        await websocket.send(json.dumps({
+            'type': 'subscribe',
+            'targets': ['api.example.com']
+        }))
+        
+        # Receive updates
+        async for message in websocket:
+            data = json.loads(message)
+            print(f"Update: {data}")
+
+asyncio.run(monitor())
+```
+
+**Message Format:**
+```json
+{
+  "type": "metric_update",
+  "target": "api.example.com",
+  "metric": {
+    "name": "latency",
+    "value": 45.2,
+    "unit": "ms",
+    "timestamp": "2025-03-30T10:30:00Z"
+  }
+}
+```
+
+---
+
 ## API
 
 > [!CAUTION]
@@ -637,6 +911,99 @@ Is roughly equal to this:
 
 The `hawkeye` exposes an API for accessing the results of various checks. Each check registers its own endpoint
 at `/v1/metrics/{check-name}`. The API's definition is available at `/openapi`.
+
+### API Examples
+
+Here are some example API calls to interact with Hawk-Eye:
+
+#### Get Health Check Metrics
+```bash
+curl -X GET "http://localhost:8080/v1/metrics/health" \
+  -H "Content-Type: application/json"
+```
+
+Response example:
+```json
+{
+  "status": "success",
+  "data": {
+    "targets": [
+      {
+        "name": "example.com",
+        "status": "up",
+        "response_time_ms": 150,
+        "last_check": "2023-10-01T12:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+#### Get Latency Check Metrics
+```bash
+curl -X GET "http://localhost:8080/v1/metrics/latency" \
+  -H "Content-Type: application/json"
+```
+
+Response example:
+```json
+{
+  "status": "success",
+  "data": {
+    "round_trip_time_ms": 25,
+    "jitter_ms": 2,
+    "packet_loss_percent": 0
+  }
+}
+```
+
+#### Get DNS Check Metrics
+```bash
+curl -X GET "http://localhost:8080/v1/metrics/dns" \
+  -H "Content-Type: application/json"
+```
+
+Response example:
+```json
+{
+  "status": "success",
+  "data": {
+    "domain": "example.com",
+    "resolved_ips": ["93.184.216.34"],
+    "resolution_time_ms": 45,
+    "nameserver": "8.8.8.8"
+  }
+}
+```
+
+#### Get Traceroute Metrics
+```bash
+curl -X GET "http://localhost:8080/v1/metrics/traceroute" \
+  -H "Content-Type: application/json"
+```
+
+Response example:
+```json
+{
+  "status": "success",
+  "data": {
+    "target": "example.com",
+    "hops": [
+      {"hop": 1, "ip": "192.168.1.1", "rtt_ms": 1.2},
+      {"hop": 2, "ip": "10.0.0.1", "rtt_ms": 5.8}
+    ],
+    "total_hops": 15
+  }
+}
+```
+
+#### Get OpenAPI Specification
+```bash
+curl -X GET "http://localhost:8080/openapi" \
+  -H "Accept: application/json"
+```
+
+This returns the full OpenAPI 3.0 specification for all available endpoints.
 
 ## Metrics, Telemetry & Dashboards
 

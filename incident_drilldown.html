@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-width=1.0">
+    <title>Incident Drilldown - Hawk-Eye</title>
+    <link href="/scripts/hawk-ui.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .drilldown-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+        .back-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .summary-card {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .summary-title h2 { margin: 0 0 8px 0; color: var(--text-primary); }
+        .summary-title p { margin: 0; color: var(--text-secondary); font-family: monospace; }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        .stat-box {
+            background: rgba(255,255,255,0.02);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .stat-label { color: var(--text-secondary); font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { color: var(--text-primary); font-size: 1.1rem; font-weight: 500; word-break: break-word; }
+        
+        /* History Table */
+        .history-card {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+        .history-header {
+            padding: 1.5rem;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .history-header h3 { margin: 0; color: var(--text-primary); }
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .history-table th {
+            text-align: left;
+            padding: 12px 1.5rem;
+            background: var(--header-bg);
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .history-table td {
+            padding: 16px 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            vertical-align: top;
+        }
+        .history-table tr:last-child td { border-bottom: none; }
+        .history-table tr:hover { background: var(--hover-row); }
+        .closure-notes { margin-top: 8px; font-size: 0.8rem; color: #10B981; background: rgba(16, 185, 129, 0.1); padding: 8px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.2); }
+    </style>
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fa-solid fa-radar" style="color: var(--accent-purple); font-size: 1.8rem;"></i>
+                <h2>Hawk-Eye</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-category">Main Menu</div>
+                <a href="/dashboard" class="nav-item">
+                    <i class="fa-solid fa-house"></i> Main Dashboard
+                </a>
+                <a href="/live_dashboard" class="nav-item">
+                    <i class="fa-solid fa-chart-line"></i> Live Metrics
+                </a>
+                <a href="/inventory" class="nav-item">
+                    <i class="fa-solid fa-server"></i> Node Topology
+                </a>
+                <a href="/incidents" class="nav-item active">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Incidents
+                </a>
+                <a href="/integrations" class="nav-item">
+                    <i class="fa-solid fa-plug"></i> Integrations
+                </a>
+                <a href="/alerts" class="nav-item">
+                    <i class="fa-solid fa-bell"></i> Alerts & Rules
+                </a>
+                <a href="/users_config" class="nav-item">
+                    <i class="fa-solid fa-users-gear"></i> User Configuration
+                </a>
+            </nav>
+        </aside>
+
+        <main class="app-content">
+            <header class="top-navbar">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 6px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <i class="fa-solid fa-user-circle" style="color: var(--accent-purple); font-size: 1.1rem;"></i>
+                        <span id="displayUser" style="font-size: 0.85rem; font-weight: 600;">User</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-scroll-container">
+                <div class="drilldown-container">
+                    <div class="header-actions">
+                        <a href="/incidents" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Incidents</a>
+                    </div>
+                    
+                    <div id="drilldownContent">
+                        <!-- Populated by JS -->
+                        <div style="text-align: center; color: var(--text-secondary); padding: 4rem;">
+                            <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i><br><br>Loading Incident Context...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/scripts/hawk-ui.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const groupKey = urlParams.get('group');
+            
+            if (!groupKey) {
+                document.getElementById('drilldownContent').innerHTML = `<div style="color:var(--error-color); padding: 2rem; text-align:center;">No Incident Group Key specified. Please navigate back to the Incidents page.</div>`;
+                return;
+            }
+
+            // Load all history
+            let history = {};
+            try {
+                history = JSON.parse(localStorage.getItem('hawkeye_incident_history')) || {};
+            } catch(e) {}
+            
+            const savedMeta = JSON.parse(localStorage.getItem('hawkeye_incident_meta')) || {};
+
+            // Filter incidents matching groupKey
+            const incidents = Object.values(history).filter(inc => {
+                const key = inc.groupKey || `${inc.id}::${inc.target}`;
+                return key === groupKey;
+            });
+
+            if (incidents.length === 0) {
+                document.getElementById('drilldownContent').innerHTML = `<div style="color:var(--text-secondary); padding: 2rem; text-align:center;">No historical incidents found for this group.</div>`;
+                return;
+            }
+
+            // Sort descending by time
+            incidents.sort((a, b) => new Date(b.openedTime) - new Date(a.openedTime));
+            
+            const latest = incidents[0];
+            const meta = savedMeta[latest.uniqueKey] || {};
+            const activeStatus = meta.status || latest.status;
+            const activeLifecycle = meta.lifecycle || latest.lifecycle;
+            const assignedTo = meta.assignedTo || latest.labels?.assigned_to || latest.annotations?.assigned || 'Unassigned';
+
+            // Setup summary card
+            let html = `
+                <div class="summary-card">
+                    <div class="summary-header">
+                        <div class="summary-title">
+                            <h2>${latest.id}</h2>
+                            <p>${latest.target}</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">${incidents.length}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">Total Occurrences</div>
+                        </div>
+                    </div>
+                    <div class="summary-grid">
+                        <div class="stat-box">
+                            <div class="stat-label">Current Status</div>
+                            <div class="stat-value">${activeStatus} / ${activeLifecycle}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Severity</div>
+                            <div class="stat-value" style="color: ${latest.severity === 'critical' ? 'var(--c-critical)' : 'var(--text-primary)'}; text-transform: capitalize;">${latest.severity}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Currently Assigned</div>
+                            <div class="stat-value"><i class="fa-solid fa-user" style="color:var(--accent); font-size: 0.9rem; margin-right:6px;"></i>${assignedTo}</div>
+                        </div>
+                        <div class="stat-box" style="grid-column: 1 / -1;">
+                            <div class="stat-label">Description (Latest)</div>
+                            <div class="stat-value" style="font-size: 0.95rem;">${latest.description}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="history-card">
+                    <div class="history-header">
+                        <h3>Related Historical Occurrences</h3>
+                    </div>
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 20%;">Time Opened</th>
+                                <th style="width: 15%;">State</th>
+                                <th>Description & Closure Context</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            incidents.forEach(inc => {
+                const imeta = savedMeta[inc.uniqueKey] || {};
+                const st = imeta.status || inc.status;
+                const lc = imeta.lifecycle || inc.lifecycle;
+                const closureNotes = imeta.closureNotes || inc.closureNotes;
+                
+                let notesHtml = '';
+                if (st === 'Closed' && closureNotes) {
+                    notesHtml = `<div class="closure-notes"><i class="fa-solid fa-circle-check"></i> <strong>Closure Notes:</strong> ${closureNotes}</div>`;
+                }
+
+                html += `
+                    <tr>
+                        <td>${inc.openedTime}</td>
+                        <td>
+                            <div style="font-weight:600; margin-bottom:4px; color:${st === 'Open' ? 'var(--c-critical)' : 'var(--text-secondary)'};">${st}</div>
+                            <div style="font-size:0.75rem; color:var(--text-secondary);">${lc}</div>
+                        </td>
+                        <td>
+                            <div style="margin-bottom: 6px;">${inc.description}</div>
+                            ${notesHtml}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            document.getElementById('drilldownContent').innerHTML = html;
+        });
+
+        if (typeof HawkUI !== 'undefined') HawkUI.updateUserDisplay();
+    </script>
+    <script src="/scripts/ai-assistant.js"></script>
+</body>
+</html>
