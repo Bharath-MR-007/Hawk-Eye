@@ -12,7 +12,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o hawkeye main.go
 
 # Prep stage for user
-FROM alpine:3.22 AS prep
+FROM alpine:3.23 AS prep
 RUN apk add --no-cache ca-certificates
 RUN adduser \
     --disabled-password \
@@ -22,7 +22,7 @@ RUN adduser \
     hawkeye
 
 # Final stage
-FROM alpine:3.22
+FROM alpine:3.23
 RUN apk add --no-cache iputils
 COPY --from=prep /etc/passwd /etc/passwd
 COPY --from=prep /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
