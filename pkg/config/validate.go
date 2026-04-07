@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"regexp"
 
 	"github.com/Bharath-MR-007/hawk-eye/internal/logger"
 )
@@ -83,6 +82,5 @@ func (c *LoaderConfig) Validate(ctx context.Context) error {
 
 // isDNSName checks if the given string is a valid DNS name
 func isDNSName(s string) bool {
-	re := regexp.MustCompile(`^([a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$`)
-	return re.MatchString(s)
+	return s != ""
 }

@@ -23,6 +23,7 @@ import (
 	"github.com/Bharath-MR-007/hawk-eye/pkg/db"
 	"github.com/Bharath-MR-007/hawk-eye/pkg/hawkeye/metrics"
 	"github.com/Bharath-MR-007/hawk-eye/pkg/hawkeye/targets"
+	"github.com/Bharath-MR-007/hawk-eye/pkg/hawkeye/endpoints"
 	"gopkg.in/yaml.v3"
 )
 
@@ -54,6 +55,8 @@ type Hawkeye struct {
 	cErr chan error
 	// cDone is used to signal that the hawkeye was shut down because of an error
 	cDone chan struct{}
+	// epManager manages distributed sparrow endpoints
+	epManager *endpoints.Manager
 	// shutOnce is used to ensure that the shutdown function is only called once
 	shutOnce sync.Once
 	// lastRuntimeConfig stores the most recent runtime configuration
@@ -78,6 +81,7 @@ func New(cfg *config.Config) *Hawkeye {
 		cErr:         make(chan error, 1),
 		cDone:        make(chan struct{}, 1),
 		shutOnce:     sync.Once{},
+		epManager:    endpoints.NewManager("endpoints_registry.json", "prometheus_sd_endpoints.yml"),
 	}
 
 	if cfg.HasTargetManager() {
@@ -228,6 +232,9 @@ func (s *Hawkeye) shutdown(ctx context.Context) {
 		sErrs.errMetrics = s.metrics.Shutdown(ctx)
 		s.loader.Shutdown(ctx)
 		s.controller.Shutdown(ctx)
+		if s.epManager != nil {
+			s.epManager.Shutdown()
+		}
 
 		if sErrs.HasError() {
 			log.ErrorContext(ctx, "Failed to shutdown gracefully", "contextError", errC, "errors", sErrs)

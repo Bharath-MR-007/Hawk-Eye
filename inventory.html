@@ -650,7 +650,11 @@
                 <a href="/polling" class="nav-item">
                     <i class="fa-solid fa-folder"></i> Polling Config
                 </a>
-                <a href="/users_config" class="nav-item">
+                
+            <a href="/endpoints" class="nav-item">
+                <i class="fa-solid fa-network-wired"></i> Endpoint Manager
+            </a>
+            <a href="/users_config" class="nav-item">
                     <i class="fa-solid fa-user-gear"></i> User Configuration
                 </a>
                 <button class="nav-item" onclick="if(typeof exportConfig === 'function') { exportConfig(); } else { window.location.href='/dashboard?export=true'; }">
@@ -982,14 +986,18 @@
                                             <input type="text" id="colTarget" placeholder="Filter Target..." style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: white; padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; box-sizing: border-box;" oninput="applyColFilters()" onclick="event.stopPropagation()">
                                         </th>
                                         <th class="sortable" style="vertical-align: top; width: 15%;" onclick="sortTable(1, 'inventoryTable')">
+                                            <div style="margin-bottom: 6px;">Endpoint</div>
+                                            <input type="text" id="colEndpoint" placeholder="Filter Endpoint..." style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: white; padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; box-sizing: border-box;" oninput="applyColFilters()" onclick="event.stopPropagation()">
+                                        </th>
+                                        <th class="sortable" style="vertical-align: top; width: 10%;" onclick="sortTable(2, 'inventoryTable')">
                                             <div style="margin-bottom: 6px;">Added Time</div>
                                             <input type="text" id="colAdded" placeholder="Filter Time..." style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: white; padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; box-sizing: border-box;" oninput="applyColFilters()" onclick="event.stopPropagation()">
                                         </th>
-                                        <th class="sortable" style="vertical-align: top; width: 15%;" onclick="sortTable(2, 'inventoryTable')">
+                                        <th class="sortable" style="vertical-align: top; width: 10%;" onclick="sortTable(3, 'inventoryTable')">
                                             <div style="margin-bottom: 6px;">Modified Time</div>
                                             <input type="text" id="colModified" placeholder="Filter Time..." style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: white; padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; box-sizing: border-box;" oninput="applyColFilters()" onclick="event.stopPropagation()">
                                         </th>
-                                        <th class="sortable" style="vertical-align: top; width: 25%;" onclick="sortTable(3, 'inventoryTable')">
+                                        <th class="sortable" style="vertical-align: top; width: 25%;" onclick="sortTable(4, 'inventoryTable')">
                                             <div style="margin-bottom: 6px;">Tags</div>
                                             <input type="text" id="colTags" placeholder="Filter Tags..." style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: white; padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; box-sizing: border-box;" oninput="applyColFilters()" onclick="event.stopPropagation()">
                                         </th>
@@ -1009,7 +1017,7 @@
                                     if (groups[groupName].length > 0 && groupName !== "_ungrouped") {
                                         const groupTr = document.createElement('tr');
                                         groupTr.className = 'group-header';
-                                        groupTr.innerHTML = `<td colspan="5" style="background: rgba(139, 92, 246, 0.05); color: var(--accent-purple); font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px;"><i class="fa-solid fa-layer-group"></i> ${groupName} (${groups[groupName].length})</td>`;
+                                        groupTr.innerHTML = `<td colspan="6" style="background: rgba(139, 92, 246, 0.05); color: var(--accent-purple); font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px;"><i class="fa-solid fa-layer-group"></i> ${groupName} (${groups[groupName].length})</td>`;
                                         tbody.appendChild(groupTr);
                                     }
 
@@ -1032,6 +1040,7 @@
                                         const safeName = t.replace(/\./g, '-');
                                         tr.onclick = () => toggleDrawer(t);
                                         tr.setAttribute('data-target', t);
+                                        tr.setAttribute('data-endpoint', 'Local Instance');
                                         tr.setAttribute('data-added', targetMeta[t].added);
                                         tr.setAttribute('data-modified', targetMeta[t].modified);
                                         tr.setAttribute('data-tags', tags.join(' '));
@@ -1045,6 +1054,9 @@
                                                     <i class="fa-solid fa-globe" style="color: var(--info-color);"></i>
                                                     <span style="font-weight: 600; font-family: 'Monaco', 'Consolas', monospace; font-size: 0.8rem;">${t}</span>
                                                 </div>
+                                            </td>
+                                            <td>
+                                                <span style="background: rgba(16,185,129,0.15); color: #10b981; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700;"><i class="fa-solid fa-server" style="margin-right: 4px;"></i>Local Instance</span>
                                             </td>
                                             <td style="color: var(--text-secondary); font-size: 0.8rem;">${targetMeta[t].added}</td>
                                             <td style="color: var(--text-secondary); font-size: 0.8rem;">${targetMeta[t].modified}</td>
@@ -1061,7 +1073,7 @@
                                         dr.id = `drawer-${safeName}`;
                                         dr.className = 'drawer-row';
                                         dr.innerHTML = `
-                                            <td colspan="5" style="padding: 0; border: none;">
+                                            <td colspan="6" style="padding: 0; border: none;">
                                                 <div class="drawer-content">
                                                     <div style="margin-top: 1rem; padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.15);" id="network-panel-${safeName}">
                                                         <h3 style="margin-top: 0; margin-bottom: 0px; font-size: 0.9rem; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-route" style="color:var(--text-secondary)"></i> Network Target Hop Topology (Traceroute)</h3>
@@ -1131,6 +1143,7 @@
 
                     function applyColFilters() {
                         const termTarget = document.getElementById('colTarget')?.value.toLowerCase() || '';
+                        const termEndpoint = document.getElementById('colEndpoint')?.value.toLowerCase() || '';
                         const termAdded = document.getElementById('colAdded')?.value.toLowerCase() || '';
                         const termModified = document.getElementById('colModified')?.value.toLowerCase() || '';
                         const termTags = document.getElementById('colTags')?.value.toLowerCase() || '';
@@ -1138,11 +1151,12 @@
                         const rows = document.querySelectorAll('#inventoryBody tr.data-row');
                         rows.forEach(tr => {
                             const t = tr.getAttribute('data-target').toLowerCase();
+                            const e = tr.getAttribute('data-endpoint') ? tr.getAttribute('data-endpoint').toLowerCase() : 'local instance';
                             const a = tr.getAttribute('data-added').toLowerCase();
                             const m = tr.getAttribute('data-modified').toLowerCase();
                             const tg = tr.getAttribute('data-tags').toLowerCase();
 
-                            if (t.includes(termTarget) && a.includes(termAdded) && m.includes(termModified) && tg.includes(termTags)) {
+                            if (t.includes(termTarget) && e.includes(termEndpoint) && a.includes(termAdded) && m.includes(termModified) && tg.includes(termTags)) {
                                 tr.style.display = '';
                             } else {
                                 tr.style.display = 'none';

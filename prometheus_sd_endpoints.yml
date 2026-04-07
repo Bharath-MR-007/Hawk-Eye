@@ -1,0 +1,7 @@
+- targets:
+    - http://localhost:8080
+  labels:
+    endpoint_name: Local
+    environment: Development
+    region: India
+    sparrow_id: 18a3f8449ca98d9c

@@ -1,1 +1,8 @@
+name: "hawk-eye.test.com"
+loader:
+  type: "file"
+  file:
+    path: "config.yaml"
+api:
+  address: ":8080"
 checks: []

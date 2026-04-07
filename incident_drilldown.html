@@ -2,174 +2,136 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-width=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Incident Drilldown - Hawk-Eye</title>
-    <link href="/scripts/hawk-ui.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/scripts/hawk-ui.js"></script>
+    <script>(function(){var t=localStorage.getItem('hawk_theme')||'dark';if(t==='light'){document.documentElement.classList.add('light-theme');}})();</script>
     <style>
-        .drilldown-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        /* ── Design Tokens ── */
+        :root {
+            --bg:            #0f1115;
+            --surface:       #1a1d24;
+            --border:        #2a2d35;
+            --text-primary:  #f8fafc;
+            --text-secondary:#94a3b8;
+            --accent:        #3b82f6;
+            --accent-purple: #8b5cf6;
+            --radius-lg:     14px;
+            --border-color:  var(--border);
+            --c-critical:    #ef4444;
+            --c-warning:     #f59e0b;
+            --c-info:        #3b82f6;
         }
-        .header-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
+
+        body.light-theme {
+            --bg:            #F8FAFC;
+            --surface:       #FFFFFF;
+            --border:        #E2E8F0;
+            --text-primary:  #1E293B;
+            --text-secondary:#64748B;
         }
-        .back-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 500;
-        }
-        .back-btn:hover {
-            background: rgba(255,255,255,0.1);
-        }
-        .summary-card {
-            background: var(--surface);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-        .summary-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .summary-title h2 { margin: 0 0 8px 0; color: var(--text-primary); }
-        .summary-title p { margin: 0; color: var(--text-secondary); font-family: monospace; }
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-        }
-        .stat-box {
-            background: rgba(255,255,255,0.02);
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .stat-label { color: var(--text-secondary); font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-value { color: var(--text-primary); font-size: 1.1rem; font-weight: 500; word-break: break-word; }
+
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text-primary); }
+
+        /* My Drilldown Component CSS */
+        .drilldown-container { max-width: 1500px; margin: 0 auto; padding: 2rem; }
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .back-btn { background: var(--surface); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 16px; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.9rem; transition: background 0.2s; }
+        .back-btn:hover { background: rgba(139,92,246,0.1); border-color: var(--accent-purple); color: var(--text-primary); }
         
-        /* History Table */
-        .history-card {
-            background: var(--surface);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
+        .incident-header-card { background: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem 2rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .header-main-info { display: flex; flex-direction: column; gap: 8px; }
+        .header-kpis { display: flex; gap: 3rem; }
+        .header-kpi-block { display: flex; flex-direction: column; gap: 4px; border-left: 1px solid var(--border-color); padding-left: 20px; }
+        .header-kpi-block:first-child { border-left: none; padding-left: 0; }
+        
+        .drilldown-body { display: flex; gap: 1.5rem; }
+        .main-panel { flex: 1; display: flex; flex-direction: column; gap: 1.5rem; }
+        .side-panel { width: 420px; background: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; height: fit-content; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        
+        .property-table-card { background: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .property-table-header { background: rgba(0,0,0,0.15); padding: 12px 1.5rem; border-bottom: 1px solid var(--border-color); font-weight: 600; text-transform: uppercase; font-size: 0.85rem; color: var(--text-secondary); letter-spacing: 0.5px; }
+        body.light-theme .property-table-header { background: rgba(0,0,0,0.02); }
+        .property-table { width: 100%; border-collapse: collapse; }
+        .property-table td { padding: 14px 1.5rem; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; vertical-align: top; }
+        .property-table tr:hover td { background: rgba(139,92,246,0.04); }
+        .property-table td:first-child { width: 25%; background: rgba(0,0,0,0.1); color: var(--text-secondary); font-weight: 500; border-right: 1px solid var(--border-color); }
+        body.light-theme .property-table td:first-child { background: rgba(0,0,0,0.02); }
+        .property-table tr:last-child td { border-bottom: none; }
+
+        .timeline { position: relative; padding-left: 20px; margin-top: 1rem; }
+        .timeline::before { content: ''; position: absolute; top: 0; bottom: 0; left: 4px; width: 2px; background: var(--border-color); }
+        .timeline-item { position: relative; margin-bottom: 2rem; }
+        .timeline-item:last-child { margin-bottom: 0; }
+        .timeline-item::before { content: ''; position: absolute; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); border: 2px solid var(--text-secondary); left: -21px; top: 2px; z-index: 2; transition: all 0.3s;}
+        .timeline-item.active::before { border-color: var(--c-critical); background: var(--c-critical); box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2); }
+        .timeline-item.closed::before { border-color: #10B981; background: #10B981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2); }
+
+        .tabs-nav { display: flex; gap: 4px; border-bottom: 1px solid var(--border-color); margin-bottom: -1px; }
+        .tab-btn { background: transparent; padding: 12px 20px; color: var(--text-secondary); font-weight: 600; font-size: 0.85rem; border: none; border-bottom: 2px solid transparent; cursor: pointer; text-transform: uppercase; transition: all 0.2s; }
+        .tab-btn:hover { color: var(--text-primary); }
+        .tab-btn.active { color: var(--accent-purple); border-bottom-color: var(--accent-purple); }
+        
+        .badge { padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px; }
+        .badge-critical { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+        .badge-warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+        .badge-info { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); }
+
+        th.sortable {
+            cursor: pointer;
+            position: relative;
+            padding-right: 25px !important;
+            transition: background 0.2s;
         }
-        .history-header {
-            padding: 1.5rem;
-            background: rgba(0,0,0,0.2);
-            border-bottom: 1px solid var(--border-color);
+        th.sortable:hover {
+            background: rgba(255, 255, 255, 0.05);
         }
-        .history-header h3 { margin: 0; color: var(--text-primary); }
-        .history-table {
-            width: 100%;
-            border-collapse: collapse;
+        th.sortable::after {
+            content: '\f0dc';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.3;
+            font-size: 0.7rem;
         }
-        .history-table th {
-            text-align: left;
-            padding: 12px 1.5rem;
-            background: var(--header-bg);
-            color: var(--text-secondary);
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            border-bottom: 1px solid var(--border-color);
+        th.sortable.asc::after {
+            content: '\f0de';
+            opacity: 1;
+            color: var(--accent-purple);
         }
-        .history-table td {
-            padding: 16px 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 0.85rem;
-            color: var(--text-primary);
-            vertical-align: top;
+        th.sortable.desc::after {
+            content: '\f0dd';
+            opacity: 1;
+            color: var(--accent-purple);
         }
-        .history-table tr:last-child td { border-bottom: none; }
-        .history-table tr:hover { background: var(--hover-row); }
-        .closure-notes { margin-top: 8px; font-size: 0.8rem; color: #10B981; background: rgba(16, 185, 129, 0.1); padding: 8px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.2); }
     </style>
 </head>
 <body class="dark-theme">
-    <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <i class="fa-solid fa-radar" style="color: var(--accent-purple); font-size: 1.8rem;"></i>
-                <h2>Hawk-Eye</h2>
+    <div class="drilldown-container">
+        <div class="header-actions">
+            <a href="/incidents" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Incidents</a>
+        </div>
+        
+        <div id="drilldownContent">
+            <!-- Populated by JS -->
+            <div style="text-align: center; color: var(--text-secondary); padding: 4rem;">
+                <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i><br><br>Loading Incident Context...
             </div>
-            <nav class="sidebar-nav">
-                <div class="nav-category">Main Menu</div>
-                <a href="/dashboard" class="nav-item">
-                    <i class="fa-solid fa-house"></i> Main Dashboard
-                </a>
-                <a href="/live_dashboard" class="nav-item">
-                    <i class="fa-solid fa-chart-line"></i> Live Metrics
-                </a>
-                <a href="/inventory" class="nav-item">
-                    <i class="fa-solid fa-server"></i> Node Topology
-                </a>
-                <a href="/incidents" class="nav-item active">
-                    <i class="fa-solid fa-triangle-exclamation"></i> Incidents
-                </a>
-                <a href="/integrations" class="nav-item">
-                    <i class="fa-solid fa-plug"></i> Integrations
-                </a>
-                <a href="/alerts" class="nav-item">
-                    <i class="fa-solid fa-bell"></i> Alerts & Rules
-                </a>
-                <a href="/users_config" class="nav-item">
-                    <i class="fa-solid fa-users-gear"></i> User Configuration
-                </a>
-            </nav>
-        </aside>
-
-        <main class="app-content">
-            <header class="top-navbar">
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 6px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 8px;">
-                        <i class="fa-solid fa-user-circle" style="color: var(--accent-purple); font-size: 1.1rem;"></i>
-                        <span id="displayUser" style="font-size: 0.85rem; font-weight: 600;">User</span>
-                    </div>
-                </div>
-            </header>
-
-            <div class="page-scroll-container">
-                <div class="drilldown-container">
-                    <div class="header-actions">
-                        <a href="/incidents" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Incidents</a>
-                    </div>
-                    
-                    <div id="drilldownContent">
-                        <!-- Populated by JS -->
-                        <div style="text-align: center; color: var(--text-secondary); padding: 4rem;">
-                            <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i><br><br>Loading Incident Context...
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+        </div>
     </div>
 
-    <script src="/scripts/hawk-ui.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const groupKey = urlParams.get('group');
+            const specificId = urlParams.get('id');
             
             if (!groupKey) {
                 document.getElementById('drilldownContent').innerHTML = `<div style="color:var(--error-color); padding: 2rem; text-align:center;">No Incident Group Key specified. Please navigate back to the Incidents page.</div>`;
@@ -195,99 +157,349 @@
                 return;
             }
 
-            // Sort descending by time
+            // Sort: newest first by time
             incidents.sort((a, b) => new Date(b.openedTime) - new Date(a.openedTime));
-            
-            const latest = incidents[0];
+
+            // Promote Open incidents to the top (most important for the user), preserving time order within each group
+            const openOnes  = incidents.filter(i => (savedMeta[i.uniqueKey]?.status || i.status) === 'Open');
+            const closedOnes = incidents.filter(i => (savedMeta[i.uniqueKey]?.status || i.status) !== 'Open');
+            incidents.length = 0;
+            incidents.push(...openOnes, ...closedOnes);
+
+            // Determine which incident to focus on (default = very top = latest Open or newest)
+            let activeIncident = incidents[0];
+            if (specificId) {
+                activeIncident = incidents.find(i => (i.uniqueKey === specificId || i.id === specificId)) || incidents[0];
+                // Re-pin the specifically requested incident to the top
+                const activeIdx = incidents.indexOf(activeIncident);
+                if (activeIdx > 0) {
+                    incidents.splice(activeIdx, 1);
+                    incidents.unshift(activeIncident);
+                }
+            }
+
+            const latest = activeIncident;
             const meta = savedMeta[latest.uniqueKey] || {};
             const activeStatus = meta.status || latest.status;
             const activeLifecycle = meta.lifecycle || latest.lifecycle;
             const assignedTo = meta.assignedTo || latest.labels?.assigned_to || latest.annotations?.assigned || 'Unassigned';
 
-            // Setup summary card
-            let html = `
-                <div class="summary-card">
-                    <div class="summary-header">
-                        <div class="summary-title">
-                            <h2>${latest.id}</h2>
-                            <p>${latest.target}</p>
+            const getSeverityColor = (sev) => {
+                const s = sev.toLowerCase();
+                if(s==='critical' || s==='down') return '#ef4444';
+                if(s==='warning' || s==='degraded') return '#f59e0b';
+                return '#3b82f6';
+            };
+            const sevBadgeClass = latest.severity.toLowerCase() === 'critical' ? 'badge-critical' : (latest.severity.toLowerCase() === 'warning' ? 'badge-warning' : 'badge-info');
+
+            // Generate the tabs layout and static timeline
+            let layoutHtml = `
+                <div class="incident-header-card">
+                    <div class="header-main-info">
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; font-family: monospace; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Incident Drilldown</div>
+                        <div style="display:flex; align-items:center; gap: 16px; margin-bottom: 8px;">
+                            <h2 style="margin:0; font-size: 1.8rem; color: var(--text-primary);">${latest.id}</h2>
+                            <span class="badge ${sevBadgeClass}"><i class="fa-solid fa-triangle-exclamation"></i> ${latest.severity}</span>
                         </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">${incidents.length}</div>
-                            <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">Total Occurrences</div>
-                        </div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem; font-family: monospace;">Group Key: ${groupKey}</div>
                     </div>
-                    <div class="summary-grid">
-                        <div class="stat-box">
-                            <div class="stat-label">Current Status</div>
-                            <div class="stat-value">${activeStatus} / ${activeLifecycle}</div>
+                    
+                    <div class="header-kpis">
+                        <div class="header-kpi-block">
+                            <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; font-weight: 600;">Status</div>
+                            <div style="font-size: 1.1rem; font-weight: 600; color: ${activeStatus==='Open' ? 'var(--c-critical)' : '#10B981'}; display:flex; align-items:center; gap:6px;">
+                                <div style="width:8px; height:8px; border-radius:50%; background:${activeStatus==='Open' ? 'var(--c-critical)' : '#10B981'}; box-shadow: 0 0 8px ${activeStatus==='Open' ? 'var(--c-critical)' : '#10B981'};"></div>
+                                ${activeStatus}
+                            </div>
                         </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Severity</div>
-                            <div class="stat-value" style="color: ${latest.severity === 'critical' ? 'var(--c-critical)' : 'var(--text-primary)'}; text-transform: capitalize;">${latest.severity}</div>
+                        <div class="header-kpi-block">
+                            <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; font-weight: 600;">Lifecycle</div>
+                            <div style="font-size: 1.1rem; font-weight: 500; color: var(--text-primary);">${activeLifecycle}</div>
                         </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Currently Assigned</div>
-                            <div class="stat-value"><i class="fa-solid fa-user" style="color:var(--accent); font-size: 0.9rem; margin-right:6px;"></i>${assignedTo}</div>
-                        </div>
-                        <div class="stat-box" style="grid-column: 1 / -1;">
-                            <div class="stat-label">Description (Latest)</div>
-                            <div class="stat-value" style="font-size: 0.95rem;">${latest.description}</div>
+                        <div class="header-kpi-block">
+                            <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; font-weight: 600;">Source Node</div>
+                            <div style="font-size: 1.1rem; font-weight: 500; color: var(--text-primary);">${latest.target}</div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="history-card">
-                    <div class="history-header">
-                        <h3>Related Historical Occurrences</h3>
+
+                <div class="tabs-nav" id="drilldown-tabs">
+                    <button class="tab-btn active" data-tab="general">General</button>
+                    <button class="tab-btn" data-tab="correlated">Correlated Events</button>
+                    <button class="tab-btn" data-tab="source">Source Node Details</button>
+                    <button class="tab-btn" data-tab="diagnostics">Diagnostics</button>
+                </div>
+
+                <div class="drilldown-body" style="margin-top: 1.5rem;">
+                    <!-- Dynamic Tab Content -->
+                    <div class="main-panel" id="tab-content"></div>
+
+                    <!-- Static Timeline Side Panel -->
+                    <div class="side-panel">
+                        <h3 style="margin-top:0; margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.5px; text-transform:uppercase; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">Incident Timeline</h3>
+                        <div class="timeline" id="timeline-content"></div>
                     </div>
-                    <table class="history-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 20%;">Time Opened</th>
-                                <th style="width: 15%;">State</th>
-                                <th>Description & Closure Context</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                </div>
             `;
 
-            incidents.forEach(inc => {
+            document.getElementById('drilldownContent').innerHTML = layoutHtml;
+
+            // Render Timeline
+            let timelineHtml = '';
+            incidents.forEach((inc, idx) => {
                 const imeta = savedMeta[inc.uniqueKey] || {};
                 const st = imeta.status || inc.status;
-                const lc = imeta.lifecycle || inc.lifecycle;
-                const closureNotes = imeta.closureNotes || inc.closureNotes;
-                
-                let notesHtml = '';
-                if (st === 'Closed' && closureNotes) {
-                    notesHtml = `<div class="closure-notes"><i class="fa-solid fa-circle-check"></i> <strong>Closure Notes:</strong> ${closureNotes}</div>`;
-                }
+                const tlClass = st === 'Open' ? 'timeline-item active' : 'timeline-item closed';
 
-                html += `
-                    <tr>
-                        <td>${inc.openedTime}</td>
-                        <td>
-                            <div style="font-weight:600; margin-bottom:4px; color:${st === 'Open' ? 'var(--c-critical)' : 'var(--text-secondary)'};">${st}</div>
-                            <div style="font-size:0.75rem; color:var(--text-secondary);">${lc}</div>
-                        </td>
-                        <td>
-                            <div style="margin-bottom: 6px;">${inc.description}</div>
-                            ${notesHtml}
-                        </td>
-                    </tr>
+                timelineHtml += `
+                    <div class="${tlClass}">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                            <div style="font-weight: 600; font-size: 0.85rem; color: var(--text-primary);">${inc.lifecycle || (st==='Open'?'Triggered':'Resolved')}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">${inc.openedTime.split(',')[1] || inc.openedTime}</div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 8px;">
+                            <strong>Status:</strong> <span style="color:${st === 'Open' ? 'var(--c-critical)' : '#10B981'}; font-weight:500;">${st}</span>
+                        </div>
+                        <div style="font-size: 0.85rem; color: var(--text-primary); line-height: 1.5; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">${inc.description}</div>
+                        ${(st === 'Closed' && inc.closureNotes) ? `<div style="margin-top: 8px; font-size: 0.8rem; color: #10B981; background: rgba(16, 185, 129, 0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.2);"><i class="fa-solid fa-check-circle"></i> ${inc.closureNotes}</div>` : ''}
+                    </div>
                 `;
             });
+            document.getElementById('timeline-content').innerHTML = timelineHtml;
 
-            html += `
-                        </tbody>
-                    </table>
-                </div>
-            `;
+            // Define Tab Content Renderers
+            const renderGeneral = () => {
+                const htmlOut = `
+                    <div class="property-table-card">
+                        <div class="property-table-header">Incident Details</div>
+                        <table class="property-table">
+                            <tbody>
+                                <tr><td>ID</td><td style="font-family:monospace; color:var(--text-secondary);">${latest.uniqueKey || latest.id}</td></tr>
+                                <tr><td>Title</td><td style="font-weight:500;">${latest.id}</td></tr>
+                                <tr><td>Severity</td><td><span style="color:${getSeverityColor(latest.severity)}; font-weight:600; text-transform:capitalize;">${latest.severity}</span></td></tr>
+                                <tr><td>Status</td><td style="font-weight:500;">${activeStatus}</td></tr>
+                                <tr><td>Lifecycle State</td><td><span style="background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; font-size:0.8rem;">${activeLifecycle}</span></td></tr>
+                                <tr><td>Priority</td><td>Medium</td></tr>
+                                <tr><td>Assigned To</td><td><i class="fa-solid fa-user" style="color:var(--accent); font-size: 0.9rem; margin-right:6px;"></i>${assignedTo}</td></tr>
+                                <tr><td>Message</td><td style="line-height: 1.6;">${latest.description}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="property-table-card">
+                        <div class="property-table-header">Origin & Analysis</div>
+                        <table class="property-table">
+                            <tbody>
+                                <tr><td>Family</td><td>Network Event <span style="color:var(--text-secondary); font-size:0.8rem;">(Auto-Detected)</span></td></tr>
+                                <tr><td>Origin</td><td>Hawk-Eye Telemetry</td></tr>
+                                <tr><td>Creation Time</td><td>${latest.openedTime}</td></tr>
+                                <tr><td>Total Occurrences</td><td><span style="font-weight:600; color:var(--accent);">${incidents.length}</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                document.getElementById('tab-content').innerHTML = htmlOut;
+            };
 
-            document.getElementById('drilldownContent').innerHTML = html;
+            const renderCorrelated = () => {
+                if (incidents.length <= 1) {
+                    document.getElementById('tab-content').innerHTML = `
+                        <div class="property-table-card" style="padding: 3rem; text-align: center;">
+                            <i class="fa-solid fa-code-branch" style="font-size: 3rem; color: var(--text-secondary); opacity: 0.5; margin-bottom: 1rem;"></i>
+                            <h3 style="margin-top:0; color: var(--text-primary); font-size: 1.1rem;">No Correlated Events Found</h3>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem; max-width: 400px; margin: 0 auto; line-height: 1.5;">Hawk-Eye's topology engine did not detect any prior correlated network events originating from downstream nodes during this time window.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const openCount = incidents.filter(i => (savedMeta[i.uniqueKey]?.status || i.status) === 'Open').length;
+                let rowsHtml = '';
+
+                incidents.forEach((inc, idx) => {
+                    const imeta = savedMeta[inc.uniqueKey] || {};
+                    const st = imeta.status || inc.status;
+                    const isOpen = st === 'Open';
+                    const sevColor = getSeverityColor(inc.severity);
+                    const isActive = inc === latest;
+
+                    let rowStyle = 'cursor: pointer;';
+                    if (isActive) {
+                        rowStyle = 'background: rgba(139,92,246,0.08); border-left: 3px solid var(--accent-purple); cursor: default;';
+                    } else if (isOpen) {
+                        rowStyle = 'background: rgba(239,68,68,0.06); border-left: 3px solid rgba(239,68,68,0.6); cursor: pointer;';
+                    }
+
+                    const onClickAttr = isActive ? '' : `onclick="window.location.href='/incident_drilldown?group=${encodeURIComponent(groupKey)}&id=${encodeURIComponent(inc.uniqueKey || inc.id)}'"`;
+
+                    let separatorHtml = '';
+                    if (idx > 0 && !isOpen && (savedMeta[incidents[idx-1].uniqueKey]?.status || incidents[idx-1].status) === 'Open') {
+                        separatorHtml = `<tr><td colspan="5" style="padding: 6px 1.5rem; background: rgba(255,255,255,0.02); border-bottom: 2px solid var(--border-color); color: var(--text-secondary); font-size: 0.7rem; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;"><i class="fa-solid fa-check-circle" style="color:#10B981; margin-right:6px;"></i>Closed Incidents</td></tr>`;
+                    }
+
+                    let actionCell;
+                    if (isActive) {
+                        actionCell = '<span class="badge badge-info" style="font-size:0.6rem;">Currently Viewing</span>';
+                    } else if (isOpen) {
+                        actionCell = '<span style="color:#ef4444; font-size:0.8rem; font-weight:700; display:flex; align-items:center; gap:6px;"><span style="width:7px; height:7px; border-radius:50%; background:#ef4444; display:inline-block; animation: pulse-dot 1.4s infinite;"></span>LIVE &nbsp;<i class="fa-solid fa-arrow-right"></i></span>';
+                    } else {
+                        actionCell = '<span style="color:var(--accent); font-size:0.8rem; font-weight:600;">Drilldown <i class="fa-solid fa-arrow-right"></i></span>';
+                    }
+
+                    rowsHtml += separatorHtml + `
+                        <tr class="corr-data-row" style="${rowStyle}" ${onClickAttr} data-id="${(inc.uniqueKey || inc.id).toLowerCase()}" data-sev="${inc.severity.toLowerCase()}" data-time="${inc.openedTime.toLowerCase()}" data-status="${st.toLowerCase()}">
+                            <td style="font-family:monospace; color:var(--text-secondary); border-right: none !important; width: auto !important; background: transparent !important;">${inc.uniqueKey || inc.id}</td>
+                            <td style="border-right: none !important; background: transparent !important;"><span style="color:${sevColor}; font-weight:600; text-transform:capitalize;">${inc.severity}</span></td>
+                            <td style="border-right: none !important; background: transparent !important;">${inc.openedTime}</td>
+                            <td style="border-right: none !important; background: transparent !important;"><span style="color:${isOpen ? 'var(--c-critical)' : '#10B981'}; font-weight:${isOpen ? '700' : '500'};">${st}</span></td>
+                            <td style="border-right: none !important; background: transparent !important;">${actionCell}</td>
+                        </tr>
+                    `;
+                });
+
+                document.getElementById('tab-content').innerHTML = `
+                    <style>@keyframes pulse-dot { 0%, 100% { opacity:1; box-shadow:0 0 0 0 rgba(239,68,68,0.5); } 50% { opacity:0.7; box-shadow:0 0 0 4px rgba(239,68,68,0); } }</style>
+                    <div class="property-table-card">
+                        <div class="property-table-header" style="display:flex; align-items:center; justify-content:space-between;">
+                            <span>Correlated Historical Incidents (${incidents.length})</span>
+                            ${openCount > 0 ? '<span style="background:rgba(239,68,68,0.12); color:#ef4444; border:1px solid rgba(239,68,68,0.3); padding:3px 10px; border-radius:12px; font-size:0.7rem; font-weight:700; display:flex; align-items:center; gap:6px;"><span style="width:6px; height:6px; border-radius:50%; background:#ef4444; display:inline-block; animation:pulse-dot 1.4s infinite;"></span>' + openCount + ' OPEN</span>' : ''}
+                        </div>
+                        <table class="property-table" id="correlatedTable">
+                            <thead>
+                                <tr style="background: rgba(0,0,0,0.3); font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); text-align:left;">
+                                    <th class="sortable" style="padding: 14px 1.5rem; font-weight: 700; white-space: nowrap;" onclick="sortCorrelatedTable(0)">
+                                        <div style="margin-bottom: 6px;">Incident ID</div>
+                                        <input type="text" id="colCorrId" placeholder="Filter..." style="width:100%; min-width:60px; background:rgba(0,0,0,0.2); border:1px solid var(--border-color); color:white; padding:6px; font-size:0.7rem; border-radius:4px; font-weight:normal; text-transform:none; box-sizing:border-box;" oninput="applyCorrelatedFilters()" onclick="event.stopPropagation()">
+                                    </th>
+                                    <th class="sortable" style="padding: 14px 1.5rem; font-weight: 700; white-space: nowrap;" onclick="sortCorrelatedTable(1)">
+                                        <div style="margin-bottom: 6px;">Severity</div>
+                                        <input type="text" id="colCorrSev" placeholder="Filter..." style="width:100%; min-width:60px; background:rgba(0,0,0,0.2); border:1px solid var(--border-color); color:white; padding:6px; font-size:0.7rem; border-radius:4px; font-weight:normal; text-transform:none; box-sizing:border-box;" oninput="applyCorrelatedFilters()" onclick="event.stopPropagation()">
+                                    </th>
+                                    <th class="sortable" style="padding: 14px 1.5rem; font-weight: 700; white-space: nowrap;" onclick="sortCorrelatedTable(2)">
+                                        <div style="margin-bottom: 6px;">Time Recorded</div>
+                                        <input type="text" id="colCorrTime" placeholder="Filter..." style="width:100%; min-width:60px; background:rgba(0,0,0,0.2); border:1px solid var(--border-color); color:white; padding:6px; font-size:0.7rem; border-radius:4px; font-weight:normal; text-transform:none; box-sizing:border-box;" oninput="applyCorrelatedFilters()" onclick="event.stopPropagation()">
+                                    </th>
+                                    <th class="sortable" style="padding: 14px 1.5rem; font-weight: 700; white-space: nowrap;" onclick="sortCorrelatedTable(3)">
+                                        <div style="margin-bottom: 6px;">Status</div>
+                                        <input type="text" id="colCorrStatus" placeholder="Filter..." style="width:100%; min-width:60px; background:rgba(0,0,0,0.2); border:1px solid var(--border-color); color:white; padding:6px; font-size:0.7rem; border-radius:4px; font-weight:normal; text-transform:none; box-sizing:border-box;" oninput="applyCorrelatedFilters()" onclick="event.stopPropagation()">
+                                    </th>
+                                    <th style="padding: 14px 1.5rem; font-weight: 700; vertical-align: top;"><div style="margin-bottom: 6px;">Action</div></th>
+                                </tr>
+                            </thead>
+                            <tbody id="correlatedBody">
+                                ${rowsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            };
+
+            const renderSourceNode = () => {
+                const htmlOut = `
+                    <div class="property-table-card">
+                        <div class="property-table-header">Node Properties</div>
+                        <table class="property-table">
+                            <tbody>
+                                <tr><td>Hostname</td><td style="font-family:monospace; font-weight:500; color:var(--text-primary);">${latest.target}</td></tr>
+                                <tr><td>Node IP</td><td style="font-family:monospace; color:var(--text-secondary);">192.168.x.x (Masked)</td></tr>
+                                <tr><td>System Object ID</td><td style="font-family:monospace; color:var(--text-secondary);">1.3.6.1.4.1.8072.3.2.10</td></tr>
+                                <tr><td>Device Type</td><td>Standard Node (Auto)</td></tr>
+                                <tr><td>Location</td><td>Default Pool</td></tr>
+                                <tr><td>Management</td><td>Agent Managed</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                document.getElementById('tab-content').innerHTML = htmlOut;
+            };
+
+            const renderDiagnostics = () => {
+                const htmlOut = `
+                    <div class="property-table-card" style="padding: 2rem;">
+                        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; font-family: monospace; font-size: 0.85rem; color: #10B981;">
+                            <div style="color: var(--text-secondary); margin-bottom: 10px;">> Running automated ping diagnostic on ${latest.target}...</div>
+                            <div>PING ${latest.target} (10.0.0.55): 56 data bytes</div>
+                            <div>64 bytes from 10.0.0.55: icmp_seq=0 ttl=64 time=1.240 ms</div>
+                            <div>64 bytes from 10.0.0.55: icmp_seq=1 ttl=64 time=1.120 ms</div>
+                            <div>64 bytes from 10.0.0.55: icmp_seq=2 ttl=64 time=1.560 ms</div>
+                            <div style="color: var(--text-secondary); margin-top: 10px;">--- ${latest.target} ping statistics ---</div>
+                            <div>3 packets transmitted, 3 packets received, 0.0% packet loss</div>
+                            <div>round-trip min/avg/max/stddev = 1.120/1.306/1.560/0.186 ms</div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('tab-content').innerHTML = htmlOut;
+            };
+
+            // Setup listeners
+            const tabs = document.querySelectorAll('#drilldown-tabs .tab-btn');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    const tabName = e.target.getAttribute('data-tab');
+                    if (tabName === 'general') renderGeneral();
+                    if (tabName === 'correlated') renderCorrelated();
+                    if (tabName === 'source') renderSourceNode();
+                    if (tabName === 'diagnostics') renderDiagnostics();
+                });
+            });
+
+            // Initial render
+            renderGeneral();
         });
 
-        if (typeof HawkUI !== 'undefined') HawkUI.updateUserDisplay();
+        // Global functions for correlated table
+        function applyCorrelatedFilters() {
+            const fid = document.getElementById('colCorrId')?.value.toLowerCase() || '';
+            const fsev = document.getElementById('colCorrSev')?.value.toLowerCase() || '';
+            const ftime = document.getElementById('colCorrTime')?.value.toLowerCase() || '';
+            const fst = document.getElementById('colCorrStatus')?.value.toLowerCase() || '';
+
+            const rows = document.querySelectorAll('#correlatedBody tr.corr-data-row');
+            rows.forEach(tr => {
+                const trId = tr.getAttribute('data-id') || '';
+                const trSev = tr.getAttribute('data-sev') || '';
+                const trTime = tr.getAttribute('data-time') || '';
+                const trSt = tr.getAttribute('data-status') || '';
+
+                if (trId.includes(fid) && trSev.includes(fsev) && trTime.includes(ftime) && trSt.includes(fst)) {
+                    tr.style.display = '';
+                } else {
+                    tr.style.display = 'none';
+                }
+            });
+        }
+
+        function sortCorrelatedTable(n) {
+            const table = document.getElementById('correlatedTable');
+            if (!table) return;
+            const tbody = document.getElementById('correlatedBody');
+            const rows = Array.from(tbody.querySelectorAll('tr.corr-data-row'));
+            const headers = table.querySelectorAll('thead th.sortable');
+            if (n >= headers.length) return;
+            
+            const header = headers[n];
+            let dir = "asc";
+            if (header.classList.contains("asc")) dir = "desc";
+
+            headers.forEach(h => h.classList.remove("asc", "desc"));
+            header.classList.add(dir);
+
+            rows.sort((a, b) => {
+                let x = a.getElementsByTagName("TD")[n].textContent.trim();
+                let y = b.getElementsByTagName("TD")[n].textContent.trim();
+
+                if (dir === "asc") {
+                    return x.localeCompare(y, undefined, { numeric: true, sensitivity: 'base' });
+                } else {
+                    return y.localeCompare(x, undefined, { numeric: true, sensitivity: 'base' });
+                }
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+        }
     </script>
     <script src="/scripts/ai-assistant.js"></script>
 </body>

@@ -36,6 +36,9 @@ services:
       - ./device_reachability.html:/device_reachability.html
       - ./users_config.html:/users_config.html
       - ./target_detail.html:/target_detail.html
+      - ./endpoints.html:/endpoints.html
+      - ./endpoints_registry.json:/endpoints_registry.json
+      - ./prometheus_sd_endpoints.yml:/prometheus_sd_endpoints.yml
     command: ["run", "--hawkeyeName", "hawkeye.local", "--loaderType", "file", "--loaderFilePath", "/checks.yaml", "--loaderInterval", "10s"]
     environment:
       - HAWKEYE_ENV=production
@@ -58,6 +61,7 @@ services:
     volumes:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yml
       - ./prometheus_rules.yaml:/etc/prometheus/prometheus_rules.yaml
+      - ./prometheus_sd_endpoints.yml:/prometheus_sd_endpoints.yml
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -179,6 +183,10 @@ services:
       - THANOS_QUERY_URL=http://thanos-query:10904
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - OLLAMA_HOST=http://host.docker.internal:11434
+      - LLM_PROVIDER=nvidia
+      - NVIDIA_API_KEY=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
+      - NVIDIA_MODEL=deepseek-ai/deepseek-v3.2
+      - NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
     networks:
       - monitoring
     restart: always

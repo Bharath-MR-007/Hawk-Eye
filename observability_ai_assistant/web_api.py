@@ -8,7 +8,8 @@ import os
 from typing import Optional
 import re
 import requests
-from config import HAWKEYE_URL
+from config import HAWKEYE_URL, LLM_PROVIDER, OLLAMA_MODEL, NVIDIA_MODEL
+from llm.llm_factory import LLMFactory
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -36,7 +37,9 @@ class ChatResponse(BaseModel):
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "model": OLLAMA_MODEL}
+    if LLM_PROVIDER.lower() == "nvidia":
+        return {"status": "ok", "provider": "nvidia", "model": NVIDIA_MODEL}
+    return {"status": "ok", "provider": "ollama", "model": OLLAMA_MODEL}
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
@@ -96,12 +99,12 @@ async def chat_endpoint(request: ChatRequest):
              # User asked for an ID but context search failed in JS
              full_message = f"USER QUESTION: {request.message}\n\nNOTE: System context for this ID was NOT found in local storage."
 
-        response = ollama.chat(model=target_model, messages=[
+        # Use LLMFactory to get the correct client
+        llm_client = LLMFactory.get_client()
+        reply = llm_client.chat(messages=[
             {'role': 'system', 'content': system_prompt},
             {'role': 'user', 'content': full_message},
         ])
-        
-        reply = response['message']['content']
         return ChatResponse(response=reply)
         
     except Exception as e:
@@ -109,4 +112,5 @@ async def chat_endpoint(request: ChatRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

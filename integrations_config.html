@@ -764,7 +764,11 @@
                 <a href="/polling" class="nav-item">
                     <i class="fa-solid fa-folder"></i> Polling Config
                 </a>
-                <a href="/users_config" class="nav-item">
+                
+            <a href="/endpoints" class="nav-item">
+                <i class="fa-solid fa-network-wired"></i> Endpoint Manager
+            </a>
+            <a href="/users_config" class="nav-item">
                     <i class="fa-solid fa-user-gear"></i> User Configuration
                 </a>
                 <button class="nav-item" onclick="if(typeof exportConfig === 'function') { exportConfig(); } else { window.location.href='/dashboard?export=true'; }">
@@ -1337,6 +1341,7 @@
                                         <label class="field-label">Provider</label>
                                         <select id="llm-provider" class="field-input" onchange="onLlmProviderChange(); updateBlueprints();" style="background:var(--bg-dark);color:var(--text-primary);border:1px solid var(--border-color);border-radius:6px;padding:10px 14px;font-family:inherit;font-size:0.9rem;">
                                             <option value="ollama">Local (Ollama)</option>
+                                            <option value="nvidia">NVIDIA NIM (DeepSeek-V3.2)</option>
                                             <option value="openai">OpenAI</option>
                                             <option value="anthropic">Anthropic (Claude)</option>
                                             <option value="gemini">Google Gemini</option>
@@ -1345,12 +1350,12 @@
                                     <div class="field-group">
                                         <label class="field-label">Model Name</label>
                                         <input type="text" id="llm-model" class="field-input" placeholder="mixtral" oninput="updateBlueprints()">
-                                        <div style="font-size:0.75rem;color:#64748b;margin-top:4px;">e.g. <code style="color:#a78bfa;">mixtral</code>, <code style="color:#a78bfa;">llama3</code>, <code style="color:#a78bfa;">gpt-4o</code>, <code style="color:#a78bfa;">claude-3-opus</code></div>
+                                        <div style="font-size:0.75rem;color:#64748b;margin-top:4px;">e.g. <code style="color:#a78bfa;">deepseek-ai/deepseek-v3</code>, <code style="color:#a78bfa;">llama3</code>, <code style="color:#a78bfa;">gpt-4o</code>, <code style="color:#a78bfa;">claude-3-opus</code></div>
                                     </div>
                                     <div class="field-group" id="llm-endpoint-group">
                                         <label class="field-label">LLM Endpoint URL</label>
                                         <input type="text" id="llm-endpoint" class="field-input" placeholder="http://localhost:11434" oninput="updateBlueprints()">
-                                        <div style="font-size:0.75rem;color:#64748b;margin-top:4px;">Ollama default: <code style="color:#a78bfa;">http://localhost:11434</code></div>
+                                        <div style="font-size:0.75rem;color:#64748b;margin-top:4px;">Endpoint (NVIDIA default: <code style="color:#a78bfa;">https://integrate.api.nvidia.com/v1</code>)</div>
                                     </div>
                                     <div class="field-group" id="llm-apikey-group" style="display:none;">
                                         <label class="field-label">API Key</label>
@@ -1698,6 +1703,11 @@
                 epGroup.style.display = '';
                 akGroup.style.display = 'none';
                 document.getElementById('llm-endpoint').placeholder = 'http://localhost:11434';
+            } else if (provider === 'nvidia') {
+                epGroup.style.display = '';
+                akGroup.style.display = '';
+                document.getElementById('llm-endpoint').value = 'https://integrate.api.nvidia.com/v1';
+                document.getElementById('llm-model').value = 'deepseek-ai/deepseek-v3';
             } else {
                 epGroup.style.display = 'none';
                 akGroup.style.display = '';

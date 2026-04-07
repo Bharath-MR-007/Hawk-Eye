@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hawk-Eye | Incident Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#68000b",
+                    "on-error-container": "#ffdad6",
+                    "secondary-fixed": "#62ff96",
+                    "inverse-surface": "#d5e4f7",
+                    "surface-bright": "#2d3a49",
+                    "on-primary-container": "#00375a",
+                    "surface-container-lowest": "#020f1c",
+                    "on-secondary": "#003918",
+                    "on-primary": "#003354",
+                    "surface-container-low": "#0e1d2a",
+                    "primary": "#98cbff",
+                    "primary-container": "#00a3ff",
+                    "surface-container": "#13212e",
+                    "surface-container-high": "#1d2b39",
+                    "surface-container-highest": "#283644",
+                    "background": "#061422",
+                    "surface": "#061422",
+                    "on-surface": "#d5e4f7",
+                    "on-surface-variant": "#bec7d4",
+                    "outline": "#88919d",
+                    "outline-variant": "#3f4852",
+                    "error": "#ffb4ab",
+                    "error-container": "#93000a",
+                    "secondary": "#7dffa2",
+                    "secondary-container": "#05e777",
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(29, 43, 57, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #020f1c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3f4852;
+            border-radius: 2px;
+        }
+        .status-glow-critical {
+            box-shadow: 0 0 8px #ff4d4d;
+        }
+        .status-glow-success {
+            box-shadow: 0 0 8px #00e676;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-white antialiased overflow-hidden h-screen flex flex-col">
+<!-- Top Navigation Bar (Shared Component) -->
+<header class="flex justify-between items-center w-full px-6 h-14 z-50 bg-[#0E1D2A] shadow-[0_0_8px_rgba(152,203,255,0.08)]">
+<div class="flex items-center gap-8">
+<span class="text-lg font-bold text-[#98CBFF] bg-gradient-to-r from-[#98CBFF] to-[#00A3FF] bg-clip-text text-transparent">Hawk-Eye | Network Operations Center</span>
+<nav class="hidden md:flex gap-6 items-center">
+<a class="text-slate-400 font-['Inter'] font-semibold text-sm tracking-tight hover:bg-[#283644] transition-colors px-2 py-1" href="#">Dashboards</a>
+<a class="text-[#98CBFF] border-b-2 border-[#98CBFF] font-['Inter'] font-semibold text-sm tracking-tight px-2 py-1" href="#">Incident Management</a>
+<a class="text-slate-400 font-['Inter'] font-semibold text-sm tracking-tight hover:bg-[#283644] transition-colors px-2 py-1" href="#">Topology Maps</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="material-symbols-outlined text-slate-400 cursor-pointer" data-icon="notifications">notifications</span>
+<span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-[#FF4D4D] ring-2 ring-[#0E1D2A]"></span>
+</div>
+<span class="material-symbols-outlined text-slate-400 cursor-pointer" data-icon="settings">settings</span>
+<div class="h-8 w-8 rounded-lg overflow-hidden border border-outline-variant/30">
+<img class="w-full h-full object-cover" data-alt="professional male network operations engineer avatar in a clean corporate style with neutral lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYdrSIRUKMiIC96Yd4t-afM6KYWu-vgpPtYUudUQ4LbeMxwf6kHO1FUXFgFkGcexA7q4cQbSkmBFWvBq2xQYe46YgIRRCVzEtHJJhf43dhAzeCFb2PXR2pvdpWZbS3Tnwg9U-mAWks2BCygjZcbOsb55-i_2noSmKLKXI3NQitki5LGsW2KW6Zu0m2lWJV_F5CDrzKurcEWuRdBHTepTCMj4BLsd53zYwRNUOdQg_PbHHMmxK41WKT-skWbO37AZQ6EEfIiP50fYg"/>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Side Navigation Bar (Shared Component) -->
+<aside class="flex flex-col h-full border-r border-[#13212E]/15 bg-[#061422] w-64 fixed left-0 top-14 bottom-0 z-40 hidden md:flex">
+<div class="flex flex-col gap-1 p-4">
+<div class="flex items-center gap-3 px-3 py-4 mb-4 bg-surface-container-low rounded-lg">
+<div class="w-10 h-10 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-white" data-icon="hub">hub</span>
+</div>
+<div>
+<div class="text-white font-bold text-sm">Hawk-Eye</div>
+<div class="text-slate-500 text-[10px] uppercase tracking-wider">NOC Operations</div>
+</div>
+</div>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 hover:bg-[#13212E] hover:text-[#98CBFF] active:translate-x-1 transition-all group" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="dashboard">dashboard</span>
+<span class="font-['Inter'] text-xs font-medium uppercase tracking-[0.05em]">Dashboards</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#98CBFF] bg-[#13212E] border-r-2 border-[#00A3FF] active:translate-x-1 transition-all" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="emergency_home">emergency_home</span>
+<span class="font-['Inter'] text-xs font-medium uppercase tracking-[0.05em]">Incident Management</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 hover:bg-[#13212E] hover:text-[#98CBFF] active:translate-x-1 transition-all group" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="hub">hub</span>
+<span class="font-['Inter'] text-xs font-medium uppercase tracking-[0.05em]">Topology Maps</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 hover:bg-[#13212E] hover:text-[#98CBFF] active:translate-x-1 transition-all group" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="monitoring">monitoring</span>
+<span class="font-['Inter'] text-xs font-medium uppercase tracking-[0.05em]">Monitoring</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 hover:bg-[#13212E] hover:text-[#98CBFF] active:translate-x-1 transition-all group" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="settings">settings</span>
+<span class="font-['Inter'] text-xs font-medium uppercase tracking-[0.05em]">Configuration</span>
+</a>
+</div>
+<div class="mt-auto p-4 border-t border-[#13212E]/30">
+<div class="bg-surface-container-lowest p-3 rounded-lg flex items-center gap-3">
+<div class="h-2 w-2 rounded-full bg-[#00E676] status-glow-success"></div>
+<span class="text-[10px] text-on-surface-variant font-medium">SYSTEM STATUS: OPTIMAL</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-64 flex flex-col overflow-hidden">
+<!-- Breadcrumb & Actions Bar -->
+<div class="h-12 bg-surface-container-low flex items-center justify-between px-6 border-b border-outline-variant/10">
+<div class="flex items-center gap-2 text-xs">
+<span class="text-on-surface-variant">Incident Browsing</span>
+<span class="material-symbols-outlined text-xs text-outline" data-icon="chevron_right">chevron_right</span>
+<span class="text-primary font-semibold">High Request Latency Warning</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="bg-[#13212E] hover:bg-[#283644] text-[11px] font-bold px-3 py-1.5 rounded transition-colors text-on-surface flex items-center gap-2 border border-outline-variant/20">
+<span class="material-symbols-outlined text-xs" data-icon="check_circle">check_circle</span> Acknowledge
+                    </button>
+<button class="bg-[#13212E] hover:bg-[#283644] text-[11px] font-bold px-3 py-1.5 rounded transition-colors text-on-surface flex items-center gap-2 border border-outline-variant/20">
+<span class="material-symbols-outlined text-xs" data-icon="person_add">person_add</span> Assign
+                    </button>
+<button class="bg-[#13212E] hover:bg-[#283644] text-[11px] font-bold px-3 py-1.5 rounded transition-colors text-on-surface flex items-center gap-2 border border-outline-variant/20">
+<span class="material-symbols-outlined text-xs" data-icon="close">close</span> Close
+                    </button>
+<button class="bg-primary-container hover:brightness-110 text-white text-[11px] font-bold px-3 py-1.5 rounded transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-xs" data-icon="build">build</span> Diagnostic Tools
+                    </button>
+</div>
+</div>
+<!-- Dashboard Layout (Multi-pane) -->
+<div class="flex-1 flex flex-col p-4 gap-4 overflow-hidden">
+<div class="flex flex-1 gap-4 overflow-hidden">
+<!-- Left Sidebar (Basics) -->
+<section class="w-72 bg-surface-container rounded-lg p-5 flex flex-col gap-6 overflow-y-auto">
+<h2 class="text-[10px] uppercase tracking-[0.1em] text-on-surface-variant font-bold">Incident Fundamentals</h2>
+<div class="space-y-5">
+<div class="flex flex-col gap-1">
+<label class="text-[10px] uppercase text-outline font-medium tracking-wider">Severity</label>
+<div class="flex items-center gap-2">
+<div class="h-3 w-3 rounded-full bg-[#FF4D4D] status-glow-critical"></div>
+<span class="text-sm font-bold text-[#FF4D4D]">Critical</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-[10px] uppercase text-outline font-medium tracking-wider">Priority</label>
+<div class="text-sm font-semibold text-white">High</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-[10px] uppercase text-outline font-medium tracking-wider">Lifecycle</label>
+<div class="inline-flex px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 text-[10px] font-bold w-fit border border-amber-500/20">Active</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-[10px] uppercase text-outline font-medium tracking-wider">Source Node</label>
+<div class="flex items-center gap-2 text-sm text-primary font-mono group cursor-pointer">
+<span class="material-symbols-outlined text-sm" data-icon="router">router</span>
+                                    US-West-Node-04
+                                </div>
+</div>
+</div>
+<div class="mt-auto pt-6 border-t border-outline-variant/10 space-y-4">
+<div class="flex flex-col gap-1">
+<label class="text-[10px] uppercase text-outline font-medium tracking-wider">Time Detected</label>
+<div class="text-[11px] text-on-surface-variant">2023-10-27 14:22:15 PST</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-[10px] uppercase text-outline font-medium tracking-wider">Assigned To</label>
+<div class="text-[11px] text-on-surface-variant italic">Unassigned</div>
+</div>
+</div>
+</section>
+<!-- Right Main Pane (Details Tabs) -->
+<section class="flex-1 flex flex-col glass-panel rounded-lg overflow-hidden">
+<!-- Tab Navigation -->
+<div class="flex bg-surface-container-highest/30 px-2 pt-2 gap-1 border-b border-outline-variant/10">
+<button class="px-5 py-2 text-[10px] font-bold tracking-widest text-primary border-b-2 border-primary bg-surface-container-low/50">GENERAL</button>
+<button class="px-5 py-2 text-[10px] font-bold tracking-widest text-outline hover:text-on-surface transition-colors">CORRELATED PARENTS</button>
+<button class="px-5 py-2 text-[10px] font-bold tracking-widest text-outline hover:text-on-surface transition-colors">CORRELATED CHILDREN</button>
+<button class="px-5 py-2 text-[10px] font-bold tracking-widest text-outline hover:text-on-surface transition-colors">CUSTOM ATTRIBUTES</button>
+<button class="px-5 py-2 text-[10px] font-bold tracking-widest text-outline hover:text-on-surface transition-colors">DIAGNOSTICS</button>
+</div>
+<!-- Tab Content -->
+<div class="flex-1 p-6 overflow-y-auto">
+<div class="grid grid-cols-2 gap-8">
+<div class="space-y-6">
+<div>
+<h3 class="text-xs font-bold text-white mb-3">Event Description</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+                                            Synthetic probe US-West-Node-04 reports sustained latency exceeding the configured threshold (500ms) for over 5 consecutive intervals. Impact detected on outbound gateway transit.
+                                        </p>
+</div>
+<div class="p-4 bg-surface-container-lowest/50 rounded border border-outline-variant/5">
+<h4 class="text-[10px] font-bold uppercase text-outline mb-2">Metrics Snapshot</h4>
+<div class="flex items-end gap-1">
+<div class="text-2xl font-bold text-[#FF4D4D]">742</div>
+<div class="text-[10px] text-outline pb-1">ms avg</div>
+<div class="ml-4 flex gap-0.5 items-end h-8">
+<div class="w-1 bg-primary/20 h-2"></div>
+<div class="w-1 bg-primary/20 h-3"></div>
+<div class="w-1 bg-primary/20 h-4"></div>
+<div class="w-1 bg-primary/40 h-5"></div>
+<div class="w-1 bg-[#FF4D4D] h-8"></div>
+<div class="w-1 bg-[#FF4D4D] h-7"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest/30 rounded border border-outline-variant/10 overflow-hidden">
+<div class="p-3 bg-surface-container-high/50 border-b border-outline-variant/10 flex justify-between items-center">
+<span class="text-[10px] font-bold text-outline uppercase tracking-wider">Visual Topology Focus</span>
+<span class="material-symbols-outlined text-xs text-primary" data-icon="zoom_in">zoom_in</span>
+</div>
+<div class="h-48 relative bg-[#020f1c] flex items-center justify-center">
+<div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#98cbff 1px, transparent 1px); background-size: 16px 16px;"></div>
+<div class="relative z-10 flex flex-col items-center gap-4">
+<div class="w-12 h-12 rounded bg-surface-container border border-outline-variant/40 flex items-center justify-center">
+<span class="material-symbols-outlined text-[#00E676]" data-icon="cloud">cloud</span>
+</div>
+<div class="h-10 w-0.5 bg-gradient-to-b from-[#00E676] to-[#FF4D4D]"></div>
+<div class="w-12 h-12 rounded bg-surface-container border-2 border-[#FF4D4D] status-glow-critical flex items-center justify-center">
+<span class="material-symbols-outlined text-[#FF4D4D]" data-icon="router">router</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Bottom Pane (Analysis & Logs) -->
+<section class="h-1/3 bg-surface-container rounded-lg flex flex-col overflow-hidden border-t border-primary/5">
+<div class="flex items-center justify-between px-4 py-2 bg-surface-container-high/50 border-b border-outline-variant/10">
+<div class="flex items-center gap-4">
+<span class="text-[10px] font-bold tracking-[0.15em] text-on-surface uppercase">Live Log Analysis</span>
+<div class="flex items-center gap-2">
+<span class="h-2 w-2 rounded-full bg-primary animate-pulse"></span>
+<span class="text-[10px] text-primary/80 font-mono">STREAMING ACTIVE</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-outline cursor-pointer hover:text-white" data-icon="search">search</span>
+<span class="material-symbols-outlined text-sm text-outline cursor-pointer hover:text-white" data-icon="download">download</span>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto font-mono text-[11px] p-4 bg-surface-container-lowest leading-relaxed">
+<div class="flex gap-4 opacity-70">
+<span class="text-outline whitespace-nowrap">[14:22:15]</span>
+<span class="text-[#00E676]">[INFO]</span>
+<span class="text-on-surface-variant">System check initiated on US-West-Node-04. Status: NOMINAL.</span>
+</div>
+<div class="flex gap-4 opacity-70">
+<span class="text-outline whitespace-nowrap">[14:22:18]</span>
+<span class="text-[#00E676]">[INFO]</span>
+<span class="text-on-surface-variant">Interface Eth0/1 report: 1.2 Gbps throughput.</span>
+</div>
+<div class="flex gap-4">
+<span class="text-outline whitespace-nowrap">[14:22:20]</span>
+<span class="text-[#FFD600] font-bold">[WARN]</span>
+<span class="text-on-surface">Latent response detected from 10.0.4.1: 520ms. Threshold 500ms exceeded.</span>
+</div>
+<div class="flex gap-4">
+<span class="text-outline whitespace-nowrap">[14:22:21]</span>
+<span class="text-[#FF4D4D] font-bold">[CRIT]</span>
+<span class="text-[#FF4D4D] bg-[#FF4D4D]/10 px-1">High request latency detected on Node-04 exceeding threshold of 500ms. Current: 742ms.</span>
+</div>
+<div class="flex gap-4">
+<span class="text-outline whitespace-nowrap">[14:22:22]</span>
+<span class="text-[#FF4D4D] font-bold">[CRIT]</span>
+<span class="text-[#FF4D4D]">Packet retransmission rate spiked to 14.2% on link USW-04-INT.</span>
+</div>
+<div class="flex gap-4 opacity-70">
+<span class="text-outline whitespace-nowrap">[14:22:25]</span>
+<span class="text-[#00A3FF]">[DIAG]</span>
+<span class="text-on-surface-variant">Automated trace-route execution started...</span>
+</div>
+<div class="flex gap-4 opacity-70">
+<span class="text-outline whitespace-nowrap">[14:22:30]</span>
+<span class="text-outline">[DEBUG]</span>
+<span class="text-on-surface-variant">Trace-route hop 4 response: 21ms. Hop 5 response: 18ms.</span>
+</div>
+<div class="flex gap-4 opacity-70">
+<span class="text-outline whitespace-nowrap">[14:22:35]</span>
+<span class="text-outline">[DEBUG]</span>
+<span class="text-on-surface-variant">Trace-route hop 6 response: TIMEOUT. Hop 7 response: TIMEOUT.</span>
+</div>
+<div class="flex gap-4">
+<span class="text-outline whitespace-nowrap">[14:22:40]</span>
+<span class="text-[#FF4D4D] font-bold">[CRIT]</span>
+<span class="text-on-surface font-bold underline">Root Cause Candidate: Upstream provider transit loss at AS64512.</span>
+</div>
+<div class="h-20 flex items-center justify-center opacity-30 italic">
+                            Waiting for next interval telemetry...
+                        </div>
+</div>
+</section>
+</div>
+</main>
+</div>
+<!-- Mobile Bottom Nav (Suppressed on Web per JSON layout rules) -->
+<nav class="md:hidden flex justify-between items-center h-16 bg-surface-container-low px-8 border-t border-outline-variant/10">
+<div class="flex flex-col items-center text-primary">
+<span class="material-symbols-outlined" data-icon="emergency_home">emergency_home</span>
+<span class="text-[10px] font-bold mt-1">Alerts</span>
+</div>
+<div class="flex flex-col items-center text-slate-500">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-[10px] font-bold mt-1">NOC</span>
+</div>
+<div class="flex flex-col items-center text-slate-500">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+<span class="text-[10px] font-bold mt-1">Live</span>
+</div>
+</nav>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const groupKey = urlParams.get('group');
+        const contentArea = document.querySelector('main');
+        
+        if (!groupKey) {
+            console.warn("No group key provided in URL.");
+            return;
+        }
+
+        // Load History
+        const history = JSON.parse(localStorage.getItem('hawkeye_incident_history')) || {};
+        const savedMeta = JSON.parse(localStorage.getItem('hawkeye_incident_meta')) || {};
+
+        const incidents = Object.values(history).filter(inc => {
+            const key = inc.groupKey || `${inc.id}::${inc.target}`;
+            return key === groupKey;
+        });
+
+        if (incidents.length === 0) {
+            console.error("No incidents found for group:", groupKey);
+            return;
+        }
+
+        incidents.sort((a, b) => new Date(b.openedTime) - new Date(a.openedTime));
+        const latest = incidents[0];
+        const meta = savedMeta[latest.uniqueKey] || {};
+
+        // Update UI Elements
+        // Title & Description
+        document.querySelector('.text-primary.font-semibold').textContent = latest.id;
+        document.querySelector('h3 + p').textContent = latest.description;
+        
+        // Severity
+        const sevSpan = document.querySelector('.text-sm.font-bold');
+        const sevDot = document.querySelector('.h-3.w-3.rounded-full');
+        sevSpan.textContent = latest.severity.charAt(0).toUpperCase() + latest.severity.slice(1);
+        if (latest.severity !== 'critical') {
+            sevSpan.className = 'text-sm font-bold text-amber-500';
+            sevDot.className = 'h-3.w-3.rounded-full bg-amber-500';
+            sevDot.classList.remove('status-glow-critical');
+        }
+
+        // Host / Source
+        const sourceNode = document.querySelector('.flex.items-center.gap-2.text-sm.text-primary.font-mono');
+        sourceNode.childNodes[2].textContent = latest.target;
+
+        // Detection Time
+        const timeDiv = document.querySelector('label:contains("Time Detected") + div');
+        if (!timeDiv) {
+             // Fallback selector if the above fails
+             const labels = document.querySelectorAll('label');
+             labels.forEach(l => {
+                 if (l.textContent.includes('Detection')) {
+                     l.nextElementSibling.textContent = latest.openedTime;
+                 }
+             });
+        } else {
+            timeDiv.textContent = latest.openedTime;
+        }
+
+        // Assignment
+        const assignedTo = meta.assignedTo || 'Unassigned';
+        const assignDiv = document.querySelectorAll('.text-[11px].text-on-surface-variant.italic');
+        if (assignDiv.length) assignDiv[0].textContent = assignedTo;
+
+        // Logs Injection
+        const logContainer = document.querySelector('.flex-1.overflow-y-auto.font-mono.text-[11px].p-4');
+        logContainer.innerHTML = '';
+        
+        incidents.forEach((inc, idx) => {
+            const time = inc.openedTime.split(' ')[1] || inc.openedTime;
+            const logEntry = `
+                <div class="flex gap-4 ${idx > 0 ? 'opacity-70' : ''}">
+                    <span class="text-outline whitespace-nowrap">[${time}]</span>
+                    <span class="text-${inc.severity === 'critical' ? '[#FF4D4D]' : '[#FFD600]'} font-bold">[${inc.severity.toUpperCase()}]</span>
+                    <span class="text-on-surface">${inc.description}</span>
+                </div>
+            `;
+            logContainer.innerHTML += logEntry;
+        });
+
+        if (incidents.length < 3) {
+            logContainer.innerHTML += `
+                <div class="flex gap-4 opacity-50">
+                    <span class="text-outline whitespace-nowrap">[DIAG]</span>
+                    <span class="text-primary/80 font-mono">SYSTEM ANALYZING ROOT CAUSE...</span>
+                </div>
+            `;
+        }
+    });
+
+    // Custom selector helper
+    window.jQuery = {
+        contains: (selector, text) => {
+            const elements = document.querySelectorAll(selector);
+            return Array.from(elements).find(el => el.textContent.includes(text));
+        }
+    };
+</script>
+<script src="/scripts/ai-assistant.js"></script>
+</body></html>

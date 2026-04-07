@@ -1,0 +1,15 @@
+[
+  {
+    "id": "18a3f8449ca98d9c",
+    "name": "Local",
+    "url": "http://localhost:8080",
+    "region": "India",
+    "environment": "Development",
+    "polling_interval": 15000000000,
+    "timeout": 5000000000,
+    "enabled": true,
+    "status": "UP",
+    "last_seen": "2026-04-07T10:08:52.91588843Z",
+    "latency": 3162167
+  }
+]

@@ -19,6 +19,7 @@ import (
 	ws "github.com/Bharath-MR-007/hawk-eye/api/websocket"
 	"github.com/Bharath-MR-007/hawk-eye/internal/logger"
 	"github.com/Bharath-MR-007/hawk-eye/pkg/api"
+	"github.com/Bharath-MR-007/hawk-eye/pkg/hawkeye/endpoints"
 	"gopkg.in/yaml.v3"
 )
 
@@ -51,6 +52,9 @@ func (s *Hawkeye) startupAPI(ctx context.Context) error {
 	routes = append(routes, drilldown.GetRoutes()...)
 
 	wsHandler := ws.NewHandler(s.probeManager)
+
+	epHandler := endpoints.NewAPIHandler(s.epManager)
+	routes = append(routes, epHandler.GetRoutes()...)
 
 	// Auth check middleware
 	withAuth := func(h http.HandlerFunc) http.HandlerFunc {
@@ -138,6 +142,20 @@ func (s *Hawkeye) startupAPI(ctx context.Context) error {
 				return
 			}
 			http.ServeFile(w, r, "incident_drilldown.html")
+		})},
+		{Path: "/incident_drilldown_new", Method: http.MethodGet, Handler: withAuth(func(w http.ResponseWriter, r *http.Request) {
+			if _, err := os.Stat("/incident_drilldown_new.html"); err == nil {
+				http.ServeFile(w, r, "/incident_drilldown_new.html")
+				return
+			}
+			http.ServeFile(w, r, "incident_drilldown_new.html")
+		})},
+		{Path: "/endpoints", Method: http.MethodGet, Handler: withAuth(func(w http.ResponseWriter, r *http.Request) {
+			if _, err := os.Stat("/endpoints.html"); err == nil {
+				http.ServeFile(w, r, "/endpoints.html")
+				return
+			}
+			http.ServeFile(w, r, "endpoints.html")
 		})},
 		{Path: "/integrations", Method: http.MethodGet, Handler: withAuth(func(w http.ResponseWriter, r *http.Request) {
 			if _, err := os.Stat("/integrations.html"); err == nil {

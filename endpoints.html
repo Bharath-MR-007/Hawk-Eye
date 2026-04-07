@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endpoint Manager - Hawk-Eye</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="/scripts/hawk-ui.js"></script>
+    <script>(function(){var t=localStorage.getItem('hawk_theme')||'dark';if(t==='light'){document.documentElement.classList.add('light-theme');}})();</script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --bg:            #0f1115;
+            --surface:       #1a1d24;
+            --border:        #2a2d35;
+            --text-primary:  #f8fafc;
+            --text-secondary:#94a3b8;
+            --accent:        #3b82f6;
+            --accent-purple: #8b5cf6;
+            --radius-lg:     14px;
+            --radius-md:     8px;
+            --border-color:  var(--border);
+            --c-critical:    #ef4444;
+            --c-warning:     #f59e0b;
+            --c-info:        #3b82f6;
+            --c-success:     #10B981;
+        }
+        body.light-theme {
+            --bg:            #F8FAFC;
+            --surface:       #FFFFFF;
+            --border:        #E2E8F0;
+            --text-primary:  #1E293B;
+            --text-secondary:#64748B;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text-primary); }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 2.5rem; display: flex; flex-direction: column; gap: 2rem; }
+        .page-title { display: flex; align-items: center; gap: 12px; margin-bottom: 0.5rem; }
+        .page-title h1 { font-size: 1.8rem; margin: 0; color: var(--text-primary); }
+        .page-title p { color: var(--text-secondary); margin: 0; font-size: 0.95rem; }
+
+        .card { background: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .card-header { font-weight: 600; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-group input, .form-group select { background: rgba(0,0,0,0.1); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px 14px; border-radius: var(--radius-md); font-family: 'Inter', sans-serif; width: 100%; transition: all 0.2s; }
+        body.light-theme .form-group input, body.light-theme .form-group select { background: #fff; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
+        
+        .btn { padding: 8px 16px; border-radius: var(--radius-md); font-weight: 500; font-size: 0.9rem; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: #2563EB; }
+        .btn-outline { background: transparent; border-color: var(--border-color); color: var(--text-primary); }
+        .btn-outline:hover { background: rgba(255,255,255,0.05); }
+        .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--c-critical); border-color: rgba(239, 68, 68, 0.2); }
+        .btn-danger:hover { background: rgba(239, 68, 68, 0.2); }
+
+        .table-wrapper { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: rgba(0,0,0,0.1); padding: 12px 1rem; text-align: left; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border-color); }
+        td { padding: 14px 1rem; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+        
+        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .status-up { background: rgba(16, 185, 129, 0.1); color: var(--c-success); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .status-down { background: rgba(239, 68, 68, 0.1); color: var(--c-critical); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .status-unknown { background: rgba(148, 163, 184, 0.1); color: var(--text-secondary); border: 1px solid rgba(148, 163, 184, 0.2); }
+    </style>
+</head>
+<body class="dark-theme">
+    <div class="container">
+        <header>
+            <div class="page-title">
+                <i class="fa-solid fa-network-wired" style="color: var(--accent); font-size: 1.5rem;"></i>
+                <h1>Endpoint Manager</h1>
+            </div>
+            <p>Register and distribute remote monitoring Sparrow endpoints for federated mesh monitoring.</p>
+        </header>
+
+        <div class="card">
+            <div class="card-header">
+                <div><i class="fa-solid fa-plus" style="margin-right: 8px; color: var(--accent);"></i>Register New Endpoint</div>
+                <button type="button" class="btn btn-outline" id="testBtn"><i class="fa-solid fa-flask"></i> Test Connectivity</button>
+            </div>
+            <form id="endpointForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="epName">Name / Identifier</label>
+                        <input type="text" id="epName" placeholder="e.g. EU-West-Frontend-Sparrow" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="epURL">Endpoint URL</label>
+                        <input type="url" id="epURL" placeholder="http://10.x.x.x:8080" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="epRegion">Region</label>
+                        <input type="text" id="epRegion" placeholder="e.g. eu-west-1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="epEnv">Environment</label>
+                        <select id="epEnv" required>
+                            <option value="Production">Production</option>
+                            <option value="Staging">Staging</option>
+                            <option value="Development">Development</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="epPoll">Polling Interval</label>
+                        <select id="epPoll">
+                            <option value="5000000000">5 seconds</option>
+                            <option value="15000000000" selected>15 seconds</option>
+                            <option value="30000000000">30 seconds</option>
+                            <option value="60000000000">60 seconds</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="epTimeout">Timeout</label>
+                        <select id="epTimeout">
+                            <option value="2000000000">2 seconds</option>
+                            <option value="5000000000" selected>5 seconds</option>
+                            <option value="10000000000">10 seconds</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="epEnabled" checked style="width: auto;">
+                        <label for="epEnabled" style="margin:0;">Enable Scraping & SDConfig Generation</label>
+                    </div>
+                </div>
+                <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Save Endpoint</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div><i class="fa-solid fa-server" style="margin-right: 8px; color: var(--accent);"></i>Active Endpoints</div>
+                <button type="button" class="btn btn-outline" onclick="loadEndpoints()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+            </div>
+            <div class="table-wrapper">
+                <table id="endpointsTable">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Name</th>
+                            <th>URL</th>
+                            <th>Region</th>
+                            <th>Environment</th>
+                            <th>Latency</th>
+                            <th>Last Seen</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="8" style="text-align: center; color: var(--text-secondary);">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadEndpoints();
+            
+            // Auto reload every 5 seconds to get live status
+            setInterval(loadEndpoints, 5000);
+        });
+
+        document.getElementById('endpointForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
+            btn.disabled = true;
+
+            const payload = {
+                name: document.getElementById('epName').value,
+                url: document.getElementById('epURL').value,
+                region: document.getElementById('epRegion').value,
+                environment: document.getElementById('epEnv').value,
+                polling_interval: parseInt(document.getElementById('epPoll').value),
+                timeout: parseInt(document.getElementById('epTimeout').value),
+                enabled: document.getElementById('epEnabled').checked
+            };
+
+            try {
+                const res = await fetch('/api/v1/endpoints', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error(await res.text());
+                e.target.reset();
+                loadEndpoints();
+                alert('Endpoint registered automatically. Prometheus SD configs regenerated.');
+            } catch (err) {
+                alert('Failed to register: ' + err.message);
+            } finally {
+                btn.innerHTML = `<i class="fa-solid fa-save"></i> Save Endpoint`;
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById('testBtn').addEventListener('click', async () => {
+            const url = document.getElementById('epURL').value;
+            if (!url) return alert('Please enter an Endpoint URL first.');
+
+            const btn = document.getElementById('testBtn');
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Testing...`;
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/v1/endpoints/test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, timeout: parseInt(document.getElementById('epTimeout').value) })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(`Connection Successful!\nLatency: ${data.latency}`);
+                } else {
+                    alert(`Connection Failed!\nLatency: ${data.latency}\nError: ${data.error}`);
+                }
+            } catch (err) {
+                alert('Test error: ' + err.message);
+            } finally {
+                btn.innerHTML = `<i class="fa-solid fa-flask"></i> Test Connectivity`;
+                btn.disabled = false;
+            }
+        });
+
+        async function loadEndpoints() {
+            try {
+                const res = await fetch('/api/v1/endpoints');
+                if (!res.ok) throw new Error('Failed to fetch endpoints');
+                const endpoints = await res.json() || [];
+                
+                const tbody = document.querySelector('#endpointsTable tbody');
+                tbody.innerHTML = '';
+
+                if (endpoints.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-secondary);">No endpoints registered yet.</td></tr>';
+                    return;
+                }
+
+                endpoints.forEach(ep => {
+                    let stClass = 'status-unknown';
+                    let stIcon = 'fa-circle-question';
+                    if (ep.status === 'UP') {
+                        stClass = 'status-up';
+                        stIcon = 'fa-check-circle';
+                    } else if (ep.status === 'DOWN') {
+                        stClass = 'status-down';
+                        stIcon = 'fa-times-circle';
+                    }
+
+                    if (!ep.enabled) {
+                        ep.status = 'DISABLED';
+                        stClass = 'status-unknown';
+                        stIcon = 'fa-ban';
+                    }
+
+                    const lastSeen = ep.last_seen && ep.last_seen !== '0001-01-01T00:00:00Z' 
+                        ? new Date(ep.last_seen).toLocaleTimeString() 
+                        : 'Never';
+
+                    const latencyMs = ep.latency ? (ep.latency / 1000000).toFixed(2) + ' ms' : '-';
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><span class="status-badge ${stClass}"><i class="fa-solid ${stIcon}"></i> ${ep.status}</span></td>
+                        <td style="font-weight: 500;">${ep.name}</td>
+                        <td style="font-family: monospace; font-size: 0.85rem;"><a href="${ep.url}" target="_blank" style="color:var(--accent);">${ep.url}</a></td>
+                        <td>${ep.region}</td>
+                        <td><span style="background:rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">${ep.environment}</span></td>
+                        <td style="font-family: monospace;">${latencyMs}</td>
+                        <td style="font-size: 0.85rem; color: var(--text-secondary);">${lastSeen}</td>
+                        <td>
+                            <button class="btn btn-danger" onclick="deleteEndpoint('${ep.id}')" title="Remove Endpoint">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function deleteEndpoint(id) {
+            if (!confirm('Are you sure you want to remove this endpoint? Prometheus will stop scraping it.')) return;
+            try {
+                await fetch('/api/v1/endpoints/' + id, { method: 'DELETE' });
+                loadEndpoints();
+            } catch (e) {
+                alert('Error deleting endpoint');
+            }
+        }
+    </script>
+    <script src="/scripts/ai-assistant.js"></script>
+</body>
+</html>

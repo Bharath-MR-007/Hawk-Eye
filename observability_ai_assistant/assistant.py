@@ -3,15 +3,15 @@ import json
 from rich.console import Console
 from rich.panel import Panel
 from rich.markdown import Markdown
-from .llm.ollama_client import OllamaClient
+from .llm.llm_factory import LLMFactory
 from .mcp_server import mcp
 
 console = Console()
 
 class ObservabilityAssistant:
     def __init__(self):
-        self.llm = OllamaClient()
-        self.system_prompt = """
+        self.llm = LLMFactory.get_client()
+    self.system_prompt = """
         You are a highly skilled SRE and Observability Assistant. 
         Your goal is to help users diagnose system issues using metrics, logs, and alerts.
         

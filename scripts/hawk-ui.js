@@ -116,6 +116,7 @@ const HawkUI = {
             { section: 'Configuration' },
             { label: 'Alerts Config',       icon: 'fa-folder',         href: '/alerts' },
             { label: 'Polling Config',      icon: 'fa-folder',         href: '/polling' },
+            { label: 'Endpoint Manager',    icon: 'fa-network-wired',  href: '/endpoints' },
             { label: 'User Configuration',  icon: 'fa-user-gear',      href: '/users_config' },
             { label: 'Export Snapshot',     icon: 'fa-file-export',    href: '#',                     fn: "if(typeof exportConfig==='function'){exportConfig();}else{alert('Export not available on this page.');}" },
             { label: 'Import Snapshot',     icon: 'fa-file-import',    href: '#',                     fn: "if(document.getElementById('importFile')){document.getElementById('importFile').click();}else{alert('Import not available on this page.');}" },

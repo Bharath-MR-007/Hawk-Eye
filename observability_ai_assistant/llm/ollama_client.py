@@ -1,6 +1,6 @@
 import ollama
 from typing import List, Dict, Any
-from ..config import OLLAMA_MODEL
+from config import OLLAMA_MODEL, OLLAMA_HOST
 
 class OllamaClient:
     def __init__(self, model: str = OLLAMA_MODEL):
