@@ -655,14 +655,22 @@
             <a href="#getting-started">Getting Started</a>
             <a href="#dashboard">Live Dashboard</a>
             <a href="#inventory">Inventory</a>
+            <a href="#incidents">Incident Management</a>
+            <a href="#drilldown">Incident Drilldown</a>
+            <a href="#correlated">Correlated Events</a>
+            <a href="#endpoints">Endpoint Manager</a>
+            <a href="#ai-assistant">AI Observability Assistant</a>
             <a href="#alerts">Alert Configuration</a>
             <a href="#tagging">Tagging & Grouping</a>
+            <a href="#troubleshooting">Troubleshooting Tools</a>
             <a href="#backup">Backup & Restore</a>
             <a href="#shortcuts">Keyboard Shortcuts</a>
             <h3>Other Docs</h3>
             <a href="/capabilities.html">Capabilities</a>
             <a href="/admindoc.html">Admin Document</a>
             <a href="/installation.html">Installation Guide</a>
+            <a href="/endpoints">Endpoint Manager</a>
+            <a href="/incidents">All Incidents</a>
         </nav>
         <main class="content">
             <a href="/dashboard" class="back-dashboard-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
@@ -872,7 +880,121 @@
                         style="color:var(--purple)" href="/admindoc.html">Admin Document</a> for advanced configuration
                     options.</p>
             </div>
-        </main>
+
+            <h2 id="incidents"><i class="fa-solid fa-triangle-exclamation"></i> Incident Management</h2>
+            <p>The <strong>All Incidents</strong> page (<a style="color:var(--purple)" href="/incidents">/incidents</a>) provides a live, sortable view of every alert that Prometheus has triggered for your monitored targets.</p>
+            <h3>Understanding the Incidents Table</h3>
+            <table>
+                <thead><tr><th>Column</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td>Severity</td><td>Critical / Warning / Info — color-coded badge</td></tr>
+                    <tr><td>Status</td><td>Open (active) or Closed (resolved)</td></tr>
+                    <tr><td>Target</td><td>The monitored URL / host that triggered the alert</td></tr>
+                    <tr><td>Rule / Group Key</td><td>The Prometheus alerting rule name that fired</td></tr>
+                    <tr><td>Opened Time</td><td>The ISO 8601 timestamp when the alert first fired</td></tr>
+                    <tr><td>Duration</td><td>Time elapsed since the alert opened</td></tr>
+                    <tr><td>Drilldown</td><td>Click to open the full Incident Drilldown view for this alert</td></tr>
+                </tbody>
+            </table>
+            <div class="callout info"><i class="fa-solid fa-circle-info"></i>
+                <p>All incidents are persisted to <span class="inline-code">localStorage</span> under the key <span class="inline-code">hawkeye_incident_history</span>. They survive browser refreshes and accumulate over time for correlation purposes.</p>
+            </div>
+
+            <h2 id="drilldown"><i class="fa-solid fa-magnifying-glass-chart"></i> Incident Drilldown</h2>
+            <p>Clicking <strong>Drilldown &rarr;</strong> on any incident opens the full Incident Drilldown view at <span class="inline-code">/incident_drilldown?group=&lt;key&gt;</span>. This view is modelled after enterprise NOC tools (e.g., HPE NNMi) and provides four contextual tabs:</p>
+            <ul>
+                <li><strong>General</strong> — Core incident metadata: severity, lifecycle state, assignee, description, origin check family, and total occurrence count.</li>
+                <li><strong>Correlated Events</strong> — A filtered, sortable history of all previous similar incidents sharing the same Group Key.</li>
+                <li><strong>Source Node Details</strong> — Network topology information for the monitored target node (hostname, IP, device type, management mode).</li>
+                <li><strong>Diagnostics</strong> — Embedded troubleshooting actions: SSL certificate check, TCP port test, DNS resolution — all run live for the affected target.</li>
+            </ul>
+            <div class="callout success"><i class="fa-solid fa-circle-check"></i>
+                <p>The drilldown page supports deep-linking via the <span class="inline-code">?id=</span> query parameter, allowing you to bookmark or share a specific historical occurrence of an incident.</p>
+            </div>
+
+            <h2 id="correlated"><i class="fa-solid fa-code-branch"></i> Correlated Events</h2>
+            <p>The <strong>Correlated Events</strong> tab inside the Incident Drilldown automatically aggregates every historical occurrence of the same alert group, giving you a complete pattern-of-failure timeline at a glance.</p>
+            <h3>How the Correlation Engine Works</h3>
+            <ol class="step-list">
+                <li><div><strong>Group Key Matching</strong><span>Incidents are grouped by their Prometheus <span class="inline-code">groupKey</span>, or by <span class="inline-code">ruleId::target</span> if no group key exists.</span></div></li>
+                <li><div><strong>Priority Sorting</strong><span><strong>Open (active)</strong> incidents are always promoted to the top of the list, regardless of timestamp. Within each status group, events are sorted newest-first.</span></div></li>
+                <li><div><strong>Section Divider</strong><span>A visual separator labeled <em>Closed Incidents</em> automatically appears between Open and Closed rows.</span></div></li>
+                <li><div><strong>Drilldown Pivoting</strong><span>Clicking any historical row reloads the entire drilldown context to that specific occurrence via <span class="inline-code">?id=</span> — including the General, Timeline, and Diagnostics tabs.</span></div></li>
+            </ol>
+            <h3>Filtering &amp; Sorting</h3>
+            <p>Each column header in the Correlated Events table is independently sortable (click to sort ascending/descending, indicated by a caret icon) and has an inline text filter input for real-time row filtering by Incident ID, Severity, Time, or Status.</p>
+            <div class="callout info"><i class="fa-solid fa-circle-info"></i>
+                <p><strong>Open</strong> incidents render with a red-tinted row background and a pulsing <strong>LIVE</strong> indicator. The header badge also shows the count of currently active incidents in that group (e.g., <em>2 OPEN</em>).</p>
+            </div>
+
+            <h2 id="endpoints"><i class="fa-solid fa-network-wired"></i> Endpoint Manager</h2>
+            <p>The <strong>Endpoint Manager</strong> (<a style="color:var(--purple)" href="/endpoints">/endpoints</a>) enables distributed, federated Hawk-Eye monitoring across multiple remote Sparrow instances. It is accessible from <strong>Configuration &rarr; Endpoint Manager</strong> in the sidebar.</p>
+            <h3>Registering a New Endpoint</h3>
+            <ol class="step-list">
+                <li><div><strong>Fill in the registration form</strong><span>Provide a Name, Endpoint URL (e.g., <span class="inline-code">http://10.x.x.x:8080</span>), Region, Environment (Production / Staging / Development), Polling Interval, and Timeout.</span></div></li>
+                <li><div><strong>Test Connectivity</strong><span>Click <strong>Test Connectivity</strong> before saving to validate the endpoint is reachable and measure latency.</span></div></li>
+                <li><div><strong>Save Endpoint</strong><span>Click <strong>Save Endpoint</strong>. The backend immediately persists the record to <span class="inline-code">endpoints_registry.json</span> and regenerates the Prometheus file-based service discovery configuration (<span class="inline-code">prometheus_sd_endpoints.yml</span>).</span></div></li>
+                <li><div><strong>Prometheus picks it up automatically</strong><span>Because Prometheus is configured with <span class="inline-code">file_sd_configs</span> pointing at the generated file, it begins scraping the new endpoint within the next polling cycle — no Prometheus restart required.</span></div></li>
+            </ol>
+            <h3>Active Endpoints Table</h3>
+            <table>
+                <thead><tr><th>Column</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td>Status</td><td>UP / DOWN / DISABLED — updated by the async health-check worker pool</td></tr>
+                    <tr><td>Name</td><td>Human-readable identifier for the remote Sparrow instance</td></tr>
+                    <tr><td>URL</td><td>Clickable link to the remote endpoint's metrics page</td></tr>
+                    <tr><td>Region</td><td>Geographic region label (e.g., <span class="inline-code">eu-west-1</span>)</td></tr>
+                    <tr><td>Environment</td><td>Deployment tier: Production, Staging, or Development</td></tr>
+                    <tr><td>Latency</td><td>Last measured round-trip time to <span class="inline-code">/metrics</span> in milliseconds</td></tr>
+                    <tr><td>Last Seen</td><td>Timestamp of the most recent successful health check</td></tr>
+                    <tr><td>Actions</td><td>Delete button to remove the endpoint and regenerate service discovery config</td></tr>
+                </tbody>
+            </table>
+            <div class="callout warn"><i class="fa-solid fa-triangle-exclamation"></i>
+                <p>The Endpoint Manager table auto-refreshes every 5 seconds to reflect live health check results. Deleted endpoints are immediately removed from Prometheus service discovery.</p>
+            </div>
+            <h3>Target Inventory — Endpoint Column</h3>
+            <p>The <a style="color:var(--purple)" href="/inventory">Target Inventory</a> page includes an <strong>Endpoint</strong> column that identifies which Sparrow instance discovered each monitored target. Locally monitored targets display a <em>Local Instance</em> badge. Targets from remote endpoints display their registered endpoint name.</p>
+
+            <h2 id="ai-assistant"><i class="fa-solid fa-robot"></i> AI Observability Assistant</h2>
+            <p>The Hawk-Eye AI Assistant is an embedded observability copilot powered by your configured LLM backend (Gemini, Ollama, NVIDIA NIM, or OpenAI-compatible APIs). It is accessible via the floating <strong>AI</strong> button visible on every page.</p>
+            <h3>Capabilities</h3>
+            <ul>
+                <li>Ask natural-language questions about your monitored targets (e.g., <em>"Why is app.example.com slow?"</em>)</li>
+                <li>Fetch live Prometheus metrics, alert states, and incident history on demand</li>
+                <li>Perform SSL certificate checks, DNS resolution tests, and TCP port probes via tool calls</li>
+                <li>Summarise active incidents and recommend remediation steps</li>
+                <li>Query target latency trends and packet loss statistics from Prometheus</li>
+            </ul>
+            <h3>Configuring the LLM Backend</h3>
+            <p>Edit <span class="inline-code">observability_ai_assistant/config.py</span> to set your preferred provider:</p>
+            <ul>
+                <li><span class="inline-code">LLM_PROVIDER = "gemini"</span> — Google Gemini via API key</li>
+                <li><span class="inline-code">LLM_PROVIDER = "ollama"</span> — Local Ollama model (no API key required)</li>
+                <li><span class="inline-code">LLM_PROVIDER = "nvidia"</span> — NVIDIA NIM cloud inference</li>
+                <li><span class="inline-code">LLM_PROVIDER = "openai"</span> — Any OpenAI-compatible endpoint</li>
+            </ul>
+            <div class="callout info"><i class="fa-solid fa-circle-info"></i>
+                <p>The AI Assistant web API runs on port <span class="inline-code">5001</span> by default. Make sure it is running (<span class="inline-code">python3 web_api.py</span>) before using the assistant widget.</p>
+            </div>
+
+            <h2 id="troubleshooting"><i class="fa-solid fa-microchip"></i> Troubleshooting Tools</h2>
+            <p>The <strong>Troubleshooting</strong> page (<a style="color:var(--purple)" href="/troubleshooting">/troubleshooting</a>) provides a suite of real-time diagnostic tools you can run directly from the browser without needing shell access.</p>
+            <table>
+                <thead><tr><th>Tool</th><th>What it does</th></tr></thead>
+                <tbody>
+                    <tr><td>SSL Certificate Check</td><td>Connects to the target host and retrieves the TLS certificate. Reports days-to-expiry, issuer, and validity status in real time from the backend (not simulated).</td></tr>
+                    <tr><td>DNS Resolution Test</td><td>Resolves the hostname using the system resolver and reports the resolved IP address and lookup latency.</td></tr>
+                    <tr><td>TCP Port Probe</td><td>Attempts a raw TCP connection to the specified port and reports reachability and handshake time.</td></tr>
+                    <tr><td>HTTP Response Probe</td><td>Performs a full HTTP GET and displays the status code, redirect chain, and total response time.</td></tr>
+                    <tr><td>Traceroute</td><td>Shows the network hop path from the Sparrow agent to the target (where ICMP is permitted).</td></tr>
+                </tbody>
+            </table>
+            <div class="callout warn"><i class="fa-solid fa-triangle-exclamation"></i>
+                <p>Traceroute requires ICMP access. Inside Docker containers, raw ICMP is restricted — hop count may show as 0 with a note <em>"Restricted by Docker"</em>.</p>
+            </div>
+
+            <h2 id="alerts"><i class="fa-solid fa-bell"></i> Alert Configuration</h2>
     </div>
 
     <script src="/scripts/ai-assistant.js"></script>

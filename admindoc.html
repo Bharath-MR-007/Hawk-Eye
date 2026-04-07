@@ -603,6 +603,8 @@
             <a href="#checks">checks.yaml Reference</a>
             <a href="#alerts">Alert Rules</a>
             <a href="#api">REST API Reference</a>
+            <a href="#endpoints-api">Endpoint Manager API</a>
+            <a href="#ai-setup">AI Assistant Setup</a>
             <a href="#envvars">Environment Variables</a>
             <a href="#logs">Log Management</a>
             <a href="#security">Security Hardening</a>
@@ -611,6 +613,8 @@
             <a href="/installation.html">Installation Guide</a>
             <a href="/capabilities.html">Capabilities</a>
             <a href="/architecture.html">Architecture</a>
+            <a href="/usermanual.html">User Manual</a>
+            <a href="/endpoints">Endpoint Manager</a>
         </nav>
         <main class="content">
             <a href="/dashboard" class="back-dashboard-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
@@ -661,6 +665,21 @@
                         <td><code>grafana/</code></td>
                         <td>Grafana dashboard JSON provisioning</td>
                         <td>❌ Restart required</td>
+                    </tr>
+                    <tr>
+                        <td><code>endpoints_registry.json</code></td>
+                        <td>Persisted list of registered remote Sparrow endpoints (Endpoint Manager)</td>
+                        <td>✅ Auto (managed by API)</td>
+                    </tr>
+                    <tr>
+                        <td><code>prometheus_sd_endpoints.yml</code></td>
+                        <td>Auto-generated Prometheus file_sd_configs for remote endpoints</td>
+                        <td>✅ Auto (on endpoint change)</td>
+                    </tr>
+                    <tr>
+                        <td><code>observability_ai_assistant/config.py</code></td>
+                        <td>LLM backend configuration for the AI Observability Assistant</td>
+                        <td>✅ On service restart</td>
                     </tr>
                 </tbody>
             </table>
@@ -931,7 +950,72 @@ receivers:
                 </tbody>
             </table>
 
-            <h2 id="envvars"><i class="fa-solid fa-gear"></i> Environment Variables</h2>
+            
+            <h2 id="endpoints-api"><i class="fa-solid fa-network-wired"></i> Endpoint Manager REST API</h2>
+            <p>The Endpoint Manager exposes a dedicated API under <span class="inline-code">/api/v1/endpoints</span> to manage remote Sparrow instances programmatically. All routes are served by the Hawk-Eye backend on port <span class="inline-code">8080</span>.</p>
+            <table>
+                <thead>
+                    <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>GET</td><td><code>/api/v1/endpoints</code></td><td>List all registered remote Sparrow endpoints with live status, latency, and last-seen timestamp</td></tr>
+                    <tr><td>POST</td><td><code>/api/v1/endpoints</code></td><td>Register a new remote endpoint. Body: <code>{"name","url","region","environment","polling_interval","timeout","enabled"}</code>. Automatically regenerates <code>prometheus_sd_endpoints.yml</code>.</td></tr>
+                    <tr><td>DELETE</td><td><code>/api/v1/endpoints/{id}</code></td><td>Remove an endpoint by UUID. Prometheus SD config is immediately updated.</td></tr>
+                    <tr><td>POST</td><td><code>/api/v1/endpoints/test</code></td><td>Test connectivity to a URL without registering it. Body: <code>{"url","timeout"}</code>. Returns <code>{"success","latency","error"}</code>.</td></tr>
+                </tbody>
+            </table>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span><span>Register a new endpoint via curl</span></div>
+                <pre><code>curl -s -X POST http://localhost:8080/api/v1/endpoints \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "EU-West-Sparrow",
+    "url": "http://10.20.30.40:8080",
+    "region": "eu-west-1",
+    "environment": "Production",
+    "polling_interval": 15000000000,
+    "timeout": 5000000000,
+    "enabled": true
+  }'</code></pre>
+            </div>
+            <div class="callout info"><i class="fa-solid fa-circle-info"></i>
+                <p>The <span class="inline-code">endpoints_registry.json</span> file is persisted via a Docker volume. The Prometheus file-SD config (<span class="inline-code">prometheus_sd_endpoints.yml</span>) is written to the same volume and referenced by <span class="inline-code">prometheus.yaml</span> as a <span class="inline-code">file_sd_configs</span> entry. No Prometheus restart is required when endpoints are added or removed.</p>
+            </div>
+            <h3>Endpoint Health Check Worker Pool</h3>
+            <p>The Endpoint Manager runs an asynchronous background worker pool that polls each registered endpoint's <span class="inline-code">/metrics</span> path at the configured <span class="inline-code">polling_interval</span>. Health state transitions (UP → DOWN) are recorded in memory and exposed via the list API. Latency is measured as the round-trip time to <span class="inline-code">/metrics</span>.</p>
+
+            <h2 id="ai-setup"><i class="fa-solid fa-robot"></i> AI Observability Assistant — Admin Setup</h2>
+            <p>The AI Observability Assistant is a separate Python microservice that runs alongside the main Go binary. It exposes a REST API on port <span class="inline-code">5001</span> that the frontend widget calls.</p>
+            <h3>Starting the Service</h3>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span><span>Start the AI assistant service</span></div>
+                <pre><code># From the sparrow/ directory
+cd observability_ai_assistant
+pip install -r requirements.txt
+python3 web_api.py
+
+# Or with the virtual environment
+source ../.venv/bin/activate
+python3 web_api.py</code></pre>
+            </div>
+            <h3>LLM Backend Configuration</h3>
+            <p>Edit <span class="inline-code">observability_ai_assistant/config.py</span>:</p>
+            <table>
+                <thead><tr><th>Config Key</th><th>Options / Example</th><th>Notes</th></tr></thead>
+                <tbody>
+                    <tr><td><code>LLM_PROVIDER</code></td><td><code>"gemini"</code>, <code>"ollama"</code>, <code>"nvidia"</code>, <code>"openai"</code></td><td>Selects the active LLM backend</td></tr>
+                    <tr><td><code>GEMINI_API_KEY</code></td><td><code>"AIza..."</code></td><td>Required when <code>LLM_PROVIDER = "gemini"</code></td></tr>
+                    <tr><td><code>OLLAMA_MODEL</code></td><td><code>"llama3"</code></td><td>Model name for local Ollama. Run <code>ollama pull llama3</code> first.</td></tr>
+                    <tr><td><code>NVIDIA_API_KEY</code></td><td><code>"nvapi-..."</code></td><td>Required for NVIDIA NIM cloud inference</td></tr>
+                    <tr><td><code>PROMETHEUS_URL</code></td><td><code>"http://prometheus:9090"</code></td><td>Prometheus base URL for metric queries</td></tr>
+                    <tr><td><code>HAWKEYE_API_URL</code></td><td><code>"http://hawkeye:8080"</code></td><td>Hawk-Eye API base URL for alert and target queries</td></tr>
+                </tbody>
+            </table>
+            <div class="callout warn"><i class="fa-solid fa-triangle-exclamation"></i>
+                <p>Never commit API keys to version control. Use environment variables or a secrets manager. The AI assistant has read access to Prometheus metrics and Hawk-Eye alert data — ensure the service is not exposed publicly.</p>
+            </div>
+
+<h2 id="envvars"><i class="fa-solid fa-gear"></i> Environment Variables</h2>
             <table>
                 <thead>
                     <tr>
@@ -965,6 +1049,26 @@ receivers:
                         <td><code>HAWKEYE_TARGETMANAGER_GITLAB_TOKEN</code></td>
                         <td>—</td>
                         <td>GitLab API token for auto target discovery</td>
+                    </tr>
+                    <tr>
+                        <td><code>LLM_PROVIDER</code></td>
+                        <td>gemini</td>
+                        <td>AI Assistant LLM backend: gemini, ollama, nvidia, openai</td>
+                    </tr>
+                    <tr>
+                        <td><code>GEMINI_API_KEY</code></td>
+                        <td>—</td>
+                        <td>Google Gemini API key for the AI assistant</td>
+                    </tr>
+                    <tr>
+                        <td><code>NVIDIA_API_KEY</code></td>
+                        <td>—</td>
+                        <td>NVIDIA NIM API key for cloud LLM inference</td>
+                    </tr>
+                    <tr>
+                        <td><code>PROMETHEUS_URL</code></td>
+                        <td>http://prometheus:9090</td>
+                        <td>Prometheus base URL used by the AI assistant tools</td>
                     </tr>
                 </tbody>
             </table>

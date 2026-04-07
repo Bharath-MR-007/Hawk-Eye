@@ -634,6 +634,7 @@
             <a href="#verify">Verify Installation</a>
             <a href="#ports">Service Ports</a>
             <a href="#troubleshoot">Troubleshooting</a>
+            <a href="#uninstall">Uninstallation</a>
             <h3>Other Docs</h3>
             <a href="/requirements.html">Software Requirements</a>
             <a href="/architecture.html">Architecture</a>
@@ -992,6 +993,132 @@ docker compose up -d kibana</code></pre>
             <div class="callout info"><i class="fa-solid fa-circle-info"></i>
                 <p>For more assistance, check the server logs at <span class="inline-code">hawkeye.log</span> in the
                     project root during local development.</p>
+            </div>
+
+            <h2 id="uninstall"><i class="fa-solid fa-trash-can"></i> Uninstallation</h2>
+            <p>The steps below cover complete removal of Hawk-Eye and all its data for each deployment method. Follow only the section that matches your installation.</p>
+
+            <div class="callout warn"><i class="fa-solid fa-triangle-exclamation"></i>
+                <p><strong>Before uninstalling</strong>, export your configuration via the Dashboard <strong>Export Snapshot</strong> button. This preserves your <span class="inline-code">checks.yaml</span>, alert rules, and tags as a ZIP file that can be reimported later.</p>
+            </div>
+
+            <h3><i class="fa-brands fa-docker" style="color:#0db7ed; margin-right:6px;"></i> Docker Compose Uninstall</h3>
+            <p>Run all commands from inside the <span class="inline-code">hawk-eye/</span> project directory so Docker Compose only targets the Hawk-Eye stack.</p>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span><span>Step 1 — Stop and remove Hawk-Eye containers and networks</span></div>
+                <pre><code># cd into the project directory first
+cd hawk-eye/
+
+# Stop all Hawk-Eye services and remove their containers + networks
+# This does NOT touch any other Docker containers on your system
+docker compose down --remove-orphans</code></pre>
+            </div>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span><span>Step 2 — Remove Hawk-Eye named volumes (Prometheus + Grafana data)</span></div>
+                <pre><code># Remove only the two named volumes defined in docker-compose.yaml
+docker volume rm sparrow_prometheus_data sparrow_grafana_data
+
+# Confirm they are gone
+docker volume ls | grep -E "prometheus_data|grafana_data"</code></pre>
+            </div>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span><span>Step 3 — Remove Hawk-Eye Docker images (optional)</span></div>
+                <pre><code># Remove only the images used by this stack — does NOT affect other projects
+docker rmi prom/prometheus:v2.54.1
+docker rmi grafana/grafana:11.2.0
+docker rmi prom/alertmanager:latest
+docker rmi thanosio/thanos:v0.36.1
+docker rmi docker.elastic.co/elasticsearch/elasticsearch:8.14.0
+docker rmi docker.elastic.co/kibana/kibana:8.14.0
+
+# The hawkeye image is built locally — remove it by name
+docker rmi hawkeye:latest 2>/dev/null || docker rmi $(docker images -q --filter "label=com.docker.compose.service=hawkeye") 2>/dev/null || true</code></pre>
+            </div>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span><span>Step 4 — Remove project files</span></div>
+                <pre><code">cd ..
+rm -rf hawk-eye/</code></pre>
+            </div>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span><span>Step 5 — Verify complete removal</span></div>
+                <pre><code># None of these should return any output
+docker ps -a | grep -E "hawkeye|prometheus|grafana|alertmanager|thanos|elasticsearch|kibana|ai-assistant"
+docker volume ls | grep -E "prometheus_data|grafana_data"
+docker network ls | grep hawk</code></pre>
+            </div>
+
+            <h3><i class="fa-solid fa-cube" style="color:var(--purple); margin-right:6px;"></i> Binary (systemd) Uninstall</h3>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span><span>Step 1 — Stop and disable the systemd service</span></div>
+                <pre><code>sudo systemctl stop hawkeye
+sudo systemctl disable hawkeye</code></pre>
+            </div>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span><span>Step 2 — Remove the systemd unit file</span></div>
+                <pre><code>sudo rm /etc/systemd/system/hawkeye.service
+sudo systemctl daemon-reload
+sudo systemctl reset-failed</code></pre>
+            </div>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span><span>Step 3 — Remove the binary and config files</span></div>
+                <pre><code># Remove installed binary
+sudo rm /usr/local/bin/hawkeye
+
+# Remove configuration directory
+sudo rm -rf /etc/hawkeye/
+
+# Remove project directory (if still present)
+rm -rf ~/hawk-eye/</code></pre>
+            </div>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span><span>Step 4 — Verify removal</span></div>
+                <pre><code>which hawkeye          # should return: not found
+systemctl status hawkeye  # should return: Unit not found</code></pre>
+            </div>
+
+            <h3><i class="fa-solid fa-dharmachakra" style="color:#326CE5; margin-right:6px;"></i> Helm / Kubernetes Uninstall</h3>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span><span>Step 1 — Uninstall the Helm release</span></div>
+                <pre><code>helm uninstall hawkeye --namespace monitoring</code></pre>
+            </div>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span><span>Step 2 — Delete the namespace (removes all resources and PVCs)</span></div>
+                <pre><code>kubectl delete namespace monitoring</code></pre>
+            </div>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span><span>Step 3 — Remove the Helm repository</span></div>
+                <pre><code>helm repo remove hawkeye</code></pre>
+            </div>
+            <div class="callout warn"><i class="fa-solid fa-triangle-exclamation"></i>
+                <p>Deleting the namespace will <strong>permanently destroy all PersistentVolumeClaims</strong> associated with Prometheus storage. If the StorageClass uses a <span class="inline-code">Retain</span> policy, manually delete the underlying PersistentVolumes as well.</p>
+            </div>
+
+            <h3><i class="fa-solid fa-robot" style="color:var(--green); margin-right:6px;"></i> AI Assistant Uninstall</h3>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BASH</span><span>Stop and remove the AI assistant service</span></div>
+                <pre><code># Kill the running process (if started directly)
+pkill -f "web_api.py"
+
+# Remove the virtual environment (if created)
+rm -rf .venv/
+
+# Remove installed Python packages (if installed globally)
+pip3 uninstall -r observability_ai_assistant/requirements.txt -y</code></pre>
+            </div>
+
+            <h3><i class="fa-solid fa-database" style="color:var(--yellow); margin-right:6px;"></i> Clearing Browser Data</h3>
+            <p>Hawk-Eye stores non-critical UI state in the browser's <span class="inline-code">localStorage</span> (tags, incident history, theme preference). To fully reset this:</p>
+            <div class="code-block">
+                <div class="code-header"><span class="lang">BROWSER CONSOLE</span><span>Open DevTools → Console and run:</span></div>
+                <pre><code>// Clear all Hawk-Eye browser data
+Object.keys(localStorage)
+  .filter(k => k.startsWith('hawk') || k.startsWith('hawkeye'))
+  .forEach(k => localStorage.removeItem(k));
+console.log('Hawk-Eye localStorage cleared.');</code></pre>
+            </div>
+
+            <div class="callout info"><i class="fa-solid fa-circle-info"></i>
+                <p>Incident history (<span class="inline-code">hawkeye_incident_history</span>), target tags (<span class="inline-code">hawk_tags</span>), and theme preference (<span class="inline-code">hawk_theme</span>) are stored per-browser. These are <strong>not</strong> removed by a server-side uninstall — clear them manually from each browser that accessed the dashboard.</p>
             </div>
         </main>
     </div>
