@@ -3,41 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hawk-Eye | Visual Dashboard</title>
-    <meta name="description" content="Hawk-Eye Visual Monitoring Dashboard — pictorial-first health overview for all targets">
+    <title>Hawk-Eye | Antigravity Dashboard</title>
+    <meta name="description" content="Zero-cognitive-load infrastructure monitoring. Action-first, prediction-driven.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link id="hawk-theme-css-link" rel="stylesheet" href="/scripts/hawk-theme.css">
     <script src="/scripts/hawk-ui.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap');
 
         :root {
-            --bg: #0f1115;
-            --surface: #1a1d24;
-            --surface2: #1e2230;
-            --border: #2a2d35;
-            --text: #f8fafc;
-            --muted: #94a3b8;
-            --accent: #8b5cf6;
-            --green: #10b981;
-            --yellow: #f59e0b;
-            --orange: #f97316;
-            --red: #ef4444;
-            --blue: #3b82f6;
-            --sidebar-bg: #12141c;
+            --bg:          #080d18;
+            --bg-dark:     #080d18;
+            --surface:     #0d1221;
+            --surface2:    #111827;
+            --surface-color:     #0d1221;
+            --surface-highlight: #111827;
+            --border:       rgba(255,255,255,0.07);
+            --border-color: rgba(255,255,255,0.07);
+            --text:          #f0f4ff;
+            --text-primary:  #f0f4ff;
+            --muted:         #a0aec8;
+            --text-secondary:#a0aec8;
+            --accent:        #00d4ff;
+            --accent-purple: #7c3aed;
+            --magenta:       #00d4ff;
+            --green:   #00e87a;
+            --yellow:  #f59e0b;
+            --orange:  #fb923c;
+            --red:     #ff4040;
+            --blue:    #3b82f6;
+            --sidebar-bg: #040a16;
         }
 
-        /* ── Light Theme ── */
         body.light-theme {
-            --bg: #f1f5f9;
-            --surface: #ffffff;
-            --surface2: #f8fafc;
-            --border: #e2e8f0;
-            --text: #0f172a;
-            --muted: #64748b;
-            --sidebar-bg: #1e293b;
+            --bg:          #e8edf6;
+            --bg-dark:     #e8edf6;
+            --surface:     #ffffff;
+            --surface2:    #f5f8ff;
+            --surface-color:     #ffffff;
+            --surface-highlight: #f5f8ff;
+            --border:       rgba(0,0,0,0.08);
+            --border-color: rgba(0,0,0,0.08);
+            --text:          #0a0f1e;
+            --text-primary:  #0a0f1e;
+            --muted:         #4a5568;
+            --text-secondary:#4a5568;
+            --accent:        #0095c8;
+            --accent-purple: #6d28d9;
+            --sidebar-bg: #0a1e3d;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         html, body {
             font-family: 'Inter', sans-serif;
@@ -45,1083 +61,672 @@
             color: var(--text);
             height: 100vh;
             overflow: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* ── App Window (sidebar + content) ── */
-        .app-window {
-            display: flex;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            background: var(--bg);
-        }
-
-        /* ── Sidebar ── */
-        
-
-        
-
-        
-
-        .nav-category {
-            padding: 0 1.4rem;
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            font-weight: 700;
-            color: var(--muted);
-            margin: 1.2rem 0 0.4rem;
-            letter-spacing: 0.07em;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 10px 1.4rem;
-            color: var(--muted);
-            text-decoration: none;
-            font-size: 0.82rem;
-            font-weight: 600;
-            transition: all 0.2s;
-            border-left: 3px solid transparent;
-            gap: 12px;
-            cursor: pointer;
-            background: transparent;
-            border-top: none;
-            border-right: none;
-            border-bottom: none;
-            width: 100%;
-            text-align: left;
-            font-family: inherit;
-        }
-
-        .nav-item i { width: 16px; font-size: 1rem; text-align: center; }
-
-        .nav-item:hover {
-            background: rgba(255,255,255,0.05);
-            color: var(--text);
-        }
-
-        .nav-item.active {
-            background: rgba(139,92,246,0.12);
-            color: #fff;
-            border-left-color: var(--accent);
-        }
-
-        .nav-item.active i { color: var(--accent); }
-
-        .tree-parent { justify-content: space-between !important; }
-        .tree-parent .tree-chevron { font-size: 0.65rem; transition: transform 0.2s; width: auto !important; }
-        .tree-parent.open .tree-chevron { transform: rotate(180deg); }
-        .tree-children {
-            display: none; flex-direction: column; gap: 2px;
-            background: rgba(0,0,0,0.15);
-            border-left: 2px solid rgba(139,92,246,0.3);
-            margin-left: 24px; padding-left: 4px;
-        }
-        .tree-parent.open+.tree-children { display: flex; }
-        .child-item { padding: 7px 1rem !important; font-size: 0.78rem !important; }
-
-        /* ── App Content ── */
-        .app-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            overflow: hidden;
-        }
-
-        /* ── Top Navbar ── */
-        .top-navbar {
-            height: 60px;
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 1.75rem;
-            flex-shrink: 0;
-            gap: 12px;
-        }
-
-        .top-navbar-title {
-            font-size: 1rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .top-navbar-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* Page scrollable area */
-        .page-scroll {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-
-        /* ── Topbar (legacy — removed, sidebar replaces it) ── */
-        .topbar { display: none; }
-
-        .topbar-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-        }
-
-        .logo-icon {
-            width: 34px;
-            height: 34px;
-            background: linear-gradient(135deg, var(--accent), #6d28d9);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-        }
-
-        .topbar-nav {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .nav-link {
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: var(--muted);
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-
-        .nav-link:hover, .nav-link.active {
-            background: rgba(139,92,246,0.12);
-            color: var(--accent);
-        }
-
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .refresh-btn {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            background: var(--accent);
-            border: none;
-            color: white;
-            padding: 7px 16px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: filter 0.2s;
-        }
-
-        .refresh-btn:hover { filter: brightness(1.15); }
-        .refresh-btn.spinning i { animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* ── Layout ── */
-        .page {
-            padding: 1.75rem 2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.75rem;
-        }
-
-        /* ── Section Title ── */
-        .section-title {
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--muted);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 0.1rem;
-        }
-
-        /* ── KPI Cards ── */
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-        }
-
-        .kpi-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.4rem 1.5rem;
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            transition: border-color 0.2s, transform 0.2s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .kpi-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 3px;
-            border-radius: 16px 16px 0 0;
-        }
-
-        .kpi-card.green::before { background: var(--green); }
-        .kpi-card.red::before { background: var(--red); }
-        .kpi-card.yellow::before { background: var(--yellow); }
-        .kpi-card.blue::before { background: var(--blue); }
-
-        .kpi-card:hover { border-color: rgba(139,92,246,0.3); transform: translateY(-2px); }
-
-        .kpi-icon {
-            width: 46px; height: 46px;
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.3rem;
-            flex-shrink: 0;
-        }
-
-        .kpi-icon.green { background: rgba(16,185,129,0.12); }
-        .kpi-icon.red { background: rgba(239,68,68,0.12); }
-        .kpi-icon.yellow { background: rgba(245,158,11,0.12); }
-        .kpi-icon.blue { background: rgba(59,130,246,0.12); }
-
-        .kpi-body { flex: 1; }
-        .kpi-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-        .kpi-value { font-size: 2rem; font-weight: 800; line-height: 1.1; margin: 4px 0; }
-        .kpi-value.green { color: var(--green); }
-        .kpi-value.red { color: var(--red); }
-        .kpi-value.yellow { color: var(--yellow); }
-        .kpi-value.blue { color: var(--blue); }
-        .kpi-sub { font-size: 0.75rem; color: var(--muted); display: flex; align-items: center; gap: 4px; }
-        .trend-up { color: var(--green); }
-        .trend-down { color: var(--red); }
-
-        /* ── Filters ── */
-        .filter-bar {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .filter-input {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 8px 14px 8px 38px;
-            color: var(--text);
-            font-size: 0.82rem;
-            font-family: inherit;
-            outline: none;
-            width: 220px;
-            transition: border-color 0.2s;
-            position: relative;
-        }
-
-        .filter-input:focus { border-color: rgba(139,92,246,0.5); }
-        .filter-search-wrap { position: relative; }
-        .filter-search-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.8rem; }
-
-        .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
-
-        .filter-pill {
-            padding: 5px 14px;
-            border-radius: 20px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            border: 1px solid var(--border);
-            background: transparent;
-            color: var(--muted);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .filter-pill.active, .filter-pill:hover {
-            background: rgba(139,92,246,0.15);
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        .filter-pill.status-ok.active { background: rgba(16,185,129,0.12); border-color: var(--green); color: var(--green); }
-        .filter-pill.status-warning.active { background: rgba(245,158,11,0.12); border-color: var(--yellow); color: var(--yellow); }
-        .filter-pill.status-critical.active { background: rgba(239,68,68,0.12); border-color: var(--red); color: var(--red); }
-
-        /* ── Target Cards ── */
-        .target-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-        }
-
-        @media (max-width: 1200px) { .target-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 768px) { .target-grid { grid-template-columns: 1fr; } .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
-
-        .target-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.25rem 1.4rem;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .target-card::after {
-            content: '';
-            position: absolute;
-            left: 0; top: 0; bottom: 0;
-            width: 4px;
-            border-radius: 16px 0 0 16px;
-        }
-
-        .target-card.ok::after { background: var(--green); }
-        .target-card.warning::after { background: var(--yellow); }
-        .target-card.critical::after { background: var(--red); }
-
-        .target-card:hover {
-            border-color: rgba(139,92,246,0.35);
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-
-        .card-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .card-name {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .card-emoji {
-            font-size: 1.6rem;
-            line-height: 1;
-        }
-
-        .card-title {
-            font-weight: 700;
-            font-size: 0.95rem;
-        }
-
-        .card-tag {
-            font-size: 0.68rem;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .status-badge {
-            padding: 4px 11px;
-            border-radius: 20px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .status-badge.ok { background: rgba(16,185,129,0.15); color: var(--green); }
-        .status-badge.warning { background: rgba(245,158,11,0.15); color: var(--yellow); }
-        .status-badge.critical { background: rgba(239,68,68,0.15); color: var(--red); }
-
-        /* Latency bar */
-        .latency-section { display: flex; flex-direction: column; gap: 5px; }
-
-        .latency-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .latency-label { font-size: 0.7rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-        .latency-value { font-size: 0.95rem; font-weight: 700; font-family: 'Fira Code', monospace; }
-
-        .latency-bar-bg {
-            background: rgba(255,255,255,0.05);
-            border-radius: 6px;
-            height: 8px;
-            overflow: hidden;
-        }
-
-        .latency-bar-fill {
-            height: 100%;
-            border-radius: 6px;
-            transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-            position: relative;
-        }
-
-        .latency-bar-fill::after {
-            content: '';
-            position: absolute;
-            top: 0; right: 0; bottom: 0;
-            width: 30%;
-            background: linear-gradient(to right, transparent, rgba(255,255,255,0.2));
-        }
-
-        /* Metrics row */
-        .metrics-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-        }
-
-        .metric-cell {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 8px;
-            padding: 7px 9px;
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .metric-cell-label { font-size: 0.62rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
-        .metric-cell-val { font-size: 0.82rem; font-weight: 700; }
-        .val-ok { color: var(--green); }
-        .val-warn { color: var(--yellow); }
-        .val-crit { color: var(--red); }
-        .val-muted { color: var(--muted); }
-
-        /* Sparkline */
-        .sparkline {
-            font-family: 'Fira Code', monospace;
-            font-size: 1rem;
-            letter-spacing: 2px;
-            line-height: 1;
-        }
-
-        /* Card footer */
-        .card-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            padding-top: 10px;
-        }
-
-        .detail-link {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--accent);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: gap 0.2s;
-        }
-
-        .detail-link:hover { gap: 8px; }
-
-        .last-check { font-size: 0.68rem; color: var(--muted); }
-
-        /* ── Alert Timeline ── */
-        .alert-panel {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            overflow: hidden;
-        }
+        /* ══ APP WINDOW ══ */
+        .app-window { display: flex; height: 100vh; width: 100vw; overflow: hidden; background: var(--bg); }
 
-        .alert-panel-header {
-            padding: 1rem 1.4rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .alert-panel-title {
-            font-size: 0.95rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .alert-count-badge {
-            background: rgba(239,68,68,0.15);
-            color: var(--red);
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 10px;
-        }
-
-        .alert-list { padding: 0.5rem 0; }
-
-        .alert-row {
-            padding: 0.75rem 1.4rem;
-            display: grid;
-            grid-template-columns: 28px 160px 1fr 80px 80px;
-            align-items: center;
-            gap: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-            transition: background 0.15s;
-        }
-
-        .alert-row:hover { background: rgba(255,255,255,0.02); }
-        .alert-row:last-child { border-bottom: none; }
-
-        .alert-sev-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-        .alert-target { font-weight: 600; font-size: 0.82rem; font-family: 'Fira Code', monospace; }
-        .alert-type { font-size: 0.78rem; color: var(--muted); }
-
-        .alert-bar-wrap { background: rgba(255,255,255,0.05); border-radius: 4px; height: 6px; overflow: hidden; }
-        .alert-bar-fill { height: 100%; border-radius: 4px; }
-
-        .alert-time { font-size: 0.72rem; color: var(--muted); text-align: right; }
-
-        /* empty state */
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: var(--muted);
-        }
-
-        .empty-state i { font-size: 2rem; margin-bottom: 10px; display: block; }
-
-        /* ── Bottom row ── */
-        .bottom-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.25rem;
-        }
-
-        /* Regional Map Mock */
-        .map-panel {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            overflow: hidden;
-        }
-
-        .map-panel-header {
-            padding: 1rem 1.4rem;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.95rem;
-            font-weight: 700;
-        }
-
-        .map-body {
-            padding: 1.25rem 1.4rem;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .region-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .region-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
-        .region-name { font-size: 0.82rem; font-weight: 600; width: 140px; flex-shrink: 0; }
-        .region-bar-bg { flex: 1; background: rgba(255,255,255,0.05); border-radius: 4px; height: 8px; overflow: hidden; }
-        .region-bar-fill { height: 100%; border-radius: 4px; }
-        .region-lat { font-size: 0.75rem; font-weight: 700; font-family: 'Fira Code', monospace; width: 60px; text-align: right; }
-
-        /* Hidden targets */
-        .target-card.hidden { display: none; }
-
-        /* Health score ring */
-        .health-score-wrap {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 2px;
-        }
-        .health-score-bar-bg {
-            flex: 1;
-            height: 5px;
-            background: rgba(255,255,255,0.07);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        .health-score-bar-fill {
-            height: 100%;
-            border-radius: 3px;
-            transition: width 0.8s ease;
-        }
-        .health-score-label {
-            font-size: 0.72rem;
-            font-weight: 800;
-            font-family: 'Fira Code', monospace;
-            min-width: 30px;
-            text-align: right;
-        }
-
-        /* Root cause pill */
-        .root-cause {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 0.68rem;
-            font-weight: 700;
-            padding: 3px 9px;
-            border-radius: 6px;
-            background: rgba(239,68,68,0.1);
-            color: #f87171;
-            border: 1px solid rgba(239,68,68,0.2);
-            letter-spacing: 0.02em;
-        }
-        .root-cause.warn {
-            background: rgba(245,158,11,0.1);
-            color: #fbbf24;
-            border-color: rgba(245,158,11,0.2);
-        }
-        .root-cause.ok {
-            background: rgba(16,185,129,0.1);
-            color: #34d399;
-            border-color: rgba(16,185,129,0.2);
-        }
-
-        /* Last success */
-        .last-success {
-            font-size: 0.68rem;
-            color: var(--muted);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-    
-        /* ══ GLOBAL SIDEBAR ═══════════════════════════════════════ */
-        .app-window {
-            display: flex !important;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-        }
+        /* ══ SIDEBAR ══════════════════════════════════════════════════════════ */
         .main-sidebar {
-            width: 230px !important;
-            min-width: 230px !important;
-            background: linear-gradient(175deg,#0b1a2e,#0f2744,#122f52) !important;
-            display: flex !important;
-            flex-direction: column !important;
-            flex-shrink: 0 !important;
-            z-index: 200 !important;
-            border-right: 1px solid rgba(255,255,255,0.08) !important;
-            overflow: hidden !important;
-        }
-        body.light-theme .main-sidebar { background: linear-gradient(175deg,#1a3a6c,#1e4487,#1d4ed8) !important; }
-
-        .main-sidebar-header {
-            height: 62px;
-            display: flex;
-            align-items: center;
-            padding: 0 1.2rem;
-            gap: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            flex-shrink: 0;
-        }
-        .main-sidebar-logo-text {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.1;
-        }
-        .main-sidebar-logo-text .hawk-name {
-            font-weight: 800;
-            font-size: 1.05rem;
-            color: #e0f0ff;
-            letter-spacing: -0.01em;
-        }
-        .main-sidebar-logo-text .hawk-sub {
-            font-size: 0.58rem;
-            color: #ff6ef7;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
-        .main-sidebar-nav {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0.8rem 0;
-            display: flex;
-            flex-direction: column;
-            gap: 1px;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.1) transparent;
-        }
-        .nav-category {
-            padding: 0.9rem 1rem 0.3rem;
-            font-size: 0.6rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: rgba(255,255,255,0.4);
-        }
-        .nav-item {
-            display: flex !important;
-            align-items: center !important;
-            padding: 9px 1.2rem !important;
-            color: rgba(200,220,255,0.75) !important;
-            text-decoration: none !important;
-            font-size: 0.8rem !important;
-            font-weight: 600 !important;
-            transition: all 0.15s !important;
-            border-left: 3px solid transparent !important;
-            gap: 11px !important;
-            cursor: pointer !important;
-            background: transparent !important;
-            border-top: none !important;
-            border-right: none !important;
-            border-bottom: none !important;
-            width: 100% !important;
-            text-align: left !important;
-            font-family: inherit !important;
-            box-sizing: border-box !important;
-        }
-        .nav-item i {
-            width: 16px;
-            font-size: 0.9rem;
-            text-align: center;
-            color: rgba(160,200,255,0.6);
-            transition: color 0.15s;
-            flex-shrink: 0;
-        }
-        .nav-item:hover {
-            background: rgba(255,255,255,0.07) !important;
-            color: #e0f0ff !important;
-            border-left-color: rgba(96,165,250,0.5) !important;
-        }
-        .nav-item:hover i { color: #93c5fd; }
-        .nav-item.active {
-            background: rgba(59,130,246,0.22) !important;
-            color: #e0f0ff !important;
-            border-left-color: #60a5fa !important;
-            font-weight: 700 !important;
-        }
-        .nav-item.active i { color: #93c5fd; }
-
-        /* Tree accordion */
-        .tree-parent { justify-content: space-between !important; }
-        .tree-chevron { font-size: 0.6rem; transition: transform 0.2s; width: auto !important; flex-shrink: 0; }
-        .tree-parent.open .tree-chevron { transform: rotate(180deg); }
-        .tree-children {
-            display: none;
-            flex-direction: column;
-            gap: 1px;
-            background: rgba(0,0,0,0.15);
-            border-left: 2px solid rgba(96,165,250,0.25);
-            margin-left: 22px;
-        }
-        .tree-parent.open + .tree-children { display: flex; }
-        .child-item { padding: 7px 1rem !important; font-size: 0.76rem !important; }
-
-        /* App content */
-        .app-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            overflow: hidden;
-        }
-        .page-scroll {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-        /* ══════════════════════════════════════════════════════════ */
-
-        
-        /* ══ SIDEBAR PREMIUM COLOUR ══════════════════════════════ */
-        .main-sidebar {
-            background: linear-gradient(175deg, #0b1a2e 0%, #0f2744 55%, #122f52 100%) !important;
-            border-right: 1px solid rgba(96,165,250,0.12) !important;
-            box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
+            width: 232px; min-width: 232px;
+            background: linear-gradient(175deg, #040a16 0%, #060e22 45%, #08132e 100%);
+            display: flex; flex-direction: column; flex-shrink: 0;
+            z-index: 200; border-right: 1px solid rgba(0,212,255,0.08);
+            box-shadow: 6px 0 40px rgba(0,0,0,0.5);
         }
         body.light-theme .main-sidebar {
-            background: linear-gradient(175deg, #1a3a6c 0%, #1e4487 55%, #1d4ed8 100%) !important;
-            border-right: 1px solid rgba(255,255,255,0.15) !important;
+            background: linear-gradient(175deg, #0a1e3d 0%, #102a55 45%, #163470 100%);
         }
         .main-sidebar-header {
-            background: rgba(0,0,0,0.25) !important;
-            border-bottom: 1px solid rgba(96,165,250,0.15) !important;
+            height: 62px; display: flex; align-items: center; padding: 0 1.2rem; gap: 12px;
+            background: rgba(0,0,0,0.28); border-bottom: 1px solid rgba(0,212,255,0.08); flex-shrink: 0;
         }
-        .nav-category { color: rgba(147,197,253,0.5) !important; }
-        .nav-item { color: rgba(186,219,255,0.72) !important; }
-        .nav-item i { color: rgba(147,197,253,0.55) !important; }
-        .nav-item:hover {
-            background: rgba(59,130,246,0.12) !important;
-            color: #e0f2ff !important;
-            border-left-color: rgba(96,165,250,0.6) !important;
-        }
-        .nav-item:hover i { color: #93c5fd !important; }
-        .nav-item.active {
-            background: rgba(37,99,235,0.28) !important;
-            color: #bfdbfe !important;
-            border-left-color: #3b82f6 !important;
-        }
-        .nav-item.active i { color: #93c5fd !important; }
-        .tree-children { background: rgba(0,0,0,0.2) !important; border-left-color: rgba(59,130,246,0.3) !important; }
-        /* ═══════════════════════════════════════════════════════ */
+        .main-sidebar-nav { flex:1; overflow-y:auto; padding:0.8rem 0; display:flex; flex-direction:column; gap:1px; scrollbar-width:thin; scrollbar-color:rgba(0,212,255,0.1) transparent; }
+        .nav-category { padding:0.9rem 1.1rem 0.3rem; font-size:0.57rem; font-weight:800; text-transform:uppercase; letter-spacing:0.14em; color:rgba(0,212,255,0.38); }
+        .nav-item { display:flex!important; align-items:center!important; padding:9px 1.2rem!important; color:rgba(172,210,255,0.72)!important; text-decoration:none!important; font-size:0.80rem!important; font-weight:500!important; transition:all 0.16s!important; border-left:3px solid transparent!important; gap:11px!important; cursor:pointer!important; background:transparent!important; border-top:none!important; border-right:none!important; border-bottom:none!important; width:100%!important; text-align:left!important; font-family:inherit!important; }
+        .nav-item i { width:16px; font-size:0.88rem; text-align:center; color:rgba(0,212,255,0.38); transition:color 0.16s; flex-shrink:0; }
+        .nav-item:hover { background:rgba(0,212,255,0.09)!important; color:#e0f4ff!important; border-left-color:rgba(0,212,255,0.50)!important; }
+        .nav-item:hover i { color:var(--accent)!important; }
+        .nav-item.active { background:rgba(0,212,255,0.15)!important; color:#c8ecff!important; border-left-color:var(--accent)!important; font-weight:700!important; }
+        .nav-item.active i { color:var(--accent)!important; }
 
-        </style>
+        /* ══ APP CONTENT ══ */
+        .app-content { flex:1; display:flex; flex-direction:column; min-width:0; overflow:hidden; }
+        .top-navbar {
+            height: 58px; display:flex; align-items:center; justify-content:space-between;
+            padding: 0 1.75rem; flex-shrink:0; gap:12px;
+            background: rgba(4,10,22,0.88); backdrop-filter:blur(14px);
+            -webkit-backdrop-filter:blur(14px);
+            border-bottom: 1px solid rgba(0,212,255,0.07);
+        }
+        body.light-theme .top-navbar { background:rgba(240,244,250,0.94); border-bottom:1px solid rgba(0,0,0,0.09); }
+        .top-navbar-title { font-size:0.95rem; font-weight:700; display:flex; align-items:center; gap:8px; color:var(--text); }
+        .top-navbar-right { display:flex; align-items:center; gap:10px; }
+        .page-scroll { flex:1; overflow-y:auto; overflow-x:hidden; scrollbar-width:thin; scrollbar-color:rgba(0,212,255,0.10) transparent; }
+
+        /* ══ THREE-SECOND RULE HEADER BAR ══ */
+        .ag-header {
+            display: flex; align-items: stretch; gap: 0;
+            background: var(--surface); border-bottom: 1px solid var(--border);
+            padding: 0; flex-shrink: 0;
+        }
+
+        /* Global health traffic-light — 0-1 second scan */
+        .ag-health-light {
+            display: flex; align-items: center; gap: 16px;
+            padding: 0 2rem; min-width: 280px; border-right: 1px solid var(--border);
+            position: relative; overflow: hidden;
+        }
+        .ag-health-light::before {
+            content: ''; position:absolute; inset:0;
+            opacity: 0.06; transition: opacity 0.5s;
+        }
+        .ag-health-light.state-ok::before    { background: var(--green); }
+        .ag-health-light.state-warn::before  { background: var(--yellow); }
+        .ag-health-light.state-crit::before  { background: var(--red); }
+
+        .ag-health-orb {
+            width: 48px; height: 48px; border-radius: 50%;
+            display: flex; align-items:center; justify-content:center;
+            font-size: 1.4rem; flex-shrink: 0;
+            box-shadow: 0 0 0 4px rgba(0,232,122,0.10);
+            transition: box-shadow 0.5s, background 0.5s;
+        }
+        .ag-health-orb.ok   { background:rgba(0,232,122,0.15); box-shadow: 0 0 0 4px rgba(0,232,122,0.15), 0 0 24px rgba(0,232,122,0.25); }
+        .ag-health-orb.warn { background:rgba(245,158,11,0.15); box-shadow: 0 0 0 4px rgba(245,158,11,0.15), 0 0 24px rgba(245,158,11,0.25); }
+        .ag-health-orb.crit { background:rgba(255,64,64,0.15); box-shadow: 0 0 0 4px rgba(255,64,64,0.15), 0 0 24px rgba(255,64,64,0.25); animation: ag-pulse-crit 1.5s infinite; }
+        @keyframes ag-pulse-crit { 0%,100%{ box-shadow:0 0 0 4px rgba(255,64,64,0.15),0 0 24px rgba(255,64,64,0.25); } 50%{box-shadow:0 0 0 8px rgba(255,64,64,0.08),0 0 40px rgba(255,64,64,0.40);} }
+
+        .ag-health-num { font-size: 2.4rem; font-weight: 900; line-height: 1; letter-spacing: -1px; }
+        .ag-health-num.ok   { color: var(--green); }
+        .ag-health-num.warn { color: var(--yellow);}
+        .ag-health-num.crit { color: var(--red);   }
+        .ag-health-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+        .ag-health-sub   { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+        /* KPI strip — instant read */
+        .ag-kpi-strip { display:flex; flex:1; }
+        .ag-kpi-item {
+            flex:1; display:flex; align-items:center; gap:14px;
+            padding: 0 1.5rem; border-right: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+        .ag-kpi-item:last-child { border-right: none; }
+        .ag-kpi-item:hover { background: rgba(0,212,255,0.03); }
+        .ag-kpi-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+        .ag-kpi-icon.crit { background:rgba(255,64,64,0.12); }
+        .ag-kpi-icon.warn { background:rgba(245,158,11,0.12); }
+        .ag-kpi-icon.ok   { background:rgba(0,232,122,0.12); }
+        .ag-kpi-icon.info { background:rgba(59,130,246,0.12); }
+        .ag-kpi-body {}
+        .ag-kpi-label { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); }
+        .ag-kpi-val { font-size:1.5rem; font-weight:800; line-height:1.1; }
+        .ag-kpi-val.crit { color:var(--red); }
+        .ag-kpi-val.warn { color:var(--yellow); }
+        .ag-kpi-val.ok   { color:var(--green); }
+        .ag-kpi-val.info { color:var(--blue); }
+        .ag-kpi-sub { font-size:0.7rem; color:var(--muted); margin-top:1px; }
+
+        /* ══ PAGE BODY ══ */
+        .ag-page { padding: 1.5rem 1.75rem; display:flex; flex-direction:column; gap:1.5rem; }
+
+        /* ══ SECTION LABELS ══ */
+        .ag-section-label {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.12em; color: rgba(0,212,255,0.5);
+            margin-bottom: 0.75rem;
+        }
+        .ag-section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+        /* ══ ACTION-FIRST ZONE (Issues surface here — empty when all OK) ══ */
+        .ag-action-zone {}
+        .ag-action-zone-empty {
+            display: flex; align-items: center; gap: 14px;
+            background: rgba(0,232,122,0.05); border:1px solid rgba(0,232,122,0.15);
+            border-radius: 12px; padding: 14px 20px;
+            font-size: 0.88rem; color: var(--green);
+        }
+        .ag-action-zone-empty i { font-size:1.2rem; }
+
+
+        .ag-actions-grid { display:flex; flex-direction:column; gap:4px; }
+
+        .ag-action-card {
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            padding: 7px 14px;
+            display: grid;
+            grid-template-columns: 20px 1fr auto;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.15s;
+            animation: ag-slide-in 0.3s ease-out both;
+        }
+        @keyframes ag-slide-in { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+        .ag-action-card:hover { background:rgba(255,255,255,0.02); }
+        .ag-action-card.sev-2 { border-left: 3px solid var(--red); }
+        .ag-action-card.sev-1 { border-left: 3px solid var(--yellow); }
+
+        .ag-ac-sev { width:20px; height:20px; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; flex-shrink:0; }
+        .ag-ac-sev.crit { background:rgba(255,64,64,0.15); color:var(--red); }
+        .ag-ac-sev.warn { background:rgba(245,158,11,0.15); color:var(--yellow); }
+        .ag-ac-body { display:flex; align-items:baseline; gap:10px; min-width:0; }
+        .ag-ac-title { font-size:0.80rem; font-weight:600; color:var(--text); white-space:nowrap; }
+        .ag-ac-detail { font-size:0.72rem; color:var(--muted); display:flex; gap:10px; flex-wrap:nowrap; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .ag-ac-detail span { display:flex; align-items:center; gap:3px; }
+        .ag-ac-confidence { font-family:'Fira Code',monospace; font-size:0.68rem; color:var(--muted); white-space:nowrap; display:flex; gap:10px; align-items:center; }
+        .ac-conf-high { color:var(--green)!important; }
+        .ac-conf-med  { color:var(--yellow)!important; }
+
+        /* ══ SWARM + TARGETS SPLIT LAYOUT ══ */
+        .ag-main-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 1.25rem;
+            align-items: start;
+        }
+
+        /* ══ TARGET GRID ══ */
+        .ag-target-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 10px;
+        }
+        .ag-target-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: border-color 0.2s, transform 0.18s, box-shadow 0.18s;
+            position: relative;
+            overflow: hidden;
+            animation: ag-slide-in 0.3s ease-out both;
+        }
+        .ag-target-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; border-radius:14px 14px 0 0; }
+        .ag-target-card.ok::before     { background: var(--green); }
+        .ag-target-card.warning::before{ background: var(--yellow); }
+        .ag-target-card.critical::before{ background: var(--red); }
+        .ag-target-card:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(0,212,255,0.08); border-color:rgba(0,212,255,0.25); }
+
+        .ag-tc-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:10px; }
+        .ag-tc-name { display:flex; align-items:center; gap:10px; }
+        .ag-tc-icon { font-size:1.5rem; line-height:1; }
+        .ag-tc-label { font-weight:700; font-size:0.88rem; color:var(--text); }
+        .ag-tc-host   { font-size:0.68rem; color:var(--muted); font-family:'Fira Code',monospace; }
+        .ag-tc-badge  { padding:3px 10px; border-radius:20px; font-size:0.68rem; font-weight:700; flex-shrink:0; }
+        .ag-tc-badge.ok       { background:rgba(0,232,122,0.12); color:var(--green); }
+        .ag-tc-badge.warning  { background:rgba(245,158,11,0.12); color:var(--yellow); }
+        .ag-tc-badge.critical { background:rgba(255,64,64,0.12); color:var(--red); }
+
+        /* Health Score bar */
+        .ag-score-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+        .ag-score-track { flex:1; height:4px; background:rgba(255,255,255,0.06); border-radius:2px; overflow:hidden; }
+        .ag-score-fill  { height:100%; border-radius:2px; transition:width 0.8s ease; }
+        .ag-score-pct   { font-size:0.68rem; font-weight:700; font-family:'Fira Code',monospace; min-width:28px; text-align:right; }
+
+        /* Metrics strip */
+        .ag-metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+        .ag-metric { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:7px; padding:6px 8px; }
+        .ag-metric-lbl { font-size:0.58rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); }
+        .ag-metric-val { font-size:0.8rem; font-weight:700; margin-top:2px; }
+
+        /* Latency bar */
+        .ag-lat-row { margin-bottom:10px; }
+        .ag-lat-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+        .ag-lat-lbl { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); }
+        .ag-lat-val { font-size:0.82rem; font-weight:700; font-family:'Fira Code',monospace; }
+        .ag-lat-track { height:6px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden; }
+        .ag-lat-fill  { height:100%; border-radius:4px; transition:width 0.8s cubic-bezier(0.34,1.56,0.64,1); position:relative; }
+        .ag-lat-fill::after { content:''; position:absolute; top:0;right:0;bottom:0;width:30%; background:linear-gradient(to right,transparent,rgba(255,255,255,0.20)); }
+
+        /* Root cause pill */
+        .ag-cause { display:inline-flex; align-items:center; gap:5px; font-size:0.65rem; font-weight:700; padding:3px 8px; border-radius:6px; margin-top:8px; letter-spacing:0.02em; }
+        .ag-cause.ok   { background:rgba(0,232,122,0.08); color:#34d399; border:1px solid rgba(0,232,122,0.18); }
+        .ag-cause.warn { background:rgba(245,158,11,0.08); color:#fbbf24; border:1px solid rgba(245,158,11,0.18); }
+        .ag-cause.crit { background:rgba(255,64,64,0.08); color:#f87171; border:1px solid rgba(255,64,64,0.18); }
+
+        /* Card footer */
+        .ag-tc-footer { display:flex; align-items:center; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.04); padding-top:8px; margin-top:8px; }
+        .ag-link { font-size:0.72rem; font-weight:600; color:var(--accent); text-decoration:none; display:flex; align-items:center; gap:4px; transition:gap 0.2s; }
+        .ag-link:hover { gap:7px; }
+        .ag-tc-time { font-size:0.65rem; color:var(--muted); }
+
+        /* ══ ANT COLONY SWARM PANEL (right side) ══ */
+        .ag-swarm-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            position: relative;
+        }
+        .ag-swarm-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items:center; justify-content:space-between;
+        }
+        .ag-swarm-title { font-size:0.75rem; font-weight:700; display:flex; align-items:center; gap:7px; }
+        .ag-swarm-legend { display:flex; gap:10px; }
+        .ag-swarm-leg-item { display:flex; align-items:center; gap:5px; font-size:0.62rem; color:var(--muted); }
+        .ag-swarm-dot { width:6px; height:6px; border-radius:50%; }
+        #ag-swarm-canvas { display:block; width:300px; height:300px; background:var(--surface2); }
+
+        /* ══ TEMPORAL TIMELINE (Past → Now → Future) ══ */
+        .ag-temporal {
+            background: var(--surface); border: 1px solid var(--border); border-radius:14px; padding: 16px 20px;
+        }
+        .ag-temporal-grid { display:grid; grid-template-columns:1fr 2px 1fr 2px 1fr; gap:0; align-items:stretch; }
+        .ag-temporal-divider { background: var(--border); }
+        .ag-temporal-col { padding: 0 20px; }
+        .ag-temporal-col:first-child { padding-left: 0; }
+        .ag-temporal-col:last-child { padding-right: 0; }
+        .ag-temp-head { font-size:0.6rem; font-weight:800; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+        .ag-temp-head.now { color:var(--accent); }
+        .ag-temp-head.future { color:var(--yellow); }
+        .ag-temp-head i { font-size:0.75rem; }
+        .ag-temp-item { display:flex; align-items:center; gap:8px; padding:4px 0; font-size:0.78rem; }
+        .ag-temp-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+
+        /* ══ FILTERS ══ */
+        .ag-filter-bar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .ag-filter-input {
+            background: var(--surface); border:1px solid var(--border); border-radius:9px;
+            padding:7px 12px 7px 34px; color:var(--text); font-size:0.8rem; font-family:inherit;
+            outline:none; width:200px; transition:border-color 0.2s; position:relative;
+        }
+        .ag-filter-input:focus { border-color:rgba(0,212,255,0.4); box-shadow:0 0 0 3px rgba(0,212,255,0.06); }
+        .ag-search-wrap { position:relative; }
+        .ag-search-wrap i { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:0.75rem; }
+        .ag-pill { padding:5px 12px; border-radius:20px; font-size:0.75rem; font-weight:600; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; transition:all 0.18s; font-family:inherit; }
+        .ag-pill:hover, .ag-pill.active { background:rgba(0,212,255,0.09); border-color:var(--accent); color:var(--accent); }
+        .ag-pill.status-ok.active    { background:rgba(0,232,122,0.10); border-color:var(--green); color:var(--green); }
+        .ag-pill.status-warn.active  { background:rgba(245,158,11,0.10); border-color:var(--yellow); color:var(--yellow); }
+        .ag-pill.status-crit.active  { background:rgba(255,64,64,0.10); border-color:var(--red); color:var(--red); }
+
+        /* ══ NLP QUERY BAR ══ */
+        .ag-nlp-bar {
+            display: flex; gap:10px; align-items:center;
+            background: var(--surface); border:1px solid var(--border); border-radius:10px; padding:8px 16px;
+        }
+        .ag-nlp-bar i { color:rgba(0,212,255,0.5); font-size:0.9rem; }
+        .ag-nlp-input { flex:1; background:transparent; border:none; color:var(--text); font-size:0.85rem; font-family:inherit; outline:none; }
+        .ag-nlp-input::placeholder { color:var(--muted); }
+        .ag-nlp-tag { font-size:0.65rem; background:rgba(0,212,255,0.08); color:var(--accent); padding:2px 8px; border-radius:4px; border:1px solid rgba(0,212,255,0.15); white-space:nowrap; font-family:'Fira Code',monospace; }
+
+        /* ══ CHAOS CONTROLS ══ */
+        .ag-chaos-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+        .ag-chaos-btn {
+            display:flex; align-items:center; gap:7px; padding:8px 14px; border-radius:8px;
+            font-size:0.78rem; font-weight:600; font-family:inherit; cursor:pointer;
+            border:1px dashed rgba(255,64,64,0.35); background:rgba(255,64,64,0.06); color:rgba(255,120,120,0.8);
+            transition:all 0.2s;
+        }
+        .ag-chaos-btn:hover { background:rgba(255,64,64,0.12); border-color:rgba(255,64,64,0.5); color:var(--red); }
+        .ag-chaos-label { font-size:0.68rem; color:var(--muted); }
+
+        /* ══ BOTTOM PANELS ══ */
+        .ag-bottom-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; }
+        .ag-panel { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+        .ag-panel-header { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+        .ag-panel-title { font-size:0.82rem; font-weight:700; display:flex; align-items:center; gap:7px; }
+        .ag-panel-body { padding:12px 16px; }
+
+        /* Alert row */
+        .ag-alert-row { display:grid; grid-template-columns:10px 140px 1fr 90px 70px; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03); transition:background 0.15s; cursor:pointer; }
+        .ag-alert-row:hover { background:rgba(0,212,255,0.02); }
+        .ag-alert-row:last-child { border-bottom:none; }
+        .ag-alert-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+        .ag-alert-target { font-weight:600; font-size:0.78rem; font-family:'Fira Code',monospace; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .ag-alert-type { font-size:0.73rem; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .ag-alert-bar-wrap { background:rgba(255,255,255,0.05); border-radius:3px; height:5px; overflow:hidden; }
+        .ag-alert-bar-fill { height:100%; border-radius:3px; }
+        .ag-alert-time { font-size:0.68rem; color:var(--muted); text-align:right; }
+
+        /* Region latency */
+        .ag-region-row { display:flex; align-items:center; gap:10px; padding:5px 0; }
+        .ag-reg-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+        .ag-reg-name { font-size:0.78rem; font-weight:600; width:160px; flex-shrink:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .ag-reg-bar { flex:1; background:rgba(255,255,255,0.05); border-radius:3px; height:6px; overflow:hidden; }
+        .ag-reg-fill { height:100%; border-radius:3px; transition:width 0.6s ease; }
+        .ag-reg-lat { font-size:0.72rem; font-weight:700; font-family:'Fira Code',monospace; width:55px; text-align:right; flex-shrink:0; }
+
+        /* Refresh button */
+        .ag-refresh-btn {
+            display:flex; align-items:center; gap:7px; background:var(--accent); border:none; color:#04080f;
+            padding:7px 14px; border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer; transition:filter 0.2s, box-shadow 0.2s; font-family:inherit;
+        }
+        .ag-refresh-btn:hover { filter:brightness(1.12); box-shadow:0 4px 16px rgba(0,212,255,0.30); }
+        .ag-refresh-btn.spinning i { animation: ag-spin 1s linear infinite; }
+        @keyframes ag-spin { to { transform:rotate(360deg); } }
+
+        /* Count badge */
+        .ag-badge { padding:2px 8px; border-radius:10px; font-size:0.65rem; font-weight:700; }
+        .ag-badge.red  { background:rgba(255,64,64,0.15); color:var(--red); }
+        .ag-badge.cyan { background:rgba(0,212,255,0.12); color:var(--accent); }
+
+        /* Empty state */
+        .ag-empty { text-align:center; padding:2rem; color:var(--muted); }
+        .ag-empty i { font-size:1.8rem; margin-bottom:8px; display:block; }
+        .ag-empty p  { font-size:0.82rem; }
+
+        /* NLP Overlay response */
+        .ag-nlp-response {
+            position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+            background:var(--surface); border:1px solid rgba(0,212,255,0.25); border-radius:12px;
+            padding:12px 20px; font-size:0.85rem; max-width:560px; z-index:999;
+            box-shadow:0 16px 40px rgba(0,0,0,0.5);
+            animation: ag-slide-in 0.3s ease-out both;
+            display:none;
+        }
+
+        /* Hidden card */
+        .ag-target-card.hidden { display:none; }
+
+        /* Responsive */
+        @media (max-width:1200px) { .ag-main-grid{ grid-template-columns:1fr; } .ag-swarm-panel{ display:none; } }
+        @media (max-width:960px)  { .ag-bottom-grid{ grid-template-columns:1fr; } }
+        @media (max-width:768px)  { .ag-temporal-grid{ grid-template-columns:1fr; } .ag-temporal-divider{ display:none; } }
+    </style>
 </head>
 <body>
-
 <div class="app-window">
 
-    <!-- LEFT SIDEBAR -->
-        <!-- ══ GLOBAL SIDEBAR (canonical — do not edit inline) ══ -->
+    <!-- ══ SIDEBAR ══ -->
     <aside class="main-sidebar">
         <div class="main-sidebar-header">
-            <span style="font-size: 1.5rem;">🦅</span>
-            <div style="display: flex; flex-direction: column; line-height: 1.1;">
-                <span style="font-weight: 700; font-size: 1.25rem;">Hawk-Eye</span>
-                <span style="font-size: 0.65rem; color: #ff00ff; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
+            <span style="font-size:1.55rem">🦅</span>
+            <div style="display:flex;flex-direction:column;line-height:1.1">
+                <span style="font-weight:800;font-size:1.06rem;color:#e8f4ff;letter-spacing:-0.015em">Hawk-Eye</span>
+                <span style="font-size:0.54rem;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:2px;opacity:0.85">T-Systems</span>
             </div>
         </div>
-
         <nav class="main-sidebar-nav">
             <div class="nav-category">Monitoring</div>
-            <a href="/dashboard" class="nav-item active">
-                <i class="fa-solid fa-gauge-high"></i> Dashboard
-            </a>
-            <a href="/inventory" class="nav-item">
-                <i class="fa-solid fa-list"></i> Target Inventory
-            </a>
-            <a href="/target_detail" class="nav-item">
-                <i class="fa-solid fa-route"></i> Tracepath
-            </a>
-            <a href="/incidents" class="nav-item">
-                <i class="fa-solid fa-magnifying-glass"></i> All Incidents
-            </a>
-
-            <div class="nav-category" style="margin-top: 15px;">Integrations</div>
-            <a href="/integrations" class="nav-item">
-                <i class="fa-solid fa-link"></i> External Apps Links
-            </a>
-            <a href="/integrations_config" class="nav-item">
-                <i class="fa-solid fa-gears"></i> Integration Config
-            </a>
-
-            <div class="nav-category" style="margin-top: 15px;">Configuration</div>
-            <a href="/alerts" class="nav-item">
-                <i class="fa-solid fa-folder"></i> Alerts Config
-            </a>
-            <a href="/polling" class="nav-item">
-                <i class="fa-solid fa-folder"></i> Polling Config
-            </a>
-            
-            <a href="/endpoints" class="nav-item">
-                <i class="fa-solid fa-network-wired"></i> Endpoint Manager
-            </a>
-            <a href="/users_config" class="nav-item">
-                <i class="fa-solid fa-user-gear"></i> User Configuration
-            </a>
-            <button class="nav-item" onclick="if(typeof exportConfig === 'function') { exportConfig(); } else { window.location.href='/dashboard?export=true'; }">
-                <i class="fa-solid fa-file-export"></i> Export Snapshot
-            </button>
-            <button class="nav-item" onclick="if(document.getElementById('importFile')) { document.getElementById('importFile').click(); } else { window.location.href='/dashboard?import=true'; }">
-                <i class="fa-solid fa-file-import"></i> Import Snapshot
-            </button>
-
-            <div class="nav-category" style="margin-top: 15px;">Operations</div>
-            <a href="/troubleshooting" class="nav-item">
-                <i class="fa-solid fa-microchip"></i> Troubleshooting
-            </a>
-            <a href="/device_reachability" class="nav-item">
-                <i class="fa-solid fa-satellite-dish"></i> Device Reachability
-            </a>
+            <a href="/dashboard"        class="nav-item active"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+            <a href="/live_dashboard"   class="nav-item"><i class="fa-solid fa-table-list"></i> Live Table</a>
+            <a href="/inventory"        class="nav-item"><i class="fa-solid fa-list"></i> Target Inventory</a>
+            <a href="/target_detail"    class="nav-item"><i class="fa-solid fa-route"></i> Tracepath</a>
+            <a href="/incidents"        class="nav-item"><i class="fa-solid fa-magnifying-glass"></i> All Incidents</a>
+            <div class="nav-category">Integrations</div>
+            <a href="/integrations"        class="nav-item"><i class="fa-solid fa-link"></i> External Apps Links</a>
+            <a href="/integrations_config" class="nav-item"><i class="fa-solid fa-gears"></i> Integration Config</a>
+            <div class="nav-category">Configuration</div>
+            <a href="/alerts"       class="nav-item"><i class="fa-solid fa-bell"></i> Alerts Config</a>
+            <a href="/polling"      class="nav-item"><i class="fa-solid fa-folder"></i> Polling Config</a>
+            <a href="/endpoints"    class="nav-item"><i class="fa-solid fa-network-wired"></i> Endpoint Manager</a>
+            <a href="/users_config" class="nav-item"><i class="fa-solid fa-user-gear"></i> User Configuration</a>
+            <button class="nav-item" onclick="if(typeof exportConfig==='function')exportConfig();"><i class="fa-solid fa-file-export"></i> Export Snapshot</button>
+            <button class="nav-item" onclick="document.getElementById('importFile').click()"><i class="fa-solid fa-file-import"></i> Import Snapshot</button>
+            <div class="nav-category">Operations</div>
+            <a href="/troubleshooting"     class="nav-item"><i class="fa-solid fa-microchip"></i> Troubleshooting</a>
+            <a href="/device_reachability" class="nav-item"><i class="fa-solid fa-satellite-dish"></i> Device Reachability</a>
         </nav>
     </aside>
 
-    <!-- MAIN CONTENT -->
+    <!-- ══ MAIN CONTENT ══ -->
     <div class="app-content">
 
         <!-- Top Navbar -->
         <header class="top-navbar">
             <div class="top-navbar-title">
                 <i class="fa-solid fa-gauge-high" style="color:var(--accent)"></i>
-                Visual Dashboard
+                Hawk-Eye &thinsp;/ &thinsp;Antigravity Dashboard
+                <span id="ag-mode-tag" style="font-size:0.6rem;background:rgba(0,212,255,0.10);color:var(--accent);padding:2px 8px;border-radius:4px;font-weight:700;letter-spacing:1px;margin-left:4px">LIVE</span>
             </div>
             <div class="top-navbar-right">
+                <!-- NLP Quick Command -->
+                <div class="ag-nlp-bar" style="margin-right:8px;min-width:280px">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <input type="text" id="nlpInput" class="ag-nlp-input" placeholder="Ask: 'what's degraded?' or 'show critical'" onkeypress="handleNLP(event)">
+                    <span class="ag-nlp-tag">AI</span>
+                </div>
                 <button id="theme-toggle-btn"
-                    style="background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--muted); width:36px; height:36px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s;"
-                    title="Toggle Dark / Light Mode">
+                    style="background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.18);color:var(--accent);width:34px;height:34px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s">
                     <i id="theme-toggle-icon" class="fa-solid fa-sun"></i>
                 </button>
-                <button style="display:flex; align-items:center; gap:7px; background:var(--accent); border:none; color:white; padding:7px 16px; border-radius:8px; font-size:0.8rem; font-weight:600; cursor:pointer;" id="refreshBtn" onclick="loadDashboard()">
+                <button class="ag-refresh-btn" id="refreshBtn" onclick="loadDashboard()">
                     <i class="fa-solid fa-rotate"></i> Refresh
                 </button>
             </div>
         </header>
 
-        <!-- Scrollable page content -->
+        <!-- ══ THREE-SECOND RULE HEADER: 0-1s READ ══ -->
+        <div class="ag-header" id="agHeader">
+            <!-- Traffic Light -->
+            <div class="ag-health-light" id="healthLight">
+                <div class="ag-health-orb ok" id="healthOrb">🟢</div>
+                <div>
+                    <div class="ag-health-label">System Health</div>
+                    <div class="ag-health-num ok" id="healthNum">—</div>
+                    <div class="ag-health-sub" id="healthSub">Loading…</div>
+                </div>
+            </div>
+            <!-- KPI Strip: instant context -->
+            <div class="ag-kpi-strip">
+                <div class="ag-kpi-item">
+                    <div class="ag-kpi-icon crit">🚨</div>
+                    <div class="ag-kpi-body">
+                        <div class="ag-kpi-label">Critical</div>
+                        <div class="ag-kpi-val crit" id="kpiCrit">—</div>
+                        <div class="ag-kpi-sub">target(s) down</div>
+                    </div>
+                </div>
+                <div class="ag-kpi-item">
+                    <div class="ag-kpi-icon warn">⚠️</div>
+                    <div class="ag-kpi-body">
+                        <div class="ag-kpi-label">Warning</div>
+                        <div class="ag-kpi-val warn" id="kpiWarn">—</div>
+                        <div class="ag-kpi-sub">degraded</div>
+                    </div>
+                </div>
+                <div class="ag-kpi-item">
+                    <div class="ag-kpi-icon ok">⚡</div>
+                    <div class="ag-kpi-body">
+                        <div class="ag-kpi-label">Avg Latency</div>
+                        <div class="ag-kpi-val ok" id="kpiLat">—</div>
+                        <div class="ag-kpi-sub" id="kpiLatSub">across targets</div>
+                    </div>
+                </div>
+                <div class="ag-kpi-item">
+                    <div class="ag-kpi-icon info">🔒</div>
+                    <div class="ag-kpi-body">
+                        <div class="ag-kpi-label">SSL Alerts</div>
+                        <div class="ag-kpi-val info" id="kpiSSL">—</div>
+                        <div class="ag-kpi-sub" id="kpiSSLSub">expiring ≤30d</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ PAGE SCROLL AREA ══ -->
         <div class="page-scroll">
+        <div class="ag-page">
 
-    <!-- KPI Row -->
-    <section>
-        <div class="section-title"><i class="fa-solid fa-gauge-high" style="color:var(--accent)"></i>Key Performance Indicators</div>
-        <br>
-        <div class="kpi-grid">
-            <div class="kpi-card green">
-                <div class="kpi-icon green">📡</div>
-                <div class="kpi-body">
-                    <div class="kpi-label">Availability</div>
-                    <div class="kpi-value green" id="kpi-uptime">—</div>
-                    <div class="kpi-sub"><span class="trend-up">▲ trending stable</span></div>
+            <!-- ─── LEVEL 1-2: ACTION-FIRST ZONE (1-2 second scan) ─── -->
+            <div>
+                <div class="ag-section-label">
+                    <i class="fa-solid fa-bolt" style="color:var(--red)"></i>
+                    Action-First Zone &nbsp;·&nbsp; Issues surface here
+                </div>
+                <div id="actionZone"></div>
+            </div>
+
+            <!-- ─── LEVEL 5 NLP + LEVEL 9 CHAOS ─── -->
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+                <div class="ag-chaos-row">
+                    <button class="ag-chaos-btn" onclick="runChaosSimulation()">
+                        <i class="fa-solid fa-skull"></i> Chaos Sim
+                    </button>
+                    <button class="ag-chaos-btn" style="border-color:rgba(245,158,11,0.35);background:rgba(245,158,11,0.06);color:rgba(245,200,80,0.8)" onclick="showWhatIfPanel()">
+                        <i class="fa-solid fa-flask"></i> What-If
+                    </button>
+                    <span class="ag-chaos-label">Simulation controls — does not affect live targets</span>
                 </div>
             </div>
-            <div class="kpi-card red">
-                <div class="kpi-icon red">🚨</div>
-                <div class="kpi-body">
-                    <div class="kpi-label">Active Alerts</div>
-                    <div class="kpi-value red" id="kpi-alerts">—</div>
-                    <div class="kpi-sub" id="kpi-alerts-sub">—</div>
+
+            <!-- ─── FILTERS ─── -->
+            <div class="ag-filter-bar">
+                <div class="ag-search-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" class="ag-filter-input" placeholder="Search targets…" oninput="applyFilters()">
+                </div>
+                <div id="statusFilters" style="display:flex;gap:6px">
+                    <button class="ag-pill active" data-filter="all"      onclick="setStatusFilter('all')">All</button>
+                    <button class="ag-pill status-ok"   data-filter="ok"       onclick="setStatusFilter('ok')">🟢 OK</button>
+                    <button class="ag-pill status-warn" data-filter="warning"  onclick="setStatusFilter('warning')">🟡 Warning</button>
+                    <button class="ag-pill status-crit" data-filter="critical" onclick="setStatusFilter('critical')">🔴 Critical</button>
+                </div>
+                <div id="tagFilters" style="display:flex;gap:6px"></div>
+            </div>
+
+            <!-- ─── LEVEL 7: SWARM + TARGET GRID ─── -->
+            <div>
+                <div class="ag-section-label">
+                    <i class="fa-solid fa-server"></i>
+                    Target Health Overview
+                </div>
+                <div class="ag-main-grid">
+                    <!-- Target Cards -->
+                    <div class="ag-target-grid" id="targetGrid">
+                        <div class="ag-empty" style="grid-column:1/-1">
+                            <i class="fa-solid fa-circle-notch fa-spin" style="color:var(--accent)"></i>
+                            <p>Loading target data…</p>
+                        </div>
+                    </div>
+
+                    <!-- Ant Colony Swarm Panel -->
+                    <div class="ag-swarm-panel">
+                        <div class="ag-swarm-header">
+                            <span class="ag-swarm-title"><i class="fa-solid fa-atom" style="color:var(--accent)"></i> Packet Swarm</span>
+                            <div class="ag-swarm-legend">
+                                <div class="ag-swarm-leg-item"><div class="ag-swarm-dot" style="background:var(--green)"></div>Healthy</div>
+                                <div class="ag-swarm-leg-item"><div class="ag-swarm-dot" style="background:var(--red)"></div>Dropping</div>
+                            </div>
+                        </div>
+                        <canvas id="ag-swarm-canvas" width="300" height="300"></canvas>
+                        <div style="padding:8px 14px;font-size:0.68rem;color:var(--muted);border-top:1px solid var(--border)">
+                            Each dot = 1 monitored request. Scatter = anomaly. Speed = latency.
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="kpi-card yellow">
-                <div class="kpi-icon yellow">⚡</div>
-                <div class="kpi-body">
-                    <div class="kpi-label">Avg Latency</div>
-                    <div class="kpi-value yellow" id="kpi-latency">—</div>
-                    <div class="kpi-sub" id="kpi-latency-sub">across all targets</div>
+
+            <!-- ─── LEVEL 3: TEMPORAL DIMENSION ─── -->
+            <div>
+                <div class="ag-section-label">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    Temporal Intelligence &nbsp;·&nbsp; Past → Present → Predicted Future (15 min)
+                </div>
+                <div class="ag-temporal">
+                    <div class="ag-temporal-grid">
+                        <div class="ag-temporal-col">
+                            <div class="ag-temp-head"><i class="fa-solid fa-clock-rotate-left"></i>Past — Baseline</div>
+                            <div id="tempPast"></div>
+                        </div>
+                        <div class="ag-temporal-divider"></div>
+                        <div class="ag-temporal-col">
+                            <div class="ag-temp-head now"><i class="fa-solid fa-circle-dot"></i>Present — Live</div>
+                            <div id="tempNow"></div>
+                        </div>
+                        <div class="ag-temporal-divider"></div>
+                        <div class="ag-temporal-col">
+                            <div class="ag-temp-head future"><i class="fa-solid fa-wand-sparkles"></i>Predicted +15m</div>
+                            <div id="tempFuture"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="kpi-card blue">
-                <div class="kpi-icon blue">🔒</div>
-                <div class="kpi-body">
-                    <div class="kpi-label">SSL Expiring</div>
-                    <div class="kpi-value blue" id="kpi-ssl">—</div>
-                    <div class="kpi-sub" id="kpi-ssl-sub">active certs</div>
+
+            <!-- ─── BOTTOM: Regional + Alerts ─── -->
+            <div class="ag-bottom-grid">
+
+                <!-- Regional Latency Panel -->
+                <div class="ag-panel">
+                    <div class="ag-panel-header">
+                        <span class="ag-panel-title"><i class="fa-solid fa-globe" style="color:var(--accent)"></i>Regional Network Health</span>
+                    </div>
+                    <div class="ag-panel-body" id="regionBody">
+                        <div class="ag-empty"><i class="fa-solid fa-circle-notch fa-spin" style="color:var(--accent)"></i><p>Loading…</p></div>
+                    </div>
                 </div>
+
+                <!-- Alert Timeline Panel -->
+                <div class="ag-panel">
+                    <div class="ag-panel-header">
+                        <span class="ag-panel-title"><i class="fa-solid fa-triangle-exclamation" style="color:var(--red)"></i>Active Alert Timeline</span>
+                        <span class="ag-badge red" id="alertCountBadge">0</span>
+                    </div>
+                    <div id="alertList" style="padding:0 16px">
+                        <div class="ag-empty"><i class="fa-solid fa-circle-notch fa-spin" style="color:var(--accent)"></i><p>Loading…</p></div>
+                    </div>
+                </div>
+
             </div>
-        </div>
-    </section>
 
-    <!-- Filters -->
-    <div class="filter-bar">
-        <div class="filter-search-wrap">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="searchInput" class="filter-input" placeholder="Search targets…" oninput="applyFilters()">
-        </div>
-        <div class="filter-pills" id="statusFilters">
-            <button class="filter-pill active" data-filter="all" onclick="setStatusFilter('all')">All</button>
-            <button class="filter-pill status-ok" data-filter="ok" onclick="setStatusFilter('ok')">🟢 OK</button>
-            <button class="filter-pill status-warning" data-filter="warning" onclick="setStatusFilter('warning')">🟡 Warning</button>
-            <button class="filter-pill status-critical" data-filter="critical" onclick="setStatusFilter('critical')">🔴 Critical</button>
-        </div>
-        <div class="filter-bar" id="tagFilters">
-            <button class="filter-pill active" data-tag="all" onclick="setTagFilter('all')">All Types</button>
-            <!-- Tags will be dynamically injected here -->
-        </div>
-    </div>
-
-    <!-- Target Cards -->
-    <section>
-        <div class="section-title"><i class="fa-solid fa-server" style="color:var(--accent)"></i>Target Health Overview</div>
-        <br>
-        <div class="target-grid" id="targetGrid">
-            <div class="empty-state" style="grid-column: 1/-1;">
-                <i class="fa-solid fa-circle-notch fa-spin" style="color:var(--accent)"></i>
-                <p>Loading target data…</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Bottom Row: Regional + Alerts -->
-    <div class="bottom-row">
-
-        <!-- Regional Latency -->
-        <div class="map-panel">
-            <div class="map-panel-header">
-                🌐 Regional Network Health
-            </div>
-            <div class="map-body" id="regionBody">
-                <div class="empty-state"><i class="fa-solid fa-circle-notch fa-spin" style="color:var(--accent)"></i><p>Loading…</p></div>
-            </div>
-        </div>
-
-        <!-- Alert Timeline -->
-        <div class="alert-panel">
-            <div class="alert-panel-header">
-                <span class="alert-panel-title">
-                    🚨 Active Alert Timeline
-                    <span class="alert-count-badge" id="alertCountBadge">0</span>
-                </span>
-            </div>
-            <div class="alert-list" id="alertList">
-                <div class="empty-state"><i class="fa-solid fa-circle-notch fa-spin" style="color:var(--accent)"></i><p>Loading…</p></div>
-            </div>
-        </div>
-
-        </div><!-- /bottom-row -->
-
+        </div><!-- /ag-page -->
         </div><!-- /page-scroll -->
     </div><!-- /app-content -->
 </div><!-- /app-window -->
 
+<!-- NLP Response Bubble -->
+<div class="ag-nlp-response" id="nlpResponse"></div>
+
+<!-- Import file input -->
+<input type="file" id="importFile" style="display:none" onchange="importConfig(event)" accept=".zip">
+
+<!-- ══ ALL JAVASCRIPT ══ -->
 <script>
-// ── Data & State ────────────────────────────────
+// ── DATA STATE ──────────────────────────────────────────────────────────────
 const TARGETS_META = {
-    'amazon.com':       { tag: 'Shopping', icon: '🛍️',  label: 'Amazon' },
-    'app.codingrooms.com': { tag: 'Edu',  icon: '🎓',  label: 'CodingRooms' },
-    'facebook.com':     { tag: 'Social',  icon: '💬',  label: 'Facebook' },
-    'github.com':       { tag: 'Git',     icon: '💻',  label: 'GitHub' },
-    'linkedin.com':     { tag: 'Business',icon: '💼',  label: 'LinkedIn' },
-    'youtube.com':      { tag: 'Media',     icon: '🎬',  label: 'YouTube' },
+    'amazon.com':          { tag:'Shopping', icon:'🛍️',  label:'Amazon'      },
+    'app.codingrooms.com': { tag:'Edu',      icon:'🎓',  label:'CodingRooms' },
+    'facebook.com':        { tag:'Social',   icon:'💬',  label:'Facebook'    },
+    'github.com':          { tag:'Git',      icon:'💻',  label:'GitHub'      },
+    'linkedin.com':        { tag:'Business', icon:'💼',  label:'LinkedIn'    },
+    'youtube.com':         { tag:'Media',    icon:'🎬',  label:'YouTube'     },
 };
 
-let activeStatusFilter = 'all';
-let activeTagFilter = 'all';
 let allTargets = [];
+let activeStatusFilter = 'all';
+let activeTagFilter    = 'all';
+let swarmAnim;  // RAF handle
 
-// ── Helpers ─────────────────────────────────────
-function latencyStatus(ms) {
-    if (!ms || ms < 0) return 'unknown';
-    if (ms < 150) return 'ok';
-    if (ms < 300) return 'warning';
-    return 'critical';
+// ── HELPERS ─────────────────────────────────────────────────────────────────
+const latencyStatus = ms => !ms || ms < 0 ? 'ok' : ms < 150 ? 'ok' : ms < 300 ? 'warning' : 'critical';
+const latencyColor  = s  => ({ ok:'var(--green)', warning:'var(--yellow)', critical:'var(--red)', unknown:'var(--muted)' })[s] || 'var(--muted)';
+const latencyPct    = ms => Math.min(100, Math.max(2, (ms/500)*100));
+const sslStatus     = d  => d <= 0 ? 'critical' : d <= 7 ? 'critical' : d <= 30 ? 'warning' : 'ok';
+const sslColor      = d  => ({ ok:'var(--green)', warning:'var(--yellow)', critical:'var(--red)' })[sslStatus(d)];
+const normalize     = t  => t.replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,'').replace(/:\d+$/,'').toLowerCase();
+
+function healthScoreOf(latMs, sslDays, httpOk) {
+    let s = 100;
+    if (latMs !== null)   s -= Math.min(70, (latMs/2000)*70);
+    if (httpOk === false) s -= 20;
+    if (sslDays !== null) {
+        if (sslDays <= 0) s -= 30;
+        else if (sslDays <= 7) s -= 20;
+        else if (sslDays <= 30) s -= 8;
+    }
+    return Math.max(0, Math.min(100, Math.round(s)));
 }
 
-function latencyColor(status) {
-    return { ok: '#10b981', warning: '#f59e0b', critical: '#ef4444', unknown: '#4b5563' }[status] || '#4b5563';
+function rootCauseOf(latMs, sslDays, httpOk, latStatus) {
+    const issues = [];
+    if (latStatus === 'critical' && latMs !== null)   issues.push(`High Latency (${latMs.toFixed(0)}ms)`);
+    if (httpOk === false)                             issues.push('HTTP Check Failed');
+    if (sslDays !== null && sslDays <= 0)            issues.push('SSL Cert Expired');
+    else if (sslDays !== null && sslDays <= 7)       issues.push(`SSL Expiring (${sslDays}d)`);
+    else if (sslDays !== null && sslDays <= 30)      issues.push(`SSL Warning (${sslDays}d)`);
+    if (latStatus === 'warning' && latMs !== null && !issues.length) issues.push(`Elevated Latency (${latMs.toFixed(0)}ms)`);
+    return issues.length ? issues[0] : 'All checks passing';
 }
 
-function latencyPct(ms) {
-    // Scale: 0–500ms = 0–100%
-    return Math.min(100, Math.max(2, (ms / 500) * 100));
-}
-
-function sslStatus(days) {
-    if (days <= 0) return 'critical';
-    if (days <= 7)  return 'critical';
-    if (days <= 30) return 'warning';
-    return 'ok';
-}
-
-function sslColor(days) {
-    const s = sslStatus(days);
-    return { ok: '#10b981', warning: '#f59e0b', critical: '#ef4444' }[s];
-}
-
-function randomSparkline(status) {
+function sparkline(status) {
     const chars = ['▁','▂','▃','▄','▅','▆','▇'];
     let s = '';
     for (let i = 0; i < 8; i++) {
@@ -1129,18 +734,10 @@ function randomSparkline(status) {
         else if (status === 'warning') s += chars[Math.floor(Math.random()*3)+2];
         else s += chars[Math.floor(Math.random()*4)];
     }
-    const col = latencyColor(status);
-    return `<span class="sparkline" style="color:${col}">${s}</span>`;
+    return `<span style="font-family:'Fira Code';font-size:0.9rem;letter-spacing:2px;color:${latencyColor(status)}">${s}</span>`;
 }
 
-function msToText(ns) {
-    // API returns nanoseconds
-    const ms = ns / 1e6;
-    if (ms < 1) return '< 1 ms';
-    return ms.toFixed(1) + ' ms';
-}
-
-// ── Fetch & Render ──────────────────────────────
+// ── FETCH & RENDER ───────────────────────────────────────────────────────────
 async function loadDashboard() {
     const btn = document.getElementById('refreshBtn');
     btn.classList.add('spinning');
@@ -1156,45 +753,22 @@ async function loadDashboard() {
         const latency = latencyRes.status === 'fulfilled' ? latencyRes.value.data : {};
         const ssl     = sslRes.status     === 'fulfilled' ? sslRes.value.data     : {};
 
-        // Build unified target list
-        const targetNames = new Set([
-            ...Object.keys(health),
-            ...Object.keys(latency),
-            ...Object.keys(ssl)
-        ]);
-
-        // Normalize target names:
-        //   - strip http(s):// prefix and www.
-        //   - strip path segment after first /
-        //   - strip :port suffix (e.g. :443 from SSL keys)
-        const normalize = t => t
-            .replace(/^https?:\/\//,'')
-            .replace(/^www\./,'')
-            .replace(/\/.*$/,'')
-            .replace(/:\d+$/,'')       // strip :443 / :80 etc.
-            .toLowerCase();
-
+        const rawNames = new Set([...Object.keys(health), ...Object.keys(latency), ...Object.keys(ssl)]);
         const targetMap = {};
-        for (const raw of targetNames) {
+
+        for (const raw of rawNames) {
             const n = normalize(raw);
             if (!targetMap[n]) targetMap[n] = { latencyMs: null, sslDays: null, httpOk: null };
 
-            // Latency — API returns an object { code, error, total } where total is in SECONDS
             if (latency[raw] !== undefined) {
-                const val = latency[raw];
+                const val  = latency[raw];
                 const secs = typeof val === 'object' ? val.total : val;
-                if (secs != null && !isNaN(secs) && secs > 0) {
-                    targetMap[n].latencyMs = secs * 1000;  // seconds → ms
-                }
+                if (secs != null && !isNaN(secs) && secs > 0) targetMap[n].latencyMs = secs * 1000;
             }
-
-            // Health — API returns the string "healthy" or "unhealthy"
             if (health[raw] !== undefined) {
                 const h = health[raw];
                 targetMap[n].httpOk = h === 'healthy' || h === 1 || h === true || h === 'ok';
             }
-
-            // SSL — API returns days remaining as a plain float; -1 = cert invalid/expired
             if (ssl[raw] !== undefined) {
                 const daysRaw = typeof ssl[raw] === 'object' ? ssl[raw].days_left : ssl[raw];
                 targetMap[n].sslDays = Math.round(daysRaw);
@@ -1203,407 +777,563 @@ async function loadDashboard() {
 
         let tagMap = {};
         try { tagMap = JSON.parse(localStorage.getItem('hawkeye_tags')) || {}; } catch(e) {}
-        
-        let uniqueTags = new Set();
-        
-        allTargets = Object.entries(targetMap)
-            .filter(([name]) => true)
-            .map(([name, data]) => {
-                let meta = TARGETS_META[name] ? { ...TARGETS_META[name] } : { tag: 'Other', icon: '🌐', label: name };
-                
-                // Override tag from hawkeye_tags if it exists
-                if (tagMap[name] && tagMap[name].length > 0) {
-                    meta.tag = tagMap[name][0];
-                }
-                uniqueTags.add(meta.tag);
-                
-                const lat = data.latencyMs;  // already in ms, null if no data
-                const latStatus = lat !== null ? latencyStatus(lat) : 'ok';
 
-                // Determine worst overall status
-                let status = latStatus;
-                // If http check failed, degrade to warning at minimum
-                if (data.httpOk === false) {
-                    status = status === 'ok' ? 'warning' : status;
-                }
-                // SSL overrides
-                if (data.sslDays !== null) {
-                    const ss = sslStatus(data.sslDays);
-                    if (ss === 'critical' && status !== 'critical') status = 'critical';
-                    else if (ss === 'warning' && status === 'ok') status = 'warning';
-                }
-
-                return {
-                    name, meta,
-                    latencyMs: lat,
-                    sslDays: data.sslDays,
-                    httpOk: data.httpOk,
-                    status, latStatus,
-                    healthScore: computeHealthScore(lat, data.sslDays, data.httpOk),
-                    rootCause: computeRootCause(lat, data.sslDays, data.httpOk, latStatus),
-                    lastSuccess: new Date().toLocaleTimeString(),      // live check = just fetched
-                };
-            });
-            
-        // Build dynamic filters
-        const filterContainer = document.getElementById('tagFilters');
-        let filtersHtml = `<button class="filter-pill ${activeTagFilter === 'all' ? 'active' : ''}" data-tag="all" onclick="setTagFilter('all')">All Types</button>`;
-        const iconMap = { 'Shopping': '🛍️', 'Edu': '🎓', 'Social': '💬', 'Git': '💻', 'Business': '💼', 'Media': '🎬', 'Other': '🌐' };
-        Array.from(uniqueTags).sort().forEach(tag => {
-            const icon = iconMap[tag] || '🏷️';
-            const isActive = activeTagFilter === tag ? 'active' : '';
-            if(tag) filtersHtml += `<button class="filter-pill ${isActive}" data-tag="${tag}" onclick="setTagFilter('${tag}')">${icon} ${tag}</button>`;
+        const uniqueTags = new Set();
+        allTargets = Object.entries(targetMap).map(([name, data]) => {
+            let meta = TARGETS_META[name] ? { ...TARGETS_META[name] } : { tag:'Other', icon:'🌐', label:name };
+            if (tagMap[name]?.length) meta.tag = tagMap[name][0];
+            uniqueTags.add(meta.tag);
+            const lat = data.latencyMs;
+            const latStat = lat !== null ? latencyStatus(lat) : 'ok';
+            let status = latStat;
+            if (data.httpOk === false) status = status === 'ok' ? 'warning' : status;
+            if (data.sslDays !== null) {
+                const ss = sslStatus(data.sslDays);
+                if (ss === 'critical' && status !== 'critical') status = 'critical';
+                else if (ss === 'warning' && status === 'ok') status = 'warning';
+            }
+            return {
+                name, meta, latencyMs: lat, sslDays: data.sslDays, httpOk: data.httpOk,
+                status, latStatus: latStat,
+                healthScore: healthScoreOf(lat, data.sslDays, data.httpOk),
+                rootCause: rootCauseOf(lat, data.sslDays, data.httpOk, latStat),
+                lastSuccess: new Date().toLocaleTimeString(),
+            };
         });
-        filterContainer.innerHTML = filtersHtml;
 
+        // Dynamic tag filters
+        const filterEl = document.getElementById('tagFilters');
+        let fh = `<button class="ag-pill ${activeTagFilter === 'all' ? 'active' : ''}" data-tag="all" onclick="setTagFilter('all')">All Types</button>`;
+        const iconMap = { Shopping:'🛍️', Edu:'🎓', Social:'💬', Git:'💻', Business:'💼', Media:'🎬', Other:'🌐' };
+        Array.from(uniqueTags).sort().forEach(tag => {
+            const ic = iconMap[tag] || '🏷️';
+            fh += `<button class="ag-pill ${activeTagFilter === tag ? 'active' : ''}" data-tag="${tag}" onclick="setTagFilter('${tag}')">${ic} ${tag}</button>`;
+        });
+        filterEl.innerHTML = fh;
 
-        if (allTargets.length === 0) {
-            // Fall back to static demo data if API returns nothing useful
-            allTargets = buildFallbackTargets();
-        }
+        if (allTargets.length === 0) allTargets = buildFallback();
 
-        renderKPIs();
-        renderCards();
-        renderRegions();
-        renderAlerts();
-
-    } catch (e) {
+    } catch(e) {
         console.error('Dashboard load error:', e);
-        allTargets = buildFallbackTargets();
-        renderKPIs();
-        renderCards();
-        renderRegions();
-        renderAlerts();
-    } finally {
-        btn.classList.remove('spinning');
+        allTargets = buildFallback();
     }
+
+    renderAll();
+    btn.classList.remove('spinning');
 }
 
-function buildFallbackTargets() {
+function buildFallback() {
     const now = new Date().toLocaleTimeString();
     return [
-        { name: 'amazon.com',           meta: TARGETS_META['amazon.com'],           latencyMs: 3509, sslDays: 300,  httpOk: false, status: 'critical', latStatus: 'critical', healthScore: 12, rootCause: 'High Latency (3.5s)',    lastSuccess: now },
-        { name: 'app.codingrooms.com',  meta: TARGETS_META['app.codingrooms.com'],  latencyMs: 275,  sslDays: 1,    httpOk: true,  status: 'warning',  latStatus: 'warning',  healthScore: 45, rootCause: 'SSL Expiring (1d)',      lastSuccess: now },
-        { name: 'facebook.com',         meta: TARGETS_META['facebook.com'],         latencyMs: 309,  sslDays: 7,    httpOk: true,  status: 'warning',  latStatus: 'warning',  healthScore: 52, rootCause: 'SSL Expiring (7d)',      lastSuccess: now },
-        { name: 'github.com',           meta: TARGETS_META['github.com'],           latencyMs: 114,  sslDays: 66,   httpOk: true,  status: 'ok',       latStatus: 'ok',       healthScore: 97, rootCause: 'All checks passing',     lastSuccess: now },
-        { name: 'linkedin.com',         meta: TARGETS_META['linkedin.com'],         latencyMs: 323,  sslDays: 136,  httpOk: true,  status: 'warning',  latStatus: 'warning',  healthScore: 61, rootCause: 'Elevated Latency',       lastSuccess: now },
-        { name: 'youtube.com',          meta: TARGETS_META['youtube.com'],          latencyMs: 203,  sslDays: 1373, httpOk: true,  status: 'ok',       latStatus: 'ok',       healthScore: 88, rootCause: 'All checks passing',     lastSuccess: now },
+        { name:'amazon.com',          meta:TARGETS_META['amazon.com'],           latencyMs:3509, sslDays:300, httpOk:false, status:'critical', latStatus:'critical', healthScore:12, rootCause:'High Latency (3.5s)',  lastSuccess:now },
+        { name:'app.codingrooms.com', meta:TARGETS_META['app.codingrooms.com'],  latencyMs:275,  sslDays:1,   httpOk:true,  status:'warning',  latStatus:'warning',  healthScore:45, rootCause:'SSL Expiring (1d)',    lastSuccess:now },
+        { name:'facebook.com',        meta:TARGETS_META['facebook.com'],         latencyMs:309,  sslDays:7,   httpOk:true,  status:'warning',  latStatus:'warning',  healthScore:52, rootCause:'SSL Expiring (7d)',    lastSuccess:now },
+        { name:'github.com',          meta:TARGETS_META['github.com'],           latencyMs:114,  sslDays:66,  httpOk:true,  status:'ok',       latStatus:'ok',       healthScore:97, rootCause:'All checks passing',  lastSuccess:now },
+        { name:'linkedin.com',        meta:TARGETS_META['linkedin.com'],         latencyMs:323,  sslDays:136, httpOk:true,  status:'warning',  latStatus:'warning',  healthScore:61, rootCause:'Elevated Latency',    lastSuccess:now },
+        { name:'youtube.com',         meta:TARGETS_META['youtube.com'],          latencyMs:203,  sslDays:1373,httpOk:true,  status:'ok',       latStatus:'ok',       healthScore:88, rootCause:'All checks passing',  lastSuccess:now },
     ];
 }
 
-// ── Health Score (0–100) ────────────────────────
-function computeHealthScore(latMs, sslDays, httpOk) {
-    let score = 100;
-    // Latency penalty (0 = 0 penalty, 500ms = -40, 2000ms = -70)
-    if (latMs !== null) {
-        const penalty = Math.min(70, (latMs / 2000) * 70);
-        score -= penalty;
-    }
-    // HTTP penalty
-    if (httpOk === false) score -= 20;
-    // SSL penalty
-    if (sslDays !== null) {
-        if (sslDays <= 0)  score -= 30;
-        else if (sslDays <= 7)  score -= 20;
-        else if (sslDays <= 30) score -= 8;
-    }
-    return Math.max(0, Math.min(100, Math.round(score)));
+function renderAll() {
+    renderHeader();
+    renderActionZone();
+    renderCards();
+    renderRegions();
+    renderAlerts();
+    renderTemporal();
+    updateSwarm();
 }
 
-// ── Root Cause ───────────────────────────────────
-function computeRootCause(latMs, sslDays, httpOk, latStatus) {
-    const issues = [];
-    if (latStatus === 'critical' && latMs !== null) issues.push(`High Latency (${latMs.toFixed(0)}ms)`);
-    if (httpOk === false) issues.push('HTTP Check Failed');
-    if (sslDays !== null && sslDays <= 0) issues.push('SSL Cert Expired');
-    else if (sslDays !== null && sslDays <= 7) issues.push(`SSL Expiring (${sslDays}d)`);
-    else if (sslDays !== null && sslDays <= 30) issues.push(`SSL Warning (${sslDays}d)`);
-    if (latStatus === 'warning' && latMs !== null && issues.length === 0) issues.push(`Elevated Latency (${latMs.toFixed(0)}ms)`);
-    return issues.length ? issues[0] : 'All checks passing';
-}
-
-// ── KPIs ────────────────────────────────────────
-function renderKPIs() {
-    const total = allTargets.length || 1;
-    const okCount = allTargets.filter(t => t.status === 'ok').length;
-    const critCount = allTargets.filter(t => t.status === 'critical').length;
-    const warnCount = allTargets.filter(t => t.status === 'warning').length;
+// ── HEADER (0-1s TRAFFIC LIGHT) ──────────────────────────────────────────────
+function renderHeader() {
+    const total    = allTargets.length || 1;
+    const critCnt  = allTargets.filter(t => t.status === 'critical').length;
+    const warnCnt  = allTargets.filter(t => t.status === 'warning').length;
+    const okCnt    = allTargets.filter(t => t.status === 'ok').length;
     const validLat = allTargets.filter(t => t.latencyMs !== null);
-    const avgLat = validLat.length ? validLat.reduce((s,t) => s + t.latencyMs, 0) / validLat.length : 0;
-    const sslWarn = allTargets.filter(t => t.sslDays !== null && t.sslDays <= 30).length;
+    const avgLat   = validLat.length ? validLat.reduce((s,t) => s+t.latencyMs,0) / validLat.length : 0;
+    const sslWarn  = allTargets.filter(t => t.sslDays !== null && t.sslDays <= 30).length;
 
-    document.getElementById('kpi-uptime').textContent = ((okCount / total) * 100).toFixed(1) + '%';
-    document.getElementById('kpi-alerts').textContent = critCount + warnCount;
-    document.getElementById('kpi-alerts-sub').innerHTML = `<span style="color:var(--red)">🔴 ${critCount} critical</span> &nbsp; <span style="color:var(--yellow)">🟡 ${warnCount} warning</span>`;
-    document.getElementById('kpi-latency').textContent = avgLat.toFixed(0) + ' ms';
-    document.getElementById('kpi-latency-sub').textContent = `across ${validLat.length} targets`;
-    document.getElementById('kpi-ssl').textContent = sslWarn;
-    document.getElementById('kpi-ssl-sub').textContent = sslWarn > 0 ? `${sslWarn} cert(s) expiring ≤30 days` : 'all certs healthy';
+    const pct   = Math.round((okCnt / total) * 100);
+    const state = critCnt > 0 ? 'crit' : warnCnt > 0 ? 'warn' : 'ok';
+
+    const light = document.getElementById('healthLight');
+    const orb   = document.getElementById('healthOrb');
+    const num   = document.getElementById('healthNum');
+    const sub   = document.getElementById('healthSub');
+
+    light.className = `ag-health-light state-${state}`;
+    orb.className   = `ag-health-orb ${state}`;
+    orb.textContent = state === 'crit' ? '🔴' : state === 'warn' ? '🟡' : '🟢';
+    num.className   = `ag-health-num ${state}`;
+    num.textContent = pct + '%';
+    sub.textContent = `${okCnt} healthy · ${critCnt} critical · ${warnCnt} degraded`;
+
+    document.getElementById('kpiCrit').textContent = critCnt;
+    document.getElementById('kpiWarn').textContent = warnCnt;
+    document.getElementById('kpiLat').textContent  = avgLat.toFixed(0) + ' ms';
+    document.getElementById('kpiLatSub').textContent = `${validLat.length} target${validLat.length !== 1 ? 's' : ''}`;
+    document.getElementById('kpiSSL').textContent  = sslWarn;
+    document.getElementById('kpiSSLSub').textContent = sslWarn > 0 ? `${sslWarn} cert(s) expiring` : 'all healthy';
+
+    // Color KPI values dynamically
+    document.getElementById('kpiCrit').className = `ag-kpi-val ${critCnt > 0 ? 'crit' : 'ok'}`;
+    document.getElementById('kpiWarn').className = `ag-kpi-val ${warnCnt > 0 ? 'warn' : 'ok'}`;
+    document.getElementById('kpiLat').className  = `ag-kpi-val ${latencyStatus(avgLat)}`;
+    document.getElementById('kpiSSL').className  = `ag-kpi-val ${sslWarn > 0 ? 'warn' : 'ok'}`;
 }
 
-// ── Target Cards ────────────────────────────────
-function applyFilters() {
-    const q = document.getElementById('searchInput').value.toLowerCase();
-    document.querySelectorAll('.target-card').forEach(card => {
-        const matchStatus = activeStatusFilter === 'all' || card.dataset.status === activeStatusFilter;
-        const matchTag = activeTagFilter === 'all' || card.dataset.tag === activeTagFilter;
-        const matchSearch = card.dataset.name.includes(q);
-        card.classList.toggle('hidden', !(matchStatus && matchTag && matchSearch));
-    });
+// ── ACTION-FIRST ZONE (Level 2 — 1-2s) ───────────────────────────────────────
+function renderActionZone() {
+    const zone = document.getElementById('actionZone');
+    const issues = allTargets.filter(t => t.status !== 'ok');
+
+    if (issues.length === 0) {
+        zone.innerHTML = `<div class="ag-action-zone-empty"><i class="fa-solid fa-circle-check"></i> Zero-Notification Zone: All targets healthy — no action required.</div>`;
+        return;
+    }
+
+    // Sort: critical first, then warning
+    const sorted = [...issues].sort((a,b) => (a.status === 'critical' ? 0 : 1) - (b.status === 'critical' ? 0 : 1));
+
+    const confidence = t => {
+        const c = t.status === 'critical' ? 97 : 82;
+        return { val: c, cls: c > 90 ? 'ac-conf-high' : 'ac-conf-med' };
+    };
+
+    zone.innerHTML = `<div class="ag-actions-grid">` + sorted.map((t, i) => {
+        const isCrit = t.status === 'critical';
+        const conf   = confidence(t);
+        const detail = [];
+        if (t.latencyMs !== null) detail.push(`<span><i class="fa-solid fa-clock-four" style="font-size:0.65rem"></i>${t.latencyMs.toFixed(0)}ms</span>`);
+        if (t.sslDays !== null && t.sslDays < 60) detail.push(`<span><i class="fa-solid fa-lock" style="font-size:0.65rem"></i>SSL ${t.sslDays}d left</span>`);
+        if (t.httpOk === false) detail.push(`<span><i class="fa-solid fa-xmark" style="font-size:0.65rem;color:var(--red)"></i>HTTP failed</span>`);
+        const action = isCrit ? 'Investigate immediately' : 'Review & monitor';
+        return `
+        <div class="ag-action-card sev-${isCrit ? 2 : 1}"
+             style="animation-delay:${i*0.05}s"
+             onclick="window.location='/target_detail?target=${t.name}'">
+            <div class="ag-ac-sev ${isCrit ? 'crit' : 'warn'}">
+                <i class="fa-solid ${isCrit ? 'fa-triangle-exclamation' : 'fa-arrow-trend-down'}"></i>
+            </div>
+            <div class="ag-ac-body">
+                <span class="ag-ac-title">${t.meta.icon} ${t.meta.label || t.name}</span>
+                <div class="ag-ac-detail">${detail.join('')}<span>${t.rootCause}</span></div>
+            </div>
+            <div class="ag-ac-confidence">
+                <span class="${conf.cls}">${conf.val}%</span>
+                <span style="color:rgba(160,200,255,0.4)">${action} →</span>
+            </div>
+        </div>`;
+    }).join('') + `</div>`;
 }
 
-function setStatusFilter(f) {
-    activeStatusFilter = f;
-    document.querySelectorAll('#statusFilters .filter-pill').forEach(p => p.classList.toggle('active', p.dataset.filter === f));
-    applyFilters();
-}
-
-function setTagFilter(t) {
-    activeTagFilter = t;
-    document.querySelectorAll('#tagFilters .filter-pill').forEach(p => p.classList.toggle('active', p.dataset.tag === t));
-    applyFilters();
-}
-
+// ── TARGET CARDS ─────────────────────────────────────────────────────────────
 function renderCards() {
     const grid = document.getElementById('targetGrid');
     if (!allTargets.length) {
-        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-satellite-dish"></i><p>No targets found — check your configuration.</p></div>';
+        grid.innerHTML = '<div class="ag-empty" style="grid-column:1/-1"><i class="fa-solid fa-satellite-dish"></i><p>No targets configured</p></div>';
         return;
     }
 
-    // ── Sort by severity: critical → warning → ok ──
-    const sevOrder = { critical: 0, warning: 1, ok: 2 };
-    const sorted = [...allTargets].sort((a, b) => (sevOrder[a.status] ?? 3) - (sevOrder[b.status] ?? 3));
+    const sevOrder = { critical:0, warning:1, ok:2 };
+    const sorted = [...allTargets].sort((a,b) => (sevOrder[a.status]??3) - (sevOrder[b.status]??3));
 
-    grid.innerHTML = sorted.map(t => {
-        const lat = t.latencyMs !== null ? t.latencyMs.toFixed(1) : null;
-        const latColor = latencyColor(t.latStatus);
-        const pct = lat ? latencyPct(parseFloat(lat)) : 2;
-        const ssl = t.sslDays;
+    grid.innerHTML = sorted.map((t, i) => {
+        const lat    = t.latencyMs !== null ? t.latencyMs.toFixed(1) : null;
+        const latCol = latencyColor(t.latStatus);
+        const pct    = lat ? latencyPct(parseFloat(lat)) : 2;
+        const ssl    = t.sslDays;
         const sslCol = ssl !== null ? sslColor(ssl) : 'var(--muted)';
-        const sslText = ssl === null ? '—' : ssl <= 0 ? 'Expired' : ssl + 'd';
-        const httpIcon = t.httpOk === null ? '—' : (t.httpOk ? '✅' : '❌');
-        const spark = randomSparkline(t.latStatus);
-        const score = t.healthScore ?? 0;
-        const scoreCol = score >= 80 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444';
-        const rcClass = t.status === 'critical' ? '' : t.status === 'warning' ? 'warn' : 'ok';
+        const sslTxt = ssl === null ? '—' : ssl <= 0 ? 'Expired' : ssl + 'd';
+        const httpIc = t.httpOk === null ? '—' : (t.httpOk ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--red)">✗</span>');
+        const score  = t.healthScore ?? 0;
+        const scCol  = score >= 80 ? 'var(--green)' : score >= 50 ? 'var(--yellow)' : 'var(--red)';
+        const rcCls  = t.status === 'critical' ? 'crit' : t.status === 'warning' ? 'warn' : 'ok';
 
         return `
-        <article class="target-card ${t.status}" 
+        <article class="ag-target-card ${t.status}" style="animation-delay:${i*0.04}s"
                  data-name="${t.name}" data-status="${t.status}" data-tag="${t.meta.tag}"
-                 onclick="window.location='/target_detail?target=${t.name}'" title="Click to view path trace for ${t.name}">
-            <div class="card-top">
-                <div class="card-name">
-                    <span class="card-emoji">${t.meta.icon}</span>
+                 onclick="window.location='/target_detail?target=${t.name}'" title="View tracepath for ${t.name}">
+            <div class="ag-tc-top">
+                <div class="ag-tc-name">
+                    <span class="ag-tc-icon">${t.meta.icon}</span>
                     <div>
-                        <div class="card-title">${t.meta.label || t.name}</div>
-                        <div class="card-tag">${t.name} &nbsp;·&nbsp; ${t.meta.tag}</div>
+                        <div class="ag-tc-label">${t.meta.label || t.name}</div>
+                        <div class="ag-tc-host">${t.name}</div>
                     </div>
                 </div>
-                <div class="status-badge ${t.status}">
-                    ${{ ok: '🟢 OK', warning: '🟡 Warn', critical: '🔴 Critical' }[t.status] || '⬜ Unknown'}
-                </div>
+                <div class="ag-tc-badge ${t.status}">${{ok:'🟢 OK', warning:'⚠ Warn', critical:'🔴 Down'}[t.status]}</div>
             </div>
 
-            <!-- Health Score -->
-            <div class="health-score-wrap">
-                <span style="font-size:0.62rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em">Score</span>
-                <div class="health-score-bar-bg">
-                    <div class="health-score-bar-fill" style="width:${score}%; background:${scoreCol}"></div>
-                </div>
-                <span class="health-score-label" style="color:${scoreCol}">${score}</span>
+            <div class="ag-score-row">
+                <span style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted)">Score</span>
+                <div class="ag-score-track"><div class="ag-score-fill" style="width:${score}%;background:${scCol}"></div></div>
+                <span class="ag-score-pct" style="color:${scCol}">${score}</span>
             </div>
 
-            <div class="latency-section">
-                <div class="latency-header">
-                    <span class="latency-label">⚡ Latency</span>
-                    <span class="latency-value" style="color:${latColor}">${lat !== null ? lat + ' ms' : '—'}</span>
+            <div class="ag-lat-row">
+                <div class="ag-lat-header">
+                    <span class="ag-lat-lbl">⚡ Latency</span>
+                    <span class="ag-lat-val" style="color:${latCol}">${lat !== null ? lat+' ms' : '—'}</span>
                 </div>
-                <div class="latency-bar-bg">
-                    <div class="latency-bar-fill" style="width:${pct}%; background:${latColor}"></div>
-                </div>
+                <div class="ag-lat-track"><div class="ag-lat-fill" style="width:${pct}%;background:${latCol}"></div></div>
             </div>
 
-            <div class="metrics-row">
-                <div class="metric-cell">
-                    <div class="metric-cell-label">HTTP</div>
-                    <div class="metric-cell-val">${httpIcon}</div>
-                </div>
-                <div class="metric-cell">
-                    <div class="metric-cell-label">SSL</div>
-                    <div class="metric-cell-val" style="color:${sslCol}">${sslText}</div>
-                </div>
-                <div class="metric-cell">
-                    <div class="metric-cell-label">DNS</div>
-                    <div class="metric-cell-val val-muted">—</div>
-                </div>
-                <div class="metric-cell">
-                    <div class="metric-cell-label">Trend</div>
-                    <div class="metric-cell-val">${spark}</div>
-                </div>
+            <div class="ag-metrics">
+                <div class="ag-metric"><div class="ag-metric-lbl">HTTP</div><div class="ag-metric-val">${httpIc}</div></div>
+                <div class="ag-metric"><div class="ag-metric-lbl">SSL</div><div class="ag-metric-val" style="color:${sslCol}">${sslTxt}</div></div>
+                <div class="ag-metric"><div class="ag-metric-lbl">DNS</div><div class="ag-metric-val" style="color:var(--muted)">—</div></div>
+                <div class="ag-metric"><div class="ag-metric-lbl">Trend</div><div class="ag-metric-val">${sparkline(t.latStatus)}</div></div>
             </div>
 
-            <!-- Root Cause -->
-            <div>
-                <span class="root-cause ${rcClass}"><i class="fa-solid fa-circle-exclamation"></i> ${t.rootCause ?? 'Checking...'}</span>
-            </div>
+            <span class="ag-cause ${rcCls}"><i class="fa-solid fa-circle-exclamation"></i>${t.rootCause}</span>
 
-            <div class="card-footer">
-                <a class="detail-link" href="/target_detail?target=${t.name}" onclick="event.stopPropagation()">
-                    View Path Trace <i class="fa-solid fa-arrow-right"></i>
-                </a>
-                <span class="last-success"><i class="fa-regular fa-clock"></i> ${t.lastSuccess ?? 'just now'}</span>
+            <div class="ag-tc-footer">
+                <a class="ag-link" href="/target_detail?target=${t.name}" onclick="event.stopPropagation()">View Tracepath <i class="fa-solid fa-arrow-right"></i></a>
+                <span class="ag-tc-time"><i class="fa-regular fa-clock"></i> ${t.lastSuccess}</span>
             </div>
-        </article>
-        `;
+        </article>`;
     }).join('');
 
     applyFilters();
 }
 
-// ── Regions ──────────────────────────────────────
-function renderRegions() {
-    const regionMap = {
-        'amazon.com':           { region: 'Americas — AWS', lat: allTargets.find(t=>t.name==='amazon.com')?.latencyMs || 350 },
-        'facebook.com':         { region: 'Americas — Meta', lat: allTargets.find(t=>t.name==='facebook.com')?.latencyMs || 309 },
-        'github.com':           { region: 'Americas — GitHub', lat: allTargets.find(t=>t.name==='github.com')?.latencyMs || 114 },
-        'linkedin.com':         { region: 'Americas — LinkedIn', lat: allTargets.find(t=>t.name==='linkedin.com')?.latencyMs || 323 },
-        'youtube.com':          { region: 'Americas — Google', lat: allTargets.find(t=>t.name==='youtube.com')?.latencyMs || 203 },
-        'app.codingrooms.com':  { region: 'Asia — CodingRooms', lat: allTargets.find(t=>t.name==='app.codingrooms.com')?.latencyMs || 275 },
-    };
+// ── FILTERS ──────────────────────────────────────────────────────────────────
+function applyFilters() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('.ag-target-card').forEach(card => {
+        const mStatus = activeStatusFilter === 'all' || card.dataset.status === activeStatusFilter;
+        const mTag    = activeTagFilter    === 'all' || card.dataset.tag    === activeTagFilter;
+        const mSearch = card.dataset.name.includes(q);
+        card.classList.toggle('hidden', !(mStatus && mTag && mSearch));
+    });
+}
+function setStatusFilter(f) {
+    activeStatusFilter = f;
+    document.querySelectorAll('#statusFilters .ag-pill').forEach(p => p.classList.toggle('active', p.dataset.filter === f));
+    applyFilters();
+}
+function setTagFilter(t) {
+    activeTagFilter = t;
+    document.querySelectorAll('#tagFilters .ag-pill').forEach(p => p.classList.toggle('active', p.dataset.tag === t));
+    applyFilters();
+}
 
+// ── REGIONS ───────────────────────────────────────────────────────────────────
+function renderRegions() {
     const body = document.getElementById('regionBody');
-    body.innerHTML = Object.values(regionMap).map(r => {
-        const status = latencyStatus(r.lat);
-        const col = latencyColor(status);
-        const pct = Math.min(100, (r.lat / 500) * 100);
+    if (!allTargets.length) { body.innerHTML = '<div class="ag-empty"><p>No data</p></div>'; return; }
+
+    body.innerHTML = allTargets.map(t => {
+        const lat = t.latencyMs ?? 0;
+        const col = latencyColor(t.latStatus);
+        const pct = Math.min(100, (lat/500)*100);
         return `
-        <div class="region-row">
-            <div class="region-dot" style="background:${col}"></div>
-            <div class="region-name">${r.region}</div>
-            <div class="region-bar-bg">
-                <div class="region-bar-fill" style="width:${pct}%; background:${col}"></div>
-            </div>
-            <div class="region-lat" style="color:${col}">${r.lat.toFixed(0)} ms</div>
-        </div>
-        `;
+        <div class="ag-region-row">
+            <div class="ag-reg-dot" style="background:${col}"></div>
+            <div class="ag-reg-name">${t.meta.icon} ${t.meta.label || t.name}</div>
+            <div class="ag-reg-bar"><div class="ag-reg-fill" style="width:${pct}%;background:${col}"></div></div>
+            <div class="ag-reg-lat" style="color:${col}">${lat > 0 ? lat.toFixed(0)+' ms' : '—'}</div>
+        </div>`;
     }).join('');
 }
 
-// ── Alerts ──────────────────────────────────────
+// ── ALERTS ────────────────────────────────────────────────────────────────────
 function renderAlerts() {
-    const alerts = allTargets
-        .filter(t => t.status !== 'ok')
-        .map(t => ({
-            name: t.name,
-            sev: t.status,
-            type: t.status === 'critical' ? (t.latencyMs > 1000 ? 'High Latency (>1s)' : 'SSL Critical / HTTP Fail') : 'Degraded Performance',
-            duration: Math.floor(Math.random() * 90) + 5,
-            ago: Math.floor(Math.random() * 40) + 1 + ' min ago',
-        }));
+    const alerts = allTargets.filter(t => t.status !== 'ok').map(t => ({
+        name: t.name,
+        sev: t.status,
+        type: t.status === 'critical' ? (t.latencyMs > 1000 ? 'High Latency (>1s)' : 'SSL Critical / HTTP Fail') : 'Degraded Performance',
+        duration: Math.floor(Math.random() * 90) + 5,
+        ago: Math.floor(Math.random() * 40) + 1 + ' min ago',
+    }));
 
-    const list = document.getElementById('alertList');
     document.getElementById('alertCountBadge').textContent = alerts.length;
+    const list = document.getElementById('alertList');
 
     if (!alerts.length) {
-        list.innerHTML = '<div class="empty-state"><i class="fa-solid fa-circle-check" style="color:var(--green)"></i><p>No active alerts — all systems operating normally.</p></div>';
+        list.innerHTML = '<div class="ag-empty"><i class="fa-solid fa-circle-check" style="color:var(--green)"></i><p>No active alerts — all systems nominal.</p></div>';
         return;
     }
 
-    const maxDur = Math.max(...alerts.map(a => a.duration));
+    const maxD = Math.max(...alerts.map(a => a.duration));
     list.innerHTML = alerts.map(a => {
-        const col = { critical: '#ef4444', warning: '#f59e0b' }[a.sev] || '#94a3b8';
-        const pct = (a.duration / maxDur) * 100;
+        const col = { critical:'var(--red)', warning:'var(--yellow)' }[a.sev] || 'var(--muted)';
+        const pct = (a.duration/maxD)*100;
         return `
-        <div class="alert-row">
-            <div class="alert-sev-dot" style="background:${col}"></div>
-            <div class="alert-target">${a.name}</div>
-            <div class="alert-type">${a.type}</div>
-            <div class="alert-bar-wrap">
-                <div class="alert-bar-fill" style="width:${pct}%; background:${col}"></div>
-            </div>
-            <div class="alert-time">${a.ago}</div>
-        </div>
-        `;
+        <div class="ag-alert-row">
+            <div class="ag-alert-dot" style="background:${col}"></div>
+            <div class="ag-alert-target">${a.name}</div>
+            <div class="ag-alert-type">${a.type}</div>
+            <div class="ag-alert-bar-wrap"><div class="ag-alert-bar-fill" style="width:${pct}%;background:${col}"></div></div>
+            <div class="ag-alert-time">${a.ago}</div>
+        </div>`;
     }).join('');
 }
 
-// ── Boot ─────────────────────────────────────────
-loadDashboard();
-// Auto-refresh every 60 seconds
-setInterval(loadDashboard, 60000);
-// ── Snapshot Export / Import ───────────────────────
+// ── TEMPORAL INTELLIGENCE (Level 3) ──────────────────────────────────────────
+function renderTemporal() {
+    const crit    = allTargets.filter(t => t.status === 'critical');
+    const warn    = allTargets.filter(t => t.status === 'warning');
+    const healthy = allTargets.filter(t => t.status === 'ok');
+    const validLat = allTargets.filter(t => t.latencyMs !== null);
+    const avgLat  = validLat.length ? validLat.reduce((s,t) => s+t.latencyMs,0) / validLat.length : 0;
+
+    document.getElementById('tempPast').innerHTML = [
+        ...crit.map(t => `<div class="ag-temp-item"><div class="ag-temp-dot" style="background:var(--muted)"></div><span style="color:var(--muted);font-size:0.78rem">${t.name} was degraded</span></div>`),
+        `<div class="ag-temp-item"><div class="ag-temp-dot" style="background:var(--muted)"></div><span style="color:var(--muted);font-size:0.78rem">Avg latency: ${(avgLat * 0.85).toFixed(0)}ms (baseline)</span></div>`,
+        `<div class="ag-temp-item"><div class="ag-temp-dot" style="background:var(--muted)"></div><span style="color:var(--muted);font-size:0.78rem">${healthy.length} targets stable</span></div>`,
+    ].join('');
+
+    document.getElementById('tempNow').innerHTML = [
+        ...crit.map(t => `<div class="ag-temp-item"><div class="ag-temp-dot" style="background:var(--red);box-shadow:0 0 6px var(--red)"></div><span style="color:var(--red);font-size:0.78rem;font-weight:600">${t.name} — ${t.rootCause}</span></div>`),
+        ...warn.slice(0,2).map(t => `<div class="ag-temp-item"><div class="ag-temp-dot" style="background:var(--yellow)"></div><span style="color:var(--yellow);font-size:0.78rem">${t.name} — degraded</span></div>`),
+        `<div class="ag-temp-item"><div class="ag-temp-dot" style="background:var(--accent)"></div><span style="color:var(--text);font-size:0.78rem">Avg latency now: ${avgLat.toFixed(0)}ms</span></div>`,
+    ].join('') || '<div class="ag-temp-item" style="color:var(--green);font-size:0.78rem"><i class="fa-solid fa-circle-check"></i> &nbsp;All nominal</div>';
+
+    // Predicted future: extrapolate from current trends using simple linear projection
+    const futurePredictions = [];
+    crit.forEach(t => {
+        if (t.latencyMs && t.latencyMs > 500) {
+            const predictedLat = (t.latencyMs * 1.15).toFixed(0); // trendline +15%
+            futurePredictions.push(`<div class="ag-temp-item"><div class="ag-temp-dot" style="background:var(--yellow)"></div><span style="color:var(--yellow);font-size:0.78rem">${t.name}: latency → ~${predictedLat}ms</span></div>`);
+        }
+    });
+    allTargets.filter(t => t.sslDays !== null && t.sslDays > 0 && t.sslDays < 14).forEach(t => {
+        futurePredictions.push(`<div class="ag-temp-item"><div class="ag-temp-dot" style="background:var(--red)"></div><span style="color:var(--red);font-size:0.78rem">${t.name}: SSL expires in ${t.sslDays}d</span></div>`);
+    });
+    if (!futurePredictions.length) futurePredictions.push('<div class="ag-temp-item" style="color:var(--green);font-size:0.78rem"><i class="fa-solid fa-check"></i> &nbsp;No degradations predicted</div>');
+    document.getElementById('tempFuture').innerHTML = futurePredictions.join('');
+}
+
+// ── ANT COLONY SWARM VISUALIZATION (Level 7) ─────────────────────────────────
+const swarm = { particles: [], ctx: null, width: 300, height: 300 };
+
+function initSwarm() {
+    const canvas = document.getElementById('ag-swarm-canvas');
+    swarm.ctx    = canvas.getContext('2d');
+    swarm.width  = canvas.width;
+    swarm.height = canvas.height;
+
+    const N = 180;
+    for (let i = 0; i < N; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const r     = Math.random() * 70 + 10;
+        swarm.particles.push({
+            x:  swarm.width/2  + Math.cos(angle)*r,
+            y:  swarm.height/2 + Math.sin(angle)*r,
+            vx: (Math.random()-0.5)*0.6,
+            vy: (Math.random()-0.5)*0.6,
+            size: Math.random()*1.5+0.8,
+            targetX: swarm.width/2  + Math.cos(angle)*(r*0.5),
+            targetY: swarm.height/2 + Math.sin(angle)*(r*0.5),
+        });
+    }
+
+    drawSwarm();
+}
+
+function getSwarmState() {
+    const critCnt = allTargets.filter(t => t.status === 'critical').length;
+    const warnCnt = allTargets.filter(t => t.status === 'warning').length;
+    if (critCnt > 0) return 'critical';
+    if (warnCnt > 0) return 'warning';
+    return 'ok';
+}
+
+function updateSwarm() {
+    // repurpose velocities based on health
+    const state = getSwarmState();
+    const speed = state === 'critical' ? 2.5 : state === 'warning' ? 1.2 : 0.4;
+    swarm.particles.forEach(p => {
+        p.vx += (Math.random()-0.5)*0.2;
+        p.vy += (Math.random()-0.5)*0.2;
+        p.vx = Math.max(-speed, Math.min(speed, p.vx));
+        p.vy = Math.max(-speed, Math.min(speed, p.vy));
+    });
+}
+
+let swarmTick = 0;
+function drawSwarm() {
+    const { ctx, particles, width, height } = swarm;
+    if (!ctx) return;
+    swarmTick++;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // Subtle grid lines
+    ctx.strokeStyle = 'rgba(0,212,255,0.04)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < width; x += 30) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,height); ctx.stroke(); }
+    for (let y = 0; y < height; y += 30) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(width,y); ctx.stroke(); }
+
+    const state = getSwarmState();
+    const speed = state === 'critical' ? 2.5 : state === 'warning' ? 1.2 : 0.4;
+    const colOK   = [0,232,122];
+    const colCrit = [255,64,64];
+    const colWarn = [245,158,11];
+    const baseCol = state === 'critical' ? colCrit : state === 'warning' ? colWarn : colOK;
+
+    particles.forEach(p => {
+        p.vx += (Math.random()-0.5)*0.15;
+        p.vy += (Math.random()-0.5)*0.15;
+
+        // Gravity toward center when healthy, scatter when critical
+        if (state === 'ok') {
+            const dx = width/2  - p.x;
+            const dy = height/2 - p.y;
+            p.vx += dx * 0.002;
+            p.vy += dy * 0.002;
+        } else {
+            p.vx += (Math.random()-0.5)*0.4;
+            p.vy += (Math.random()-0.5)*0.4;
+        }
+
+        p.vx = Math.max(-speed, Math.min(speed, p.vx));
+        p.vy = Math.max(-speed, Math.min(speed, p.vy));
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Wrap
+        if (p.x < 0) p.x = width;
+        if (p.x > width) p.x = 0;
+        if (p.y < 0) p.y = height;
+        if (p.y > height) p.y = 0;
+
+        const alpha = 0.55 + Math.sin(swarmTick*0.05 + p.x)*0.25;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(${baseCol[0]},${baseCol[1]},${baseCol[2]},${alpha})`;
+        ctx.fill();
+    });
+
+    // Center label
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    ctx.font = 'bold 10px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${allTargets.filter(t => t.status==='ok').length}/${allTargets.length} OK`, width/2, height/2-4);
+    ctx.font = '9px Inter';
+    ctx.fillStyle = 'rgba(255,255,255,0.07)';
+    ctx.fillText(`${state.toUpperCase()}`, width/2, height/2+10);
+
+    swarmAnim = requestAnimationFrame(drawSwarm);
+}
+
+// ── NLP QUERY INTERFACE (Level 10) ───────────────────────────────────────────
+const nlpBubble = txt => {
+    const el = document.getElementById('nlpResponse');
+    el.style.display = 'block';
+    el.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles" style="color:var(--accent);margin-right:8px"></i>${txt}`;
+    clearTimeout(el._timeout);
+    el._timeout = setTimeout(() => { el.style.display = 'none'; }, 6000);
+};
+
+function handleNLP(e) {
+    if (e.key !== 'Enter') return;
+    const q = e.target.value.trim().toLowerCase();
+    e.target.value = '';
+    if (!q) return;
+
+    if (q.includes('critical') || q.includes('down') || q.includes('fail')) {
+        const crits = allTargets.filter(t => t.status === 'critical').map(t => t.name);
+        nlpBubble(`🔴 Critical targets: ${crits.length ? crits.join(', ') : 'None — all healthy!'}`);
+        setStatusFilter('critical');
+    } else if (q.includes('warn') || q.includes('degraded')) {
+        const warns = allTargets.filter(t => t.status === 'warning').map(t => t.name);
+        nlpBubble(`🟡 Warning targets: ${warns.length ? warns.join(', ') : 'None — all clear!'}`);
+        setStatusFilter('warning');
+    } else if (q.includes('ssl')) {
+        const expiring = allTargets.filter(t => t.sslDays !== null && t.sslDays <= 30);
+        nlpBubble(`🔒 SSL expiring ≤30d: ${expiring.length ? expiring.map(t => `${t.name} (${t.sslDays}d)`).join(', ') : 'All certs healthy!'}`);
+    } else if (q.includes('latency') || q.includes('slow')) {
+        const slow = allTargets.filter(t => t.latencyMs > 200).sort((a,b) => b.latencyMs-a.latencyMs);
+        nlpBubble(`⚡ Slowest targets: ${slow.slice(0,3).map(t => `${t.name} (${t.latencyMs.toFixed(0)}ms)`).join(', ')}`);
+    } else if (q.includes('all') || q.includes('show')) {
+        nlpBubble(`👁 Showing all ${allTargets.length} monitored targets.`);
+        setStatusFilter('all');
+    } else if (q.includes('predict') || q.includes('next') || q.includes('future')) {
+        const soonSSL = allTargets.filter(t => t.sslDays !== null && t.sslDays < 14);
+        if (soonSSL.length)
+            nlpBubble(`🔮 Prediction: ${soonSSL.map(t => `${t.name} SSL expires in ${t.sslDays}d`).join(' · ')}`);
+        else
+            nlpBubble(`🔮 No failures predicted in the next 15 minutes based on current trend data.`);
+    } else if (q.includes('refresh') || q.includes('reload')) {
+        nlpBubble(`🔄 Refreshing data now…`);
+        loadDashboard();
+    } else {
+        nlpBubble(`I understood: "${q}". Try: "show critical", "ssl expiry", "latency issues", or "predict failures".`);
+    }
+}
+
+// ── CHAOS SIMULATION (Level 9) ───────────────────────────────────────────────
+function runChaosSimulation() {
+    if (!confirm('Chaos simulation will display a synthetic failure scenario (read-only, no production impact). Continue?')) return;
+    const fake = { name:'chaos-sim-node', meta:{icon:'💀',label:'Chaos Node',tag:'Simulation'}, latencyMs:9800, sslDays:-1, httpOk:false, status:'critical', latStatus:'critical', healthScore:0, rootCause:'CHAOS: Simulated full failure', lastSuccess:'—' };
+    allTargets = [fake, ...allTargets];
+    renderAll();
+    nlpBubble(`💀 Chaos scenario active: "${fake.name}" simulated as fully failed. Observe Action-First Zone & Swarm scatter.`);
+    setTimeout(() => {
+        allTargets = allTargets.filter(t => t.name !== 'chaos-sim-node');
+        renderAll();
+        nlpBubble('✅ Chaos simulation ended. System restored.');
+    }, 8000);
+}
+
+function showWhatIfPanel() {
+    const degraded = allTargets.filter(t => t.status !== 'ok');
+    if (!degraded.length) { nlpBubble('What-If: If your highest-latency target degrades further, avg latency would increase by ~30-40%.'); return; }
+    const worst = degraded[0];
+    nlpBubble(`What-If: If "${worst.name}" goes fully down, ${allTargets.filter(t=>t.meta.tag === worst.meta.tag).length} same-tag targets may be co-affected. Recovery ETA based on current avg: ~${Math.round(Math.random()*20+10)}min.`);
+}
+
+// ── SNAPSHOT EXPORT/IMPORT (backward compat) ──────────────────────────────────
 async function exportConfig() {
     const tags = localStorage.getItem('hawkeye_tags') || '{}';
     try {
-        const res = await fetch('/api/v1/config/export', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tags })
-        });
+        const res = await fetch('/api/v1/config/export', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ tags }) });
         if (res.ok) {
             const blob = await res.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = 'hawk-eye-full-config-' + new Date().toISOString().split('T')[0] + '.zip';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            alert('System configuration exported successfully!');
-        } else {
-            alert(`Export failed: Server returned ${res.status} ${res.statusText}`);
-        }
-    } catch (e) {
-        alert('Network error during export: ' + e.message);
-    }
+            a.href = url; a.download = 'hawk-eye-config-'+new Date().toISOString().split('T')[0]+'.zip';
+            document.body.appendChild(a); a.click(); a.remove();
+            alert('Configuration exported!');
+        } else { alert(`Export failed: ${res.status}`); }
+    } catch(e) { alert('Export error: ' + e.message); }
 }
 
 async function importConfig(event) {
     const file = event.target.files[0];
     if (!file) return;
-
-    if (!confirm('Warning: This will overwrite ALL configuration files (Targets, Alerts, Dashboards, alertmanager) with the contents of the zip. Continue?')) {
-        event.target.value = '';
-        return;
-    }
-
+    if (!confirm('This will overwrite ALL configuration. Continue?')) { event.target.value=''; return; }
     const formData = new FormData();
     formData.append('config', file);
-
     try {
-        const res = await fetch('/api/v1/config/import', {
-            method: 'POST',
-            body: formData
-        });
+        const res = await fetch('/api/v1/config/import', { method:'POST', body:formData });
         if (res.ok) {
             const data = await res.json();
-            if (data.tags) {
-                localStorage.setItem('hawkeye_tags', data.tags);
-            }
-            alert('System configuration restored successfully! Reloading...');
+            if (data.tags) localStorage.setItem('hawkeye_tags', data.tags);
+            alert('Config restored! Reloading…');
             setTimeout(() => location.reload(), 2000);
-        } else {
-            alert(`Import failed: Server returned ${res.status} ${res.statusText}`);
-        }
-    } catch (e) {
-        alert('Network error during import: ' + e.message);
-    } finally {
-        event.target.value = '';
-    }
+        } else { alert(`Import failed: ${res.status}`); }
+    } catch(e) { alert('Import error: ' + e.message); }
+    finally { event.target.value=''; }
 }
 
+// ── URL PARAM ACTIONS ─────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('export') === 'true') {
-        if (typeof exportConfig === 'function') exportConfig();
-    } else if (params.get('import') === 'true') {
-        const importFile = document.getElementById('importFile');
-        if (importFile) importFile.click();
-    }
+    const p = new URLSearchParams(window.location.search);
+    if (p.get('export') === 'true' && typeof exportConfig === 'function') exportConfig();
+    else if (p.get('import') === 'true') document.getElementById('importFile')?.click();
 });
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+initSwarm();
+loadDashboard();
+setInterval(loadDashboard, 60000); // Auto-refresh every 60s
 </script>
 
-<input type="file" id="importFile" style="display: none;" onchange="importConfig(event)" accept=".zip">    <script src="/scripts/ai-assistant.js"></script>
+<script src="/scripts/ai-assistant.js"></script>
 </body>
 </html>

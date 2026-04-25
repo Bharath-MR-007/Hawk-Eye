@@ -8,7 +8,7 @@ import os
 from typing import Optional
 import re
 import requests
-from config import HAWKEYE_URL, LLM_PROVIDER, OLLAMA_MODEL, NVIDIA_MODEL
+from config import HAWKEYE_URL, LLM_PROVIDER, OLLAMA_MODEL, NVIDIA_MODEL, AVAILABLE_MODELS
 from llm.llm_factory import LLMFactory
 
 # Configure logging
@@ -37,9 +37,24 @@ class ChatResponse(BaseModel):
 
 @app.get("/health")
 async def health():
-    if LLM_PROVIDER.lower() == "nvidia":
-        return {"status": "ok", "provider": "nvidia", "model": NVIDIA_MODEL}
-    return {"status": "ok", "provider": "ollama", "model": OLLAMA_MODEL}
+    return {"status": "ok", "provider": LLM_PROVIDER, "model": OLLAMA_MODEL if LLM_PROVIDER == "ollama" else NVIDIA_MODEL}
+
+@app.get("/models")
+async def get_models():
+    return {"models": AVAILABLE_MODELS, "current": OLLAMA_MODEL if LLM_PROVIDER == "ollama" else NVIDIA_MODEL}
+
+class SwitchModelRequest(BaseModel):
+    model: str
+
+@app.post("/switch_model")
+async def switch_model(request: SwitchModelRequest):
+    global OLLAMA_MODEL
+    if request.model in AVAILABLE_MODELS:
+        OLLAMA_MODEL = request.model
+        os.environ["OLLAMA_MODEL"] = request.model
+        logger.info(f"Switched to model: {request.model}")
+        return {"status": "success", "model": request.model}
+    raise HTTPException(status_code=400, detail="Invalid model")
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):

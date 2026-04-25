@@ -1,7 +1,8 @@
 health:
     interval: 10s
-    timeout: 5s
+    timeout: 10s
     targets:
+        - http://labmuc-sysm-spw-01.lan.ts-ian.net:8080
         - https://www.facebook.com
         - https://www.amazon.com
         - https://www.github.com
@@ -13,12 +14,15 @@ health:
         - https://www.opentext.com/
         - https://www.cisco.com/
         - https://www.cisco.com/
-        - https://www.cisco.com/
+        - http://25.96.130.3
         - https://www.cisco.com/
 http_advanced:
-    interval: 20s
-    timeout: 5s
+    interval: 10s
+    timeout: 10s
     targets:
+        - url: "http://labmuc-sysm-spw-01.lan.ts-ian.net:8080"
+          method: GET
+          expected_status: 200
         - url: "https://www.facebook.com"
           method: GET
           expected_status: 200
@@ -58,6 +62,9 @@ http_advanced:
         - url: https://www.cisco.com/
           method: GET
           expected_status: 200
+        - url: "http://25.96.130.3"
+          method: GET
+          expected_status: 200
 ssl_tls:
     interval: 1m
     timeout: 5s
@@ -73,7 +80,7 @@ ssl_tls:
         - www.opentext.com:443
         - www.cisco.com:443
         - www.cisco.com:443
-        - www.cisco.com:443
+        - "25.96.130.3:80"
         - www.cisco.com:443
 dns_advanced:
     interval: 30s
@@ -110,8 +117,11 @@ dns_advanced:
           type: A
 tcp_metrics:
     interval: 20s
-    timeout: 5s
+    timeout: 10s
     targets:
+        - url: "http://labmuc-sysm-spw-01.lan.ts-ian.net:8080"
+          method: GET
+          expected_status: 200
         - "facebook.com:443"
         - "amazon.com:443"
         - "github.com:443"
@@ -156,10 +166,19 @@ traceroute:
           port: 80
         - addr: www.cisco.com
           port: 80
+        - addr: "25.96.130.3"
+          port: 80
+          method: udp
+        - addr: "labmuc-sysm-spw-01.lan.ts-ian.net"
+          port: 8080
+          method: udp
 latency:
     interval: 20s
-    timeout: 5s
+    timeout: 10s
     targets:
+        - url: "http://labmuc-sysm-spw-01.lan.ts-ian.net:8080"
+          method: GET
+          expected_status: 200
         - https://www.facebook.com
         - https://www.amazon.com
         - https://www.github.com

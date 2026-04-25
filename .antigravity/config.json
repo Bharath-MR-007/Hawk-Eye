@@ -1,0 +1,25 @@
+{
+  "llm": {
+    "providers": [
+      {
+        "name": "deepseek",
+        "provider": "ollama",
+        "baseUrl": "http://localhost:11434",
+        "model": "deepseek-coder"
+      },
+      {
+        "name": "gemma",
+        "provider": "ollama",
+        "baseUrl": "http://localhost:11434",
+        "model": "gemma4"
+      },
+      {
+        "name": "qwen",
+        "provider": "ollama",
+        "baseUrl": "http://localhost:11434",
+        "model": "qwen2.5:14b"
+      }
+    ],
+    "default": "deepseek"
+  }
+}

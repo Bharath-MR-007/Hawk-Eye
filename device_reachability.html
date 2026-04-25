@@ -11,43 +11,147 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
 
-        :root {
-            --bg-dark: #0f1115;
-            --surface-color: #1a1d24;
-            --surface-highlight: #232730;
-            --border-color: #2a2d35;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --info-color: #3b82f6;
-            --header-bg: #1e2128;
-            --card-hover: #232730;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --error-color: #ef4444;
-            --accent-purple: #8b5cf6;
-            --terminal-bg: #0d0e12;
-            --hover-row: #232730;
-            --even-row: #14161B;
+                :root {
+            /* ── Background ── */
+            --bg:          #080d18;
+            --bg-dark:     #080d18;
+            --surface:     #0d1221;
+            --surface2:    #111827;
+            --surface-color:     #0d1221;
+            --surface-highlight: #111827;
+
+            /* ── Borders ── */
+            --border:       rgba(255,255,255,0.07);
+            --border-color: rgba(255,255,255,0.07);
+
+            /* ── Text ── */
+            --text:          #f0f4ff;
+            --text-primary:  #f0f4ff;
+            --muted:         #a0aec8;
+            --text-secondary:#a0aec8;
+
+            /* ── Primary accent (Electric Cyan) ── */
+            --accent:        #00d4ff;
+            --accent-purple: #7c3aed;
+            --magenta:       #00d4ff;
+
+            /* ── Status ── */
+            --green:   #00e87a;
+            --yellow:  #f59e0b;
+            --orange:  #fb923c;
+            --red:     #ff4040;
+            --blue:    #3b82f6;
+
+            /* ── Sidebar ── */
+            --sidebar-bg: #040a16;
         }
 
-        body.light-theme {
-            --bg-dark: #F8FAFC;
-            --surface-color: #FFFFFF;
-            --surface-highlight: #F1F5F9;
-            --border-color: #E2E8F0;
-            --text-primary: #1E293B;
-            --text-secondary: #64748B;
-            --info-color: #2563EB;
-            --header-bg: #F1F5F9;
-            --card-hover: #F8FAFC;
-            --success-color: #059669;
-            --warning-color: #D97706;
-            --error-color: #DC2626;
-            --accent-purple: #7c3aed;
-            --terminal-bg: #1e293b;
-            --hover-row: #E0E7FF;
-            --even-row: #F8FAFC;
+                body.light-theme {
+            --bg:          #e8edf6;
+            --bg-dark:     #e8edf6;
+            --surface:     #ffffff;
+            --surface2:    #f5f8ff;
+            --surface-color:     #ffffff;
+            --surface-highlight: #f5f8ff;
+
+            --border:       rgba(0,0,0,0.08);
+            --border-color: rgba(0,0,0,0.08);
+
+            --text:          #0a0f1e;
+            --text-primary:  #0a0f1e;
+            --muted:         #4a5568;
+            --text-secondary:#4a5568;
+
+            --accent:        #0095c8;
+            --accent-purple: #6d28d9;
+            --magenta:       #0095c8;
+
+            --sidebar-bg: #0a1e3d;
         }
+
+        /* ── Light theme: page & form elements ── */
+        body.light-theme .page-container,
+        body.light-theme .app-content { background: #e8edf6; }
+
+        body.light-theme .reachability-controls,
+        body.light-theme .results-table-container {
+            background: #ffffff !important;
+            border-color: rgba(0,0,0,0.08) !important;
+            color: #0a0f1e !important;
+        }
+
+        body.light-theme .header-section h1,
+        body.light-theme .results-table-header h3,
+        body.light-theme .top-navbar { color: #0a0f1e !important; }
+
+        body.light-theme .control-label,
+        body.light-theme #summaryStats { color: #4a5568 !important; }
+
+        body.light-theme .custom-select,
+        body.light-theme .custom-input,
+        body.light-theme .custom-textarea,
+        body.light-theme .multi-select-trigger {
+            background: #f5f8ff !important;
+            border-color: rgba(0,0,0,0.12) !important;
+            color: #0a0f1e !important;
+        }
+
+        body.light-theme .multi-select-menu {
+            background: #ffffff !important;
+            border-color: rgba(0,0,0,0.08) !important;
+        }
+
+        body.light-theme .multi-select-item { color: #4a5568 !important; }
+        body.light-theme .multi-select-item:hover { background: #f5f8ff !important; color: #0a0f1e !important; }
+
+        /* ── Terminal: always stays dark (intentional — terminals are dark-bg) ── */
+        body.light-theme .terminal-container {
+            background: #1a1d2e !important;
+            border-color: rgba(0,0,0,0.20) !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.20) !important;
+        }
+        body.light-theme .terminal-header { background: #111320 !important; }
+        body.light-theme .terminal-body {
+            background: #1a1d2e !important;
+            color: #e2e8f0 !important;    /* bright enough to read */
+        }
+        body.light-theme .terminal-line { color: #e2e8f0 !important; }
+        body.light-theme .line-timestamp { color: #94a3b8 !important; }  /* visible gray */
+        body.light-theme .line-info    { color: #60a5fa !important; }
+        body.light-theme .line-success { color: #34d399 !important; }
+        body.light-theme .line-error   { color: #f87171 !important; }
+        body.light-theme .line-warning { color: #fbbf24 !important; }
+
+        /* ── Table ── */
+        body.light-theme .diagnostic-table th {
+            background: #f0f4fa !important;
+            color: #0a0f1e !important;
+            border-color: rgba(0,0,0,0.08) !important;
+        }
+        body.light-theme .diagnostic-table td {
+            color: #0a0f1e !important;
+            border-color: rgba(0,0,0,0.06) !important;
+        }
+        body.light-theme .diagnostic-table tbody tr:nth-child(even) td { background: #f8faff !important; }
+        body.light-theme .diagnostic-table tbody tr:hover td { background: #eef2ff !important; }
+
+        /* ── Status indicator dot bar ── */
+        body.light-theme .status-indicator {
+            background: #f0f4fa !important;
+            border-color: rgba(0,0,0,0.08) !important;
+            color: #0a0f1e !important;
+        }
+        body.light-theme .help-dropbtn {
+            background: #f5f8ff !important;
+            border-color: rgba(0,0,0,0.08) !important;
+            color: #4a5568 !important;
+        }
+        body.light-theme .help-dropdown-content {
+            background: #ffffff !important;
+            border-color: rgba(0,0,0,0.08) !important;
+        }
+        body.light-theme .help-dropdown-content a { color: #4a5568 !important; }
+        body.light-theme .help-dropdown-content a:hover { background: #f0f4fa !important; }
 
         body {
             font-family: 'Inter', sans-serif;
@@ -449,7 +553,7 @@
         }
         .main-sidebar-logo-text .hawk-sub {
             font-size: 0.58rem;
-            color: #ff6ef7;
+            color: var(--he-accent,#00d4ff);
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1.5px;
@@ -586,6 +690,7 @@
         /* ═══════════════════════════════════════════════════════ */
 
         </style>
+    <link id="hawk-theme-css-link" rel="stylesheet" href="/scripts/hawk-theme.css">
 </head>
 
 <body>
@@ -598,7 +703,7 @@
                 <div style="display: flex; flex-direction: column; line-height: 1.1;">
                     <span style="font-weight: 700; font-size: 1.25rem;">Hawk-Eye</span>
                     <span
-                        style="font-size: 0.65rem; color: #ff00ff; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
+                        style="font-size: 0.65rem; color: var(--he-accent,#00d4ff); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
                 </div>
             </div>
 

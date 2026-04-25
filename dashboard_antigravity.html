@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANTIGRAVITY | Zero-Notification Monitor</title>
+    <!-- Three.js for Swarm Visualization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;900&family=Fira+Code:wght@500&display=swap');
+
+        /* ZERO NOTIFICATION PARADIGM */
+        :root {
+            --bg: #030407;
+            --text-quiet: rgba(255,255,255,0.1);
+            --text-active: #ffffff;
+            --cyan: #00d4ff;
+            --red: #ff3333;
+            --amber: #f59e0b;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--bg);
+            color: var(--text-active);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #swarm-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* 3-SECOND RULE OVERLAYS */
+        .ui-layer {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            pointer-events: none;
+        }
+
+        /* Ambient status: nearly invisible when healthy */
+        .ambient-status {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8rem;
+            font-weight: 900;
+            color: var(--text-quiet);
+            letter-spacing: -4px;
+            transition: all 1s ease;
+            pointer-events: none;
+        }
+
+        .ambient-status.hidden {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.8);
+        }
+
+        /* ACTION-FIRST MODULE */
+        .action-card {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 500px;
+            background: rgba(10, 15, 25, 0.85);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,51,51,0.3);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 40px 100px rgba(255,51,51,0.2);
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: auto;
+            visibility: hidden;
+        }
+
+        .action-card.active {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            visibility: visible;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .severity-badge {
+            background: rgba(255,51,51,0.15);
+            color: var(--red);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: 1px solid rgba(255,51,51,0.3);
+        }
+
+        .confidence {
+            font-family: 'Fira Code', monospace;
+            color: var(--amber);
+            font-size: 0.85rem;
+        }
+
+        .action-title {
+            font-size: 1.8rem;
+            font-weight: 300;
+            margin: 0 0 10px 0;
+            line-height: 1.2;
+        }
+
+        .action-predict {
+            color: #8899aa;
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .btn-resolve {
+            background: linear-gradient(135deg, #ff3333, #cc0000);
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-resolve:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(255,51,51,0.3);
+        }
+
+        /* TEMPORAL DIMENSIONALITY */
+        .temporal-hud {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 40px;
+            opacity: 0.3;
+            transition: opacity 0.5s;
+        }
+        .temporal-hud:hover { opacity: 1; }
+
+        .time-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: #8899aa;
+        }
+        .time-node.present { color: var(--cyan); font-weight: 600; font-size: 0.85rem; }
+
+        .time-dot {
+            width: 8px; height: 8px;
+            background: #8899aa;
+            border-radius: 50%;
+        }
+        .time-node.present .time-dot { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+
+        /* CHAOS CONTROLS & NLP */
+        .top-modules {
+            position: absolute;
+            top: 40px; left: 40px; right: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: auto;
+        }
+
+        .chaos-btn {
+            background: transparent;
+            border: 1px dashed rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.5);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+        .chaos-btn:hover {
+            background: rgba(255,51,51,0.1);
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .nlp-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 12px 20px;
+            width: 350px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            backdrop-filter: blur(10px);
+        }
+        .nlp-box input {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 0.9rem;
+            font-family: 'Inter', sans-serif;
+            width: 100%;
+            outline: none;
+        }
+        .nlp-box input::placeholder { color: rgba(255,255,255,0.3); }
+
+        /* Audio Request Overlay */
+        #audio-init {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+        }
+        #audio-init button {
+            background: var(--cyan);
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Init Screen for Web Audio API rules -->
+    <div id="audio-init">
+        <h2>Engage Antigravity Systems</h2>
+        <p style="color: #8899aa; text-align: center; max-width: 400px; margin-top: 10px; line-height: 1.5;">
+            This dashboard uses WebAudio and Haptics. Interacting authorizes the sensory layer.
+        </p>
+        <button onclick="initAntigravity()">INITIALIZE</button>
+    </div>
+
+    <!-- Ant Colony Swarm Data -->
+    <div id="swarm-container"></div>
+
+    <div class="ui-layer">
+        
+        <div class="top-modules">
+            <button class="chaos-btn" onclick="triggerChaos()"><i class="fa-solid fa-skull"></i> TRIGGER CHAOS (SIM)</button>
+            
+            <div class="nlp-box">
+                <i class="fa-solid fa-microphone-lines" style="color: rgba(255,255,255,0.3)"></i>
+                <input type="text" placeholder="Ask 'What will fail next?'..." onkeypress="handleNLP(event)">
+            </div>
+        </div>
+
+        <!-- Zero Notification State -->
+        <div class="ambient-status" id="ambient-status">100.0%</div>
+
+        <!-- Action First Card -->
+        <div class="action-card" id="action-card">
+            <div class="card-header">
+                <span class="severity-badge"><i class="fa-solid fa-triangle-exclamation"></i> PREDICTIVE CRITICAL</span>
+                <span class="confidence">94.8% CONFIDENCE</span>
+            </div>
+            <h2 class="action-title">Database Disk Exhaustion</h2>
+            <p class="action-predict">
+                Temporal ML Engine predicts <code>pg-cluster-01</code> will run out of space in <strong>14m 23s</strong> based on current transaction velocity (Baseline deviated by 4.2σ).
+            </p>
+            <button class="btn-resolve" onclick="resolveAnomaly()">
+                <i class="fa-solid fa-microchip"></i> AUTO-SCALE VOLUME (+500GB)
+            </button>
+        </div>
+
+        <!-- Temporal Dimensionality -->
+        <div class="temporal-hud">
+            <div class="time-node">
+                <span>T-15m (Past)</span>
+                <div class="time-dot"></div>
+                <span>Baseline: 42ms</span>
+            </div>
+            <div class="time-node present">
+                <span>T-0 (Present)</span>
+                <div class="time-dot"></div>
+                <span>Velocity Spiking</span>
+            </div>
+            <div class="time-node">
+                <span>T+15m (Future)</span>
+                <div class="time-dot"></div>
+                <span style="color: var(--amber)">Predicted: Fail</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // GLOBAL STATE
+        let isCritical = false;
+        let audioCtx;
+        
+        // ── SENSORY LAYER (Audio & Haptics) ── 
+        function initAntigravity() {
+            document.getElementById('audio-init').style.display = 'none';
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            initSwarm();
+            
+            // Play ambient subtle hum
+            playAmbientHum();
+        }
+
+        function playAmbientHum() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(55, audioCtx.currentTime); // Deep hum
+            gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+        }
+
+        function playCriticalAlarm() {
+            if (!audioCtx) return;
+            // Inception Horn style synthetic sound
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(45, audioCtx.currentTime); 
+            osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 1.5);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 2);
+
+            // Haptics
+            if(navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 500]);
+        }
+
+        // ── VISUAL LAYER: THREE.JS SWARM ──
+        let scene, camera, renderer, particles, geometry, materials;
+        let particleSystem;
+
+        function initSwarm() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
+            camera.position.z = 200;
+
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('swarm-container').appendChild(renderer.domElement);
+
+            geometry = new THREE.BufferGeometry();
+            const particleCount = 1000;
+            const positions = new Float32Array(particleCount * 3);
+            const velocities = [];
+
+            // Sphere placement
+            for (let i = 0; i < particleCount; i++) {
+                const r = 80 * Math.cbrt(Math.random());
+                const theta = Math.random() * 2 * Math.PI;
+                const phi = Math.acos(2 * Math.random() - 1);
+
+                positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+                positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+                positions[i * 3 + 2] = r * Math.cos(phi);
+
+                velocities.push({
+                    x: (Math.random() - 0.5) * 0.2,
+                    y: (Math.random() - 0.5) * 0.2,
+                    z: (Math.random() - 0.5) * 0.2
+                });
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            materials = new THREE.PointsMaterial({
+                color: 0x00d4ff, // Ambient cyan
+                size: 2,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending
+            });
+
+            particleSystem = new THREE.Points(geometry, materials);
+            scene.add(particleSystem);
+            
+            geometry.userData.velocities = velocities;
+
+            window.addEventListener('resize', onWindowResize, false);
+            animateSwarm();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animateSwarm() {
+            requestAnimationFrame(animateSwarm);
+
+            const positions = geometry.attributes.position.array;
+            const velocities = geometry.userData.velocities;
+
+            // Anomaly state = scatter and turn red
+            const targetSize = isCritical ? 4 : 2;
+            const targetColor = isCritical ? new THREE.Color(0xff3333) : new THREE.Color(0x00d4ff);
+            materials.size += (targetSize - materials.size) * 0.1;
+            materials.color.lerp(targetColor, 0.05);
+
+            for(let i=0; i<positions.length/3; i++) {
+                // If critical, speed multiplies and scatters
+                const speed = isCritical ? 5.0 : 1.0;
+                
+                positions[i*3] += velocities[i].x * speed;
+                positions[i*3+1] += velocities[i].y * speed;
+                positions[i*3+2] += velocities[i].z * speed;
+
+                // Simple bounds return to center
+                const dist = Math.sqrt(positions[i*3]**2 + positions[i*3+1]**2 + Math.pow(positions[i*3+2], 2));
+                if (dist > (isCritical ? 300 : 100)) {
+                    velocities[i].x *= -0.9;
+                    velocities[i].y *= -0.9;
+                    velocities[i].z *= -0.9;
+                }
+            }
+            
+            geometry.attributes.position.needsUpdate = true;
+            particleSystem.rotation.y += isCritical ? 0.02 : 0.002;
+            renderer.render(scene, camera);
+        }
+
+        // ── LOGIC LAYER (Chaos & Predictor Simulator) ──
+        
+        function triggerChaos() {
+            // Simulator for "Break It" Chaos Engineering
+            isCritical = true;
+            
+            // Audio + Haptic Cue
+            playCriticalAlarm();
+
+            // Cognitive Load shifting
+            document.getElementById('ambient-status').classList.add('hidden');
+            
+            setTimeout(() => {
+                document.getElementById('action-card').classList.add('active');
+            }, 600); // 1-2 second manifestation mapping to 3-second rule
+        }
+
+        function resolveAnomaly() {
+            const btn = document.querySelector('.btn-resolve');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> EXECUTING RUNBOOK...';
+            btn.style.opacity = '0.8';
+            btn.style.pointerEvents = 'none';
+
+            // Simulate resolution timeline backward compatibility
+            setTimeout(() => {
+                isCritical = false;
+                document.getElementById('action-card').classList.remove('active');
+                
+                // Reset OK Sound
+                if(audioCtx) {
+                    const osc = audioCtx.createOscillator();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime+0.1);
+                    osc.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.2);
+                }
+
+                setTimeout(() => {
+                    document.getElementById('ambient-status').classList.remove('hidden');
+                    btn.innerHTML = '<i class="fa-solid fa-microchip"></i> AUTO-SCALE VOLUME (+500GB)';
+                    btn.style.opacity = '1';
+                    btn.style.pointerEvents = 'auto';
+                }, 1000);
+            }, 1500);
+        }
+
+        // Natural Language Demo
+        function handleNLP(e) {
+            if(e.key === 'Enter') {
+                const q = e.target.value.toLowerCase();
+                e.target.value = '';
+                if(q.includes('fail') || q.includes('break')) {
+                    triggerChaos();
+                } else if(q.includes('fix') || q.includes('resolve')) {
+                    if(isCritical) resolveAnomaly();
+                } else {
+                    document.getElementById('ambient-status').innerHTML = "NLP: Processing Context...";
+                    setTimeout(() => {
+                        document.getElementById('ambient-status').innerHTML = "100.0%";
+                    }, 2000);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

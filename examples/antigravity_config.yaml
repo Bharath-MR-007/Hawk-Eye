@@ -1,0 +1,39 @@
+# ANTIGRAVITY DASHBOARD CONFIGURATION
+# -----------------------------------
+# This file governs the online machine learning thresholds and Cognitive Load parameters.
+
+antigravity:
+  enabled: true
+  
+  # ML Engine settings (< 200MB footprint)
+  predictor:
+    # Alpha for Exponential Moving Average (0.0 < alpha <= 1.0)
+    # Higher = more weight to recent data
+    ema_alpha: 0.15 
+    
+    # Z-Score threshold for anomaly triggering
+    # 3.0 = 99.7% confidence interval (standard)
+    anomaly_z_score_threshold: 3.5 
+
+  # Web Audio & Haptics
+  sensory:
+    audio_enabled: true
+    haptics_enabled: true
+    # Custom URLs for audio cues
+    sound_ok: "/assets/sounds/ambient_ping.wav"
+    sound_warn: "/assets/sounds/low_synth.wav"
+    sound_critical: "/assets/sounds/inception_horn.wav"
+
+  # User Adaptive UI Settings
+  ui:
+    # 3-Second Rule Enforcement
+    enforce_cognitive_limit: true
+    auto_collapse_unused_modules: true
+    # Only show if prediction confidence > X%
+    minimum_prediction_confidence: 85
+
+  # Chaos Engineering
+  chaos_engine:
+    enabled: true
+    allowed_environments: ["dev", "staging", "local"]
+    max_blast_radius: "15%" # Don't break more than 15% of nodes in staging

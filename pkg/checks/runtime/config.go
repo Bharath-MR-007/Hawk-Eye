@@ -16,6 +16,7 @@ import (
 	"github.com/Bharath-MR-007/hawk-eye/pkg/checks/ssltls"
 	"github.com/Bharath-MR-007/hawk-eye/pkg/checks/tcpmeter"
 	"github.com/Bharath-MR-007/hawk-eye/pkg/checks/traceroute"
+	"github.com/Bharath-MR-007/hawk-eye/pkg/checks/snmp"
 )
 
 // Config holds the runtime configuration
@@ -30,6 +31,7 @@ type Config struct {
 	SslTls       *ssltls.Config       `yaml:"ssl_tls" json:"ssl_tls"`
 	DnsAdvanced  *dnsadvanced.Config  `yaml:"dns_advanced" json:"dns_advanced"`
 	TcpMetrics   *tcpmeter.Config     `yaml:"tcp_metrics" json:"tcp_metrics"`
+	Snmp         *snmp.Config         `yaml:"snmp" json:"snmp"`
 }
 
 // Empty returns true if no checks are configured
@@ -74,6 +76,9 @@ func (c Config) Iter() []checks.Runtime {
 	if c.TcpMetrics != nil {
 		configs = append(configs, c.TcpMetrics)
 	}
+	if c.Snmp != nil {
+		configs = append(configs, c.Snmp)
+	}
 	return configs
 }
 
@@ -102,6 +107,9 @@ func (c Config) size() int {
 		size++
 	}
 	if c.TcpMetrics != nil {
+		size++
+	}
+	if c.Snmp != nil {
 		size++
 	}
 	return size
@@ -146,6 +154,8 @@ func (c Config) HasCheck(name string) bool {
 		return c.DnsAdvanced != nil
 	case tcpmeter.CheckName:
 		return c.TcpMetrics != nil
+	case snmp.CheckName:
+		return c.Snmp != nil
 	default:
 		return false
 	}
@@ -185,6 +195,10 @@ func (c Config) For(name string) checks.Runtime {
 	case tcpmeter.CheckName:
 		if c.TcpMetrics != nil {
 			return c.TcpMetrics
+		}
+	case snmp.CheckName:
+		if c.Snmp != nil {
+			return c.Snmp
 		}
 	}
 	return nil

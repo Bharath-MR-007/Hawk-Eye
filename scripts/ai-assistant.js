@@ -13,6 +13,8 @@
         '#ai-chat-window{display:none;position:absolute;bottom:72px;right:0;width:370px;height:520px;background:rgba(22,25,35,.97);border:1px solid rgba(139,92,246,.3);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.6);flex-direction:column;overflow:hidden;backdrop-filter:blur(20px);color:#fff}',
         '.ai-hdr{padding:14px 16px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);font-weight:700;font-size:.9rem;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}',
         '.ai-hdr-left{display:flex;align-items:center;gap:10px}',
+        '.ai-model-select{background:rgba(255,255,255,0.1);color:#fff;border:none;font-size:0.7rem;padding:2px 4px;border-radius:4px;outline:none;cursor:pointer;max-width:110px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}',
+        '.ai-model-select option{background:#1e1e2e;color:#fff}',
         '.ai-status-dot{width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block}',
         '.ai-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin;scrollbar-color:rgba(139,92,246,.3) transparent}',
         '.ai-msgs::-webkit-scrollbar{width:4px}',
@@ -46,7 +48,10 @@
         '<div id="ai-chat-window">' +
             '<div class="ai-hdr">' +
                 '<div class="ai-hdr-left"><span class="ai-status-dot"></span><span>&#x1F985; Hawk-Eye AI</span></div>' +
-                '<i class="fa-solid fa-xmark" id="ai-chat-close" style="cursor:pointer;opacity:.8"></i>' +
+                '<div style="display:flex; align-items:center; gap:8px;">' +
+                    '<select id="ai-model-selector" class="ai-model-select"><option value="">Loading...</option></select>' +
+                    '<i class="fa-solid fa-xmark" id="ai-chat-close" style="cursor:pointer;opacity:.8"></i>' +
+                '</div>' +
             '</div>' +
             '<div id="ai-chat-messages" class="ai-msgs">' +
                 '<div class="msg-ai">Hi! I\'m your Hawk-Eye Observability AI.<br><br>' +
@@ -73,6 +78,34 @@
     var input  = document.getElementById('ai-chat-input');
     var send   = document.getElementById('ai-chat-send');
     var msgs   = document.getElementById('ai-chat-messages');
+    var modelSel = document.getElementById('ai-model-selector');
+
+    function loadModels() {
+        fetch('http://localhost:8000/models').then(r => r.json()).then(data => {
+            if (data.models) {
+                modelSel.innerHTML = data.models.map(m => `<option value="${m}" ${m === data.current ? 'selected' : ''}>${m.split(':')[0]}</option>`).join('');
+            }
+        }).catch(() => {
+            modelSel.innerHTML = '<option value="">Offline</option>';
+        });
+    }
+    loadModels();
+
+    modelSel.onchange = function() {
+        var newModel = modelSel.value;
+        if (!newModel) return;
+        fetch('http://localhost:8000/switch_model', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: newModel })
+        }).then(r => r.json()).then(data => {
+            if (data.status === 'success') {
+                addMsg(`<i>Switched to <b>${newModel}</b></i>`, false);
+            }
+        }).catch(() => {
+            addMsg(`<i>Failed to switch model.</i>`, false);
+        });
+    };
 
     toggle.onclick = function () {
         var open = aiWin.style.display === 'flex';

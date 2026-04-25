@@ -6,15 +6,17 @@
 const HawkUI = {
     init() {
         console.log("HawkUI: Initializing...");
+        // Order matters: CSS first, sidebar second, theme third (theme button must exist)
         const steps = [
-            { name: 'Theme',         fn: () => this.initTheme() },
+            { name: 'ThemeCSS',      fn: () => this.injectThemeLink() },
             { name: 'UserDisplay',   fn: () => this.updateUserDisplay() },
             { name: 'RBAC',          fn: () => this.applyRBAC() },
+            { name: 'Sidebar',       fn: () => this.initSidebar() },
+            { name: 'Theme',         fn: () => this.initTheme() },
             { name: 'Nav',           fn: () => this.setActiveNavItem() },
             { name: 'Cleanup',       fn: () => this.cleanupURLParams() },
             { name: 'EventListeners',fn: () => this.setupEventListeners() }
         ];
-
 
         steps.forEach(step => {
             try {
@@ -27,6 +29,17 @@ const HawkUI = {
     },
 
 
+    // ── Production theme CSS injection ────────────────────
+    injectThemeLink() {
+        if (document.getElementById('hawk-theme-css-link')) return;
+        const link = document.createElement('link');
+        link.id   = 'hawk-theme-css-link';
+        link.rel  = 'stylesheet';
+        link.href = '/scripts/hawk-theme.css';
+        // Insert as first child of head so page styles can override
+        document.head.insertBefore(link, document.head.firstChild);
+    },
+
     // ── Sidebar injection ──────────────────────────────────
     initSidebar() {
         // Skip on login page
@@ -37,11 +50,7 @@ const HawkUI = {
         const hasSidebar = document.querySelector('.main-sidebar') || document.getElementById('hawk-global-sidebar');
         if (hasSidebar) {
             console.log("HawkUI: Page already has a sidebar. Skipping layout injection.");
-            // Just wire the existing theme button if it exists
-            const themeBtn = document.getElementById('theme-toggle-btn');
-            if (themeBtn) {
-                themeBtn.onclick = (e) => { e.preventDefault(); this.toggleTheme(); };
-            }
+            // Theme button is handled by document-level delegation in initTheme() — do NOT bind here.
             return;
         }
 
@@ -49,53 +58,141 @@ const HawkUI = {
         const css = document.createElement('style');
         css.id = 'hawk-sidebar-css';
         css.textContent = `
+            /* ── Hawk-Eye injected layout shell ── */
             html, body { height: 100%; overflow: hidden; margin: 0; padding: 0; }
             .hawk-app-window {
                 display: flex;
                 height: 100vh;
                 width: 100vw;
                 overflow: hidden;
+                background: var(--he-bg-2, #080d18);
             }
+
+            /* ── Global sidebar (injected) ── */
             #hawk-global-sidebar {
-                width: 230px;
-                min-width: 230px;
-                background: linear-gradient(175deg, #0b1a2e, #0f2744, #122f52);
+                width: 232px;
+                min-width: 232px;
+                background: var(--he-sidebar-bg, linear-gradient(175deg,#040a16,#060e22,#08132e));
                 display: flex;
                 flex-direction: column;
                 flex-shrink: 0;
                 z-index: 200;
-                border-right: 1px solid rgba(255,255,255,0.08);
-                transition: background 0.3s;
+                border-right: 1px solid var(--he-sidebar-border, rgba(0,212,255,0.08));
+                box-shadow: var(--he-sidebar-shadow, 6px 0 40px rgba(0,0,0,0.6));
+                transition: box-shadow 0.3s;
             }
-            body.light-theme #hawk-global-sidebar { background: linear-gradient(175deg, #1a3a6c, #1e4487, #1d4ed8); }
+
+            /* ── Sidebar header ── */
             .hawk-sidebar-header {
                 height: 62px;
                 display: flex;
                 align-items: center;
                 padding: 0 1.2rem;
                 gap: 12px;
-                border-bottom: 1px solid rgba(255,255,255,0.1);
+                background: rgba(0,0,0,0.30);
+                border-bottom: 1px solid rgba(0,212,255,0.08);
                 flex-shrink: 0;
             }
             .hawk-sidebar-logo-text { display: flex; flex-direction: column; line-height: 1.1; }
-            .hawk-sidebar-logo-text .hawk-name { font-weight: 800; font-size: 1.05rem; color: #e0f0ff; letter-spacing: -0.01em; }
-            .hawk-sidebar-logo-text .hawk-sub { font-size: 0.58rem; color: #ff6ef7; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
-            .hawk-sidebar-nav { flex: 1; overflow-y: auto; padding: 1rem 0; display: flex; flex-direction: column; gap: 1px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent; }
-            .hawk-nav-section { padding: 0.9rem 1rem 0.3rem; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.4); }
-            .hawk-nav-item {
-                display: flex; align-items: center; padding: 9px 1.2rem; color: rgba(200,220,255,0.75);
-                text-decoration: none; font-size: 0.8rem; font-weight: 600; transition: all 0.15s; border-left: 3px solid transparent; gap: 11px; cursor: pointer; background: transparent; width: 100%; text-align: left; font-family: inherit;
+            .hawk-sidebar-logo-text .hawk-name {
+                font-weight: 800; font-size: 1.08rem; color: #e8f4ff;
+                letter-spacing: -0.015em;
             }
-            .hawk-nav-item i { width: 16px; font-size: 0.9rem; text-align: center; color: rgba(160,200,255,0.6); transition: color 0.15s; flex-shrink: 0; }
-            .hawk-nav-item:hover { background: rgba(255,255,255,0.07); color: #e0f0ff; border-left-color: rgba(96,165,250,0.5); }
-            .hawk-nav-item:hover i { color: #93c5fd; }
-            .hawk-nav-item.active { background: rgba(59,130,246,0.2); color: #e0f0ff; border-left-color: #60a5fa; font-weight: 700; }
-            .hawk-page-content { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; position: relative; }
+            .hawk-sidebar-logo-text .hawk-sub {
+                font-size: 0.54rem; color: var(--he-accent,#00d4ff); font-weight: 700;
+                text-transform: uppercase; letter-spacing: 2px; opacity: 0.85;
+            }
+
+            /* ── Sidebar nav ── */
+            .hawk-sidebar-nav {
+                flex: 1; overflow-y: auto; padding: 0.8rem 0;
+                display: flex; flex-direction: column; gap: 1px;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(0,212,255,0.10) transparent;
+            }
+            .hawk-nav-section {
+                padding: 1rem 1rem 0.3rem;
+                font-size: 0.58rem; font-weight: 800;
+                text-transform: uppercase; letter-spacing: 0.14em;
+                color: rgba(0,212,255,0.38);
+            }
+            .hawk-nav-item {
+                display: flex; align-items: center;
+                padding: 9px 1.2rem;
+                color: rgba(172,210,255,0.72);
+                text-decoration: none; font-size: 0.80rem; font-weight: 500;
+                transition: all 0.16s ease;
+                border-left: 3px solid transparent;
+                gap: 11px; cursor: pointer;
+                background: transparent;
+                width: 100%; text-align: left; font-family: inherit;
+            }
+            .hawk-nav-item i {
+                width: 16px; font-size: 0.88rem; text-align: center;
+                color: rgba(0,212,255,0.40); transition: color 0.16s; flex-shrink: 0;
+            }
+            .hawk-nav-item:hover {
+                background: rgba(0,212,255,0.09);
+                color: #e0f4ff;
+                border-left-color: rgba(0,212,255,0.50);
+            }
+            .hawk-nav-item:hover i { color: var(--he-accent,#00d4ff); }
+            .hawk-nav-item.active {
+                background: rgba(0,212,255,0.15);
+                color: #c8ecff;
+                border-left-color: var(--he-accent,#00d4ff);
+                font-weight: 700;
+            }
+            .hawk-nav-item.active i { color: var(--he-accent,#00d4ff); }
+            .hawk-tree-children {
+                display: none; flex-direction: column;
+                background: rgba(0,0,0,0.25);
+                border-left: 2px solid rgba(0,212,255,0.18);
+                margin-left: 22px;
+            }
+            .hawk-tree-parent.open + .hawk-tree-children { display: flex; }
+
+            /* ── Page shell ── */
+            .hawk-page-content {
+                flex: 1; display: flex; flex-direction: column;
+                min-width: 0; overflow: hidden; position: relative;
+            }
             .hawk-page-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; height: 100%; }
-            .hawk-top-bar { height: 56px; background: rgba(0,0,0,0.15); border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: flex-end; padding: 0 1.5rem; gap: 10px; flex-shrink: 0; }
-            body.light-theme .hawk-top-bar { background: rgba(255,255,255,0.6); border-bottom: 1px solid rgba(0,0,0,0.08); }
-            #hawk-theme-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: rgba(200,220,255,0.8); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 0.9rem; }
-            body.light-theme #hawk-theme-btn { background: rgba(30,64,128,0.1); border-color: rgba(30,64,128,0.2); color: #1e4080; }
+
+            /* ── Top bar ── */
+            .hawk-top-bar {
+                height: 54px;
+                background: rgba(4,10,22,0.85);
+                backdrop-filter: blur(14px);
+                -webkit-backdrop-filter: blur(14px);
+                border-bottom: 1px solid rgba(0,212,255,0.06);
+                display: flex; align-items: center;
+                justify-content: flex-end;
+                padding: 0 1.5rem; gap: 10px; flex-shrink: 0;
+            }
+            body.light-theme .hawk-top-bar {
+                background: rgba(240,244,250,0.92);
+                border-bottom: 1px solid rgba(0,0,0,0.08);
+            }
+
+            /* ── Theme button ── */
+            #hawk-theme-btn {
+                background: rgba(0,212,255,0.07);
+                border: 1px solid rgba(0,212,255,0.18);
+                color: var(--he-accent,#00d4ff);
+                width: 34px; height: 34px; border-radius: 8px;
+                cursor: pointer; display: flex; align-items: center;
+                justify-content: center; transition: all 0.2s; font-size: 0.9rem;
+            }
+            #hawk-theme-btn:hover {
+                background: rgba(0,212,255,0.16);
+                box-shadow: 0 0 12px rgba(0,212,255,0.22);
+            }
+            body.light-theme #hawk-theme-btn {
+                background: rgba(0,50,100,0.08);
+                border-color: rgba(0,80,150,0.20);
+                color: #0060a8;
+            }
         `;
         document.head.appendChild(css);
 
@@ -165,7 +262,7 @@ const HawkUI = {
         appWindow.appendChild(pageContent);
 
         document.body.appendChild(appWindow);
-        topBar.querySelector('#hawk-theme-btn').addEventListener('click', () => this.toggleTheme());
+        // Theme button is handled by document-level delegation in initTheme() — do NOT bind here.
     },
 
     setActiveNavItem() {
@@ -248,30 +345,55 @@ const HawkUI = {
     },
 
     initTheme() {
-        const savedTheme = localStorage.getItem('hawk_theme') || 'dark';
-        if (savedTheme === 'light') {
-            document.body.classList.add('light-theme');
-        } else {
-            document.body.classList.remove('light-theme');
-        }
-        
-        // Update icon on init
-        const icon = document.querySelector('#theme-toggle-icon');
-        if (icon) {
-            icon.className = savedTheme === 'light' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
-        }
-        console.log(`HawkUI: Theme initialized to ${savedTheme}`);
+        // 1. Apply saved preference immediately (no flash)
+        const saved = localStorage.getItem('hawk_theme') || 'dark';
+        document.body.classList.toggle('light-theme', saved === 'light');
+        this.updateThemeIcon();
+        console.log(`HawkUI: Theme set to "${saved}"`);
+
+        // 2. Wire ALL possible theme buttons directly (no event delegation layers)
+        //    Run once now (for buttons already in DOM) and once after a tick
+        //    (for buttons injected by initSidebar on pages without inline sidebar).
+        const wireBtns = () => {
+            document.querySelectorAll(
+                '#theme-toggle-btn, #hawk-theme-btn, .theme-toggle-btn, [data-theme-toggle]'
+            ).forEach(btn => {
+                // Remove any old listener by cloning the node
+                const fresh = btn.cloneNode(true);
+                btn.parentNode.replaceChild(fresh, btn);
+                fresh.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    HawkUI.toggleTheme();
+                });
+            });
+        };
+        wireBtns();
+        // Also wire after a microtask in case sidebar was just injected
+        Promise.resolve().then(wireBtns);
+    },
+
+    updateThemeIcon() {
+        const isLight = document.body.classList.contains('light-theme');
+        const iconSel = [
+            '#theme-toggle-icon',
+            '#theme-toggle-btn i', '#theme-toggle-btn .fa-solid',
+            '#hawk-theme-btn i',   '#hawk-theme-btn .fa-solid',
+            '.theme-toggle-btn i', '[data-theme-toggle] i'
+        ].join(', ');
+        document.querySelectorAll(iconSel).forEach(icon => {
+            icon.className = isLight ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+        });
+        document.querySelectorAll('#theme-toggle-btn, #hawk-theme-btn, .theme-toggle-btn').forEach(btn => {
+            btn.setAttribute('title', isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode');
+        });
     },
 
     toggleTheme() {
         const isLight = document.body.classList.toggle('light-theme');
         localStorage.setItem('hawk_theme', isLight ? 'light' : 'dark');
-
-        const icon = document.querySelector('#theme-toggle-icon');
-        if (icon) {
-            icon.className = isLight ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
-        }
-        console.log(`HawkUI: Theme toggled. IsLight: ${isLight}`);
+        this.updateThemeIcon();
+        console.log(`HawkUI: Theme toggled → ${isLight ? 'light' : 'dark'}`);
     },
 
     logout() {
@@ -298,22 +420,15 @@ const HawkUI = {
     },
 
     setupEventListeners() {
-        // Any global listeners can go here
-        const logoutBtns = document.querySelectorAll('#logout-btn, #logout-btn-sidebar');
-        logoutBtns.forEach(btn => {
+        // Logout buttons (still per-element since they don't conflict)
+        document.querySelectorAll('#logout-btn, #logout-btn-sidebar').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.logout();
             });
         });
-
-        const themeBtn = document.getElementById('theme-toggle-btn');
-        if (themeBtn) {
-            themeBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.toggleTheme();
-            });
-        }
+        // NOTE: Theme button is handled via document-level delegation in initTheme().
+        // Do NOT add a second listener here — it would cause double-toggle.
     },
 
     initAIAssistant() {
@@ -326,13 +441,13 @@ const HawkUI = {
             #ai-chat-widget { position: fixed; bottom: 24px; right: 24px; z-index: 99999; font-family: 'Inter', sans-serif; }
             #ai-chat-toggle {
                 width: 58px; height: 58px; border-radius: 50%;
-                background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-                color: white; border: none;
-                box-shadow: 0 4px 20px rgba(139,92,246,0.5);
+                background: linear-gradient(135deg, #00d4ff 0%, #0095c8 60%, #006a9a 100%);
+                color: #05080f; border: none;
+                box-shadow: 0 4px 24px rgba(0,212,255,0.45);
                 cursor: pointer; display: flex; align-items: center; justify-content: center;
                 transition: transform 0.3s, box-shadow 0.3s; position: relative;
             }
-            #ai-chat-toggle:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(139,92,246,0.7); }
+            #ai-chat-toggle:hover { transform: scale(1.08); box-shadow: 0 6px 32px rgba(0,212,255,0.70); }
             #ai-chat-toggle .ai-pulse {
                 position: absolute; top: 4px; right: 4px;
                 width: 12px; height: 12px; border-radius: 50%;
@@ -345,78 +460,81 @@ const HawkUI = {
             }
             #ai-chat-window {
                 display: none; position: absolute; bottom: 72px; right: 0;
-                width: 370px; height: 520px;
-                background: rgba(22,25,35,0.97);
-                border: 1px solid rgba(139,92,246,0.3);
+                width: 378px; height: 530px;
+                background: rgba(5,10,22,0.97);
+                border: 1px solid rgba(0,212,255,0.20);
                 border-radius: 16px;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(139,92,246,0.1);
+                box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,212,255,0.07);
                 flex-direction: column; overflow: hidden;
-                backdrop-filter: blur(20px); color: white;
+                backdrop-filter: blur(24px); color: white;
             }
             .ai-header {
                 padding: 14px 16px;
-                background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+                background: linear-gradient(135deg, #004f6e 0%, #006a8a 50%, #0095c8 100%);
                 color: white; font-weight: 700; font-size: 0.9rem;
                 display: flex; justify-content: space-between; align-items: center;
                 flex-shrink: 0;
+                border-bottom: 1px solid rgba(0,212,255,0.15);
             }
             .ai-header-left { display: flex; align-items: center; gap: 10px; }
             .ai-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; }
             .ai-messages {
                 flex: 1; overflow-y: auto; padding: 14px;
                 display: flex; flex-direction: column; gap: 10px;
-                scrollbar-width: thin; scrollbar-color: rgba(139,92,246,0.3) transparent;
+                scrollbar-width: thin; scrollbar-color: rgba(0,212,255,0.18) transparent;
             }
             .ai-messages::-webkit-scrollbar { width: 4px; }
-            .ai-messages::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.4); border-radius: 2px; }
+            .ai-messages::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.25); border-radius: 2px; }
             .ai-quick-actions { padding: 0 14px 10px; display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
             .ai-quick-btn {
                 font-size: 0.7rem; padding: 4px 10px; border-radius: 20px;
-                background: rgba(139,92,246,0.15); color: #c4b5fd;
-                border: 1px solid rgba(139,92,246,0.3); cursor: pointer;
+                background: rgba(0,212,255,0.08); color: #6ee8ff;
+                border: 1px solid rgba(0,212,255,0.22); cursor: pointer;
                 transition: background 0.2s;
             }
-            .ai-quick-btn:hover { background: rgba(139,92,246,0.3); }
+            .ai-quick-btn:hover { background: rgba(0,212,255,0.18); color: #b8f5ff; }
             .ai-input-area {
-                padding: 12px 14px; border-top: 1px solid rgba(255,255,255,0.06);
-                background: rgba(0,0,0,0.2); display: flex; gap: 8px;
+                padding: 12px 14px; border-top: 1px solid rgba(0,212,255,0.08);
+                background: rgba(0,0,0,0.25); display: flex; gap: 8px;
                 align-items: flex-end; flex-shrink: 0;
             }
             .ai-input {
-                flex: 1; background: rgba(255,255,255,0.05);
-                border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
-                padding: 9px 12px; color: white; font-size: 0.82rem;
+                flex: 1; background: rgba(0,212,255,0.04);
+                border: 1px solid rgba(0,212,255,0.14); border-radius: 10px;
+                padding: 9px 12px; color: #e0f4ff; font-size: 0.82rem;
                 outline: none; resize: none; height: 38px; max-height: 90px;
-                transition: border-color 0.2s; font-family: inherit;
+                transition: border-color 0.2s, box-shadow 0.2s; font-family: inherit;
             }
-            .ai-input:focus { border-color: rgba(139,92,246,0.5); }
+            .ai-input::placeholder { color: rgba(160,210,255,0.40); }
+            .ai-input:focus { border-color: rgba(0,212,255,0.45); box-shadow: 0 0 0 3px rgba(0,212,255,0.08); }
             .ai-send {
-                background: #8b5cf6; color: white; border: none;
+                background: linear-gradient(135deg,#00d4ff,#0095c8); color: #04080f; border: none;
                 border-radius: 10px; width: 36px; height: 36px;
                 cursor: pointer; display: flex; align-items: center;
-                justify-content: center; flex-shrink: 0; transition: background 0.2s;
+                justify-content: center; flex-shrink: 0; transition: all 0.2s;
+                font-weight: 700;
             }
-            .ai-send:hover { background: #7c3aed; }
+            .ai-send:hover { filter: brightness(1.15); box-shadow: 0 4px 16px rgba(0,212,255,0.35); }
             .msg-user {
                 align-self: flex-end;
-                background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-                color: white; padding: 9px 13px; border-radius: 14px 14px 2px 14px;
+                background: linear-gradient(135deg, #004f6e, #0085b0);
+                color: #e0f8ff; padding: 9px 13px; border-radius: 14px 14px 2px 14px;
                 font-size: 0.82rem; max-width: 82%; line-height: 1.45;
-                box-shadow: 0 2px 8px rgba(139,92,246,0.3);
+                box-shadow: 0 2px 10px rgba(0,212,255,0.22);
             }
             .msg-ai {
                 align-self: flex-start;
-                background: rgba(255,255,255,0.06);
-                color: #e2e8f0; padding: 9px 13px;
+                background: rgba(0,212,255,0.05);
+                color: #d4eeff; padding: 9px 13px;
                 border-radius: 14px 14px 14px 2px;
                 font-size: 0.82rem; max-width: 85%; line-height: 1.5;
-                border: 1px solid rgba(255,255,255,0.07);
+                border: 1px solid rgba(0,212,255,0.10);
             }
             .msg-ai-icon { font-size: 1rem; margin-right: 6px; vertical-align: middle; }
-            .ai-typing { display: flex; align-items: center; gap: 8px; color: #94a3b8; font-size: 0.78rem; padding: 4px 0; }
+            .ai-typing { display: flex; align-items: center; gap: 8px; color: #6ec0d4; font-size: 0.78rem; padding: 4px 0; }
             .ai-typing-dots span {
                 display: inline-block; width: 5px; height: 5px;
-                border-radius: 50%; background: #8b5cf6; margin: 0 1px;
+                border-radius: 50%; background: var(--he-accent,#00d4ff); margin: 0 1px;
                 animation: ai-dot 1.4s infinite both;
             }
             .ai-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
@@ -538,7 +656,18 @@ const HawkUI = {
     }
 };
 
-// Auto-init helper
+// ── Apply saved theme IMMEDIATELY on script parse (prevents dark flash on light mode) ──
+(function() {
+    try {
+        const t = localStorage.getItem('hawk_theme');
+        if (t === 'light') document.documentElement.classList.add('light-theme');
+    } catch(e) {}
+})();
+
+// ── Expose globally so inline onclick="HawkUI.toggleTheme()" still works ──
+window.HawkUI = HawkUI;
+
+// ── Auto-init on DOM ready ──
 const initHawkUI = () => {
     console.log("Hawk-Eye UI initializing...");
     HawkUI.init();

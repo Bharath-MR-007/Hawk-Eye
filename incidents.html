@@ -14,42 +14,39 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
         /* ── Design Tokens: DARK (default) ── */
-        :root {
-            --bg:            #0f1115;
-            --surface:       #1a1d24;
-            --border:        #2a2d35;
-            --text-primary:  #f8fafc;
-            --text-secondary:#94a3b8;
-            --text-header:   #cbd5e1;
-            --accent:        #3b82f6;
-            --accent-purple: #8b5cf6;
-            --hover-row:     rgba(255,255,255,0.03);
-            --even-row:      rgba(255,255,255,0.015);
-            --table-header:  rgba(255,255,255,0.04);
-            --shadow-sm:     0 1px 3px rgba(0,0,0,0.3);
-            --shadow-md:     0 4px 12px rgba(0,0,0,0.4);
-            --radius-sm:     6px;
-            --radius-md:     10px;
-            --radius-lg:     14px;
-            /* Status — dark-friendly */
-            --c-critical-bg: rgba(220,38,38,0.15);  --c-critical:  #f87171;
-            --c-warning-bg:  rgba(217,119,6,0.15);   --c-warning:   #fbbf24;
-            --c-info-bg:     rgba(37,99,235,0.15);   --c-info:      #60a5fa;
-            --c-success-bg:  rgba(5,150,105,0.15);   --c-success:   #34d399;
-            --c-neutral-bg:  rgba(71,85,105,0.2);    --c-neutral:   #94a3b8;
-            /* Sidebar */
-            --sb-bg:         #12141c;
-            --sb-border:     #2a2d35;
-            --sb-text:       #94a3b8;
-            --sb-text-hover: #f8fafc;
-            --sb-active-bg:  rgba(139,92,246,0.12);
-            --sb-active:     #ffffff;
-            --sb-active-accent: #8b5cf6;
-            /* Legacy aliases */
-            --error-color:   #f87171;
-            --warning-color: #fbbf24;
-            --success-color: #34d399;
-            --info-color:    #60a5fa;
+                :root {
+            /* ── Background ── */
+            --bg:          #080d18;
+            --bg-dark:     #080d18;
+            --surface:     #0d1221;
+            --surface2:    #111827;
+            --surface-color:     #0d1221;
+            --surface-highlight: #111827;
+
+            /* ── Borders ── */
+            --border:       rgba(255,255,255,0.07);
+            --border-color: rgba(255,255,255,0.07);
+
+            /* ── Text ── */
+            --text:          #f0f4ff;
+            --text-primary:  #f0f4ff;
+            --muted:         #a0aec8;
+            --text-secondary:#a0aec8;
+
+            /* ── Primary accent (Electric Cyan) ── */
+            --accent:        #00d4ff;
+            --accent-purple: #7c3aed;
+            --magenta:       #00d4ff;
+
+            /* ── Status ── */
+            --green:   #00e87a;
+            --yellow:  #f59e0b;
+            --orange:  #fb923c;
+            --red:     #ff4040;
+            --blue:    #3b82f6;
+
+            /* ── Sidebar ── */
+            --sidebar-bg: #040a16;
         }
 
         /* ── Design Tokens: LIGHT override ── */
@@ -683,7 +680,7 @@
         }
         .main-sidebar-logo-text .hawk-sub {
             font-size: 0.58rem;
-            color: #ff6ef7;
+            color: var(--he-accent,#00d4ff);
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1.5px;
@@ -814,6 +811,7 @@
 
         </style>
     <script src="/scripts/hawk-ui.js"></script>
+    <link id="hawk-theme-css-link" rel="stylesheet" href="/scripts/hawk-theme.css">
 </head>
 
 <body>
@@ -826,7 +824,7 @@
                 <div style="display: flex; flex-direction: column; line-height: 1.1;">
                     <span style="font-weight: 700; font-size: 1.25rem;">Hawk-Eye</span>
                     <span
-                        style="font-size: 0.65rem; color: #ff00ff; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
+                        style="font-size: 0.65rem; color: var(--he-accent,#00d4ff); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
                 </div>
             </div>
 

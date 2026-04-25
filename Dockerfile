@@ -11,22 +11,20 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o hawkeye main.go
 
-# Prep stage for user
-FROM alpine:3.22 AS prep
-RUN apk add --no-cache ca-certificates
-RUN adduser \
-    --disabled-password \
-    --shell "/sbin/nologin" \
-    --no-create-home \
-    --uid 65532 \
-    hawkeye
+# Final stage (RHEL Compatible UBI 9)
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
 
-# Final stage
-FROM alpine:3.22
-RUN apk add --no-cache iputils
-COPY --from=prep /etc/passwd /etc/passwd
-COPY --from=prep /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+# Install required network utilities and create non-root user
+RUN microdnf update -y \
+    && microdnf install -y iputils shadow-utils ca-certificates bind-utils libcap \
+    && useradd --no-create-home --shell /sbin/nologin --uid 65532 hawkeye \
+    && microdnf remove -y shadow-utils \
+    && microdnf clean all
+
 COPY --from=builder /app/hawkeye /hawkeye
+
+# Grant raw socket permissions to the Go binary so Traceroute/ICMP works natively without root
+RUN setcap cap_net_raw,cap_net_admin+ep /hawkeye
 
 USER hawkeye
 ENTRYPOINT ["/hawkeye"]

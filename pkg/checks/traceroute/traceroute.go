@@ -148,9 +148,7 @@ func udpHop(ctx context.Context, addr net.Addr, ttl int, timeout time.Duration) 
 		if err == nil {
 			// Send a small dummy payload
 			_, _ = conn.Write([]byte("hawk-eye"))
-			// We don't need to keep the connection open as ICMP is handled separately
-			_ = conn.Close()
-			return nil, port, nil
+			return conn, port, nil
 		}
 
 		if errors.Is(err, unix.EADDRINUSE) {
@@ -238,13 +236,6 @@ func TraceRoute(ctx context.Context, cfg TracerouteConfig) (map[int][]Hop, error
 	hops := make(map[int][]Hop)
 	log := logger.FromContext(ctx).With("target", cfg.Dest)
 
-	canIcmp, icmpListener, err := newIcmpListener()
-	if err != nil {
-		log.WarnContext(ctx, "Failed to open ICMP socket, traceroute will rely on TCP/UDP only", "err", err)
-	} else {
-		defer closeIcmpListener(canIcmp, icmpListener)
-	}
-
 	addr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", cfg.Dest, cfg.Port))
 	if err != nil {
 		sp.SetStatus(codes.Error, err.Error())
@@ -274,7 +265,7 @@ func TraceRoute(ctx context.Context, cfg TracerouteConfig) (map[int][]Hop, error
 				defer func() {
 					retry++
 				}()
-				hop, hErr := doHop(ctx, icmpListener, canIcmp, addr, ttl, cfg.Timeout, cfg.Method, cfg.NNMiClient)
+				hop, hErr := doHop(ctx, addr, ttl, cfg.Timeout, cfg.Method, cfg.NNMiClient)
 				if hop != nil {
 					results <- *hop
 				}
@@ -318,18 +309,29 @@ func TraceRoute(ctx context.Context, cfg TracerouteConfig) (map[int][]Hop, error
 
 // doHop performs a hop to the given address with the specified TTL and timeout.
 // It returns a Hop struct containing the latency, TTL, address, and other details of the hop.
-func doHop(ctx context.Context, icmpListener *icmp.PacketConn, canIcmp bool, addr net.Addr, ttl int, timeout time.Duration, method string, nnmiClient *nnmi.NNMIClient) (*Hop, error) {
+func doHop(ctx context.Context, addr net.Addr, ttl int, timeout time.Duration, method string, nnmiClient *nnmi.NNMIClient) (*Hop, error) {
+	canIcmp, icmpListener, err := newIcmpListener()
+	if err == nil {
+		defer closeIcmpListener(canIcmp, icmpListener)
+	}
+
 	span := trace.SpanFromContext(ctx)
 	start := time.Now()
 	var clientIdentifier int
 	var conn net.Conn
-	var err error
+	var errHop error
+	
+	defer func() {
+		if conn != nil {
+			conn.Close()
+		}
+	}()
 
 	switch method {
 	case "tcp":
-		conn, clientIdentifier, err = tcpHop(ctx, addr, ttl, timeout)
+		conn, clientIdentifier, errHop = tcpHop(ctx, addr, ttl, timeout)
 	case "udp":
-		conn, clientIdentifier, err = udpHop(ctx, addr, ttl, timeout)
+		conn, clientIdentifier, errHop = udpHop(ctx, addr, ttl, timeout)
 	case "icmp":
 		clientIdentifier = ttl // Use TTL as sequence number
 		msg := icmp.Message{
@@ -341,13 +343,13 @@ func doHop(ctx context.Context, icmpListener *icmp.PacketConn, canIcmp bool, add
 		}
 		b, _ := msg.Marshal(nil)
 		if canIcmp {
-			_, err = icmpListener.WriteTo(b, &net.IPAddr{IP: net.ParseIP(ipFromAddr(addr).String())})
+			_, errHop = icmpListener.WriteTo(b, &net.IPAddr{IP: net.ParseIP(ipFromAddr(addr).String())})
 		}
 	default:
 		return nil, fmt.Errorf("unsupported method: %s", method)
 	}
 	span.SetAttributes(attribute.Int("ttl", ttl), attribute.Stringer("addr", addr), attribute.String("method", method))
-	if err == nil && (method == "tcp") {
+	if errHop == nil && (method == "tcp") {
 		latency := time.Since(start)
 		hop := handleTcpSuccess(conn, addr, ttl, latency)
 		fillNNMiInfo(ctx, hop, nnmiClient)
@@ -446,8 +448,6 @@ func newHopAddress(addr net.Addr) HopAddress {
 
 // handleTcpSuccess handles a successful TCP connection by closing the connection and returning a Hop struct.
 func handleTcpSuccess(conn net.Conn, addr net.Addr, ttl int, latency time.Duration) *Hop {
-	conn.Close() // #nosec G104
-
 	ipaddr := ipFromAddr(addr)
 	names, _ := net.LookupAddr(ipaddr.String()) // we don't care about this lookup failing
 

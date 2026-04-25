@@ -2,53 +2,55 @@ services:
   hawkeye:
     build: .
     container_name: hawkeye
-    ports:
-      - "8080:8080"
+    network_mode: host
+    # ports:
+    #   - "8080:8080"
     volumes:
-      - ./dashboard.html:/dashboard.html
-      - ./live_dashboard_backup.html:/live_dashboard_backup.html
-      - ./checks.yaml:/checks.yaml
-      - ./live_dashboard.html:/live_dashboard.html
-      - ./inventory.html:/inventory.html
-      - ./alerts_config.html:/alerts_config.html
-      - ./polling_config.html:/polling_config.html
-      - ./incidents.html:/incidents.html
-      - ./incident_drilldown.html:/incident_drilldown.html
-      - ./integrations.html:/integrations.html
-      - ./integrations_config.html:/integrations_config.html
-      - ./integrations_guide.html:/integrations_guide.html
-      - ./snmp_config.yaml:/snmp_config.yaml
-      - ./login.html:/login.html
-      - ./installation.html:/installation.html
-      - ./requirements.html:/requirements.html
-      - ./capabilities.html:/capabilities.html
-      - ./usermanual.html:/usermanual.html
-      - ./admindoc.html:/admindoc.html
-      - ./about.html:/about.html
-      - ./architecture.html:/architecture.html
-      - ./prometheus_rules.yaml:/prometheus_rules.yaml
-      - ./prometheus.yaml:/prometheus.yaml
-      - ./grafana:/grafana
-      - ./alertmanager:/alertmanager
-      - ./chart:/chart
-      - ./scripts:/scripts
-      - ./troubleshooting.html:/troubleshooting.html
-      - ./device_reachability.html:/device_reachability.html
-      - ./users_config.html:/users_config.html
-      - ./target_detail.html:/target_detail.html
-      - ./endpoints.html:/endpoints.html
-      - ./endpoints_registry.json:/endpoints_registry.json
-      - ./prometheus_sd_endpoints.yml:/prometheus_sd_endpoints.yml
+      - ./dashboard.html:/dashboard.html:z
+      - ./live_dashboard_backup.html:/live_dashboard_backup.html:z
+      - ./checks.yaml:/checks.yaml:z
+      - ./live_dashboard.html:/live_dashboard.html:z
+      - ./inventory.html:/inventory.html:z
+      - ./alerts_config.html:/alerts_config.html:z
+      - ./polling_config.html:/polling_config.html:z
+      - ./incidents.html:/incidents.html:z
+      - ./incident_drilldown.html:/incident_drilldown.html:z
+      - ./integrations.html:/integrations.html:z
+      - ./integrations_config.html:/integrations_config.html:z
+      - ./integrations_guide.html:/integrations_guide.html:z
+      - ./snmp_config.yaml:/snmp_config.yaml:z
+      - ./login.html:/login.html:z
+      - ./installation.html:/installation.html:z
+      - ./requirements.html:/requirements.html:z
+      - ./capabilities.html:/capabilities.html:z
+      - ./usermanual.html:/usermanual.html:z
+      - ./admindoc.html:/admindoc.html:z
+      - ./about.html:/about.html:z
+      - ./architecture.html:/architecture.html:z
+      - ./prometheus_rules.yaml:/prometheus_rules.yaml:z
+      - ./prometheus.yaml:/prometheus.yaml:z
+      - ./grafana:/grafana:z
+      - ./alertmanager:/alertmanager:z
+      - ./chart:/chart:z
+      - ./scripts:/scripts:z
+      - ./troubleshooting.html:/troubleshooting.html:z
+      - ./device_reachability.html:/device_reachability.html:z
+      - ./users_config.html:/users_config.html:z
+      - ./target_detail.html:/target_detail.html:z
+      - ./endpoints.html:/endpoints.html:z
+      - ./endpoints_registry.json:/endpoints_registry.json:z
+      - ./prometheus_sd_endpoints.yml:/prometheus_sd_endpoints.yml:z
     command: ["run", "--hawkeyeName", "hawkeye.local", "--loaderType", "file", "--loaderFilePath", "/checks.yaml", "--loaderInterval", "10s"]
     environment:
       - HAWKEYE_ENV=production
       - LOG_LEVEL=info
-    user: "0:0"
+    sysctls:
+      - net.ipv4.ping_group_range=0 2147483647
     cap_add:
       - NET_RAW
       - NET_ADMIN
-    networks:
-      - monitoring
+    # networks:
+    #   - monitoring
     restart: unless-stopped
     depends_on:
       - prometheus
@@ -59,10 +61,10 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
-      - ./prometheus_rules.yaml:/etc/prometheus/prometheus_rules.yaml
-      - ./prometheus_sd_endpoints.yml:/prometheus_sd_endpoints.yml
-      - prometheus_data:/prometheus
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml:z
+      - ./prometheus_rules.yaml:/etc/prometheus/prometheus_rules.yaml:z
+      - ./prometheus_sd_endpoints.yml:/prometheus_sd_endpoints.yml:z
+      - prometheus_data:/prometheus:z
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -80,11 +82,11 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./grafana/provisioning/datasources/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
-      - ./grafana/provisioning/dashboards/provider.yaml:/etc/grafana/provisioning/dashboards/provider.yaml
-      - ./grafana/dashboards/enhanced_dashboard.json:/etc/grafana/provisioning/dashboards/hawkeye_dashboard.json
-      - ./grafana/dashboards/site_drilldown.json:/etc/grafana/provisioning/dashboards/site_drilldown.json
-      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/datasources/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml:z
+      - ./grafana/provisioning/dashboards/provider.yaml:/etc/grafana/provisioning/dashboards/provider.yaml:z
+      - ./grafana/dashboards/enhanced_dashboard.json:/etc/grafana/provisioning/dashboards/hawkeye_dashboard.json:z
+      - ./grafana/dashboards/site_drilldown.json:/etc/grafana/provisioning/dashboards/site_drilldown.json:z
+      - grafana_data:/var/lib/grafana:z
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_AUTH_ANONYMOUS_ENABLED=true
@@ -100,8 +102,8 @@ services:
     ports:
       - "9093:9093"
     volumes:
-      - ./alertmanager/config.yml:/etc/alertmanager/config.yml
-      - alertmanager_data:/alertmanager
+      - ./alertmanager/config.yml:/etc/alertmanager/config.yml:z
+      - alertmanager_data:/alertmanager:z
     command:
       - '--config.file=/etc/alertmanager/config.yml'
       - '--storage.path=/alertmanager'
@@ -119,7 +121,7 @@ services:
       - '--grpc-address=0.0.0.0:10901'
       - '--http-address=0.0.0.0:10902'
     volumes:
-      - prometheus_data:/prometheus
+      - prometheus_data:/prometheus:z
     networks:
       - monitoring
     restart: unless-stopped
@@ -149,7 +151,7 @@ services:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - xpack.security.enabled=false
     volumes:
-      - elastic_data:/usr/share/elasticsearch/data
+      - elastic_data:/usr/share/elasticsearch/data:z
     ports:
       - "9200:9200"
     networks:
@@ -183,10 +185,12 @@ services:
       - THANOS_QUERY_URL=http://thanos-query:10904
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - OLLAMA_HOST=http://host.docker.internal:11434
-      - LLM_PROVIDER=nvidia
+      - LLM_PROVIDER=ollama
+      - OLLAMA_MODEL=deepseek-coder:latest
+      - AVAILABLE_MODELS=deepseek-coder:latest,gemma4:latest,qwen2.5:14b
       - NVIDIA_API_KEY=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
       - NVIDIA_MODEL=deepseek-ai/deepseek-v3.2
-      - NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
+      - NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1:z
     networks:
       - monitoring
     restart: always

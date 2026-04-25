@@ -7,23 +7,64 @@
     <title>Hawk-Eye | Software Requirements</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap');
 
-        :root {
-            --bg-dark: #0a0c10;
-            --surface: #13161d;
-            --surface2: #1a1d26;
-            --border: #252832;
-            --text: #e8eaf0;
-            --muted: #7c8496;
-            --purple: #8b5cf6;
-            --blue: #3b82f6;
-            --green: #10b981;
-            --yellow: #f59e0b;
-            --red: #ef4444;
-            --hover-row: #1a1d26;
-            --even-row: #0f1115;
-            --header-bg: #13161d;
+                :root {
+            /* ── Background ── */
+            --bg:          #080d18;
+            --bg-dark:     #080d18;
+            --surface:     #0d1221;
+            --surface2:    #111827;
+            --surface-color:     #0d1221;
+            --surface-highlight: #111827;
+
+            /* ── Borders ── */
+            --border:       rgba(255,255,255,0.07);
+            --border-color: rgba(255,255,255,0.07);
+
+            /* ── Text ── */
+            --text:          #f0f4ff;
+            --text-primary:  #f0f4ff;
+            --muted:         #a0aec8;
+            --text-secondary:#a0aec8;
+
+            /* ── Primary accent (Electric Cyan) ── */
+            --accent:        #00d4ff;
+            --accent-purple: #7c3aed;
+            --magenta:       #00d4ff;
+
+            /* ── Status ── */
+            --green:   #00e87a;
+            --yellow:  #f59e0b;
+            --orange:  #fb923c;
+            --red:     #ff4040;
+            --blue:    #3b82f6;
+
+            /* ── Sidebar ── */
+            --sidebar-bg: #040a16;
+        }
+
+                body.light-theme {
+            --bg:          #e8edf6;
+            --bg-dark:     #e8edf6;
+            --surface:     #ffffff;
+            --surface2:    #f5f8ff;
+            --surface-color:     #ffffff;
+            --surface-highlight: #f5f8ff;
+
+            --border:       rgba(0,0,0,0.08);
+            --border-color: rgba(0,0,0,0.08);
+
+            --text:          #0a0f1e;
+            --text-primary:  #0a0f1e;
+            --muted:         #4a5568;
+            --text-secondary:#4a5568;
+
+            --accent:        #0095c8;
+            --accent-purple: #6d28d9;
+            --magenta:       #0095c8;
+
+            --sidebar-bg: #0a1e3d;
         }
 
         * {
@@ -429,7 +470,7 @@
         }
         .main-sidebar-logo-text .hawk-sub {
             font-size: 0.58rem;
-            color: #ff6ef7;
+            color: var(--he-accent,#00d4ff);
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1.5px;
@@ -523,6 +564,48 @@
             overflow-y: auto;
             overflow-x: hidden;
         }
+
+        .top-bar {
+            height: 56px;
+            background: rgba(0,0,0,0.15);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 1.5rem;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        body.light-theme .top-bar { background: rgba(255,255,255,0.6); border-bottom: 1px solid rgba(0,0,0,0.08); }
+
+        .theme-toggle-btn {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: rgba(200,220,255,0.8);
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        body.light-theme .theme-toggle-btn { background: rgba(30,64,128,0.1); border-color: rgba(30,64,128,0.2); color: #1e4080; }
+        .theme-toggle-btn:hover { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
+
+        .user-profile {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            font-size: 1.1rem;
+        }
         /* ══════════════════════════════════════════════════════════ */
 
         
@@ -560,6 +643,7 @@
 
         </style>
     <script src="/scripts/hawk-ui.js"></script>
+    <link id="hawk-theme-css-link" rel="stylesheet" href="/scripts/hawk-theme.css">
 </head>
 
 <body>
@@ -571,7 +655,7 @@
                 <div style="display: flex; flex-direction: column; line-height: 1.1;">
                     <span style="font-weight: 700; font-size: 1.25rem;">Hawk-Eye</span>
                     <span
-                        style="font-size: 0.65rem; color: #ff00ff; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
+                        style="font-size: 0.65rem; color: var(--he-accent,#00d4ff); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">T-Systems</span>
                 </div>
             </div>
 
@@ -632,7 +716,19 @@
                 </a>
             </nav>
     </aside>
-    <div class="layout">
+    <div class="app-content">
+        <div class="top-bar">
+            <div class="top-bar-right" style="display: flex; align-items: center; gap: 12px;">
+                <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Theme">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+                <div class="user-profile">
+                    <i class="fa-solid fa-circle-user"></i>
+                </div>
+            </div>
+        </div>
+        <div class="page-scroll">
+            <div class="layout">
         <nav class="toc">
             <a href="/" class="toc-brand"><span>🦅</span>
                 <p>Hawk-Eye Docs</p>
@@ -871,7 +967,9 @@ Thanos:           v0.35.0</code></pre>
             </div>
         </main>
     </div>
-
+</div>
+</div>
+</body>
     <script src="/scripts/ai-assistant.js"></script>
 </body>
 

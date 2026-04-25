@@ -11,27 +11,62 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
         /* ── Design Tokens ── */
-        :root {
-            --bg:            #0f1115;
-            --surface:       #1a1d24;
-            --border:        #2a2d35;
-            --text-primary:  #f8fafc;
-            --text-secondary:#94a3b8;
-            --accent:        #3b82f6;
-            --accent-purple: #8b5cf6;
-            --radius-lg:     14px;
-            --border-color:  var(--border);
-            --c-critical:    #ef4444;
-            --c-warning:     #f59e0b;
-            --c-info:        #3b82f6;
+                :root {
+            /* ── Background ── */
+            --bg:          #080d18;
+            --bg-dark:     #080d18;
+            --surface:     #0d1221;
+            --surface2:    #111827;
+            --surface-color:     #0d1221;
+            --surface-highlight: #111827;
+
+            /* ── Borders ── */
+            --border:       rgba(255,255,255,0.07);
+            --border-color: rgba(255,255,255,0.07);
+
+            /* ── Text ── */
+            --text:          #f0f4ff;
+            --text-primary:  #f0f4ff;
+            --muted:         #a0aec8;
+            --text-secondary:#a0aec8;
+
+            /* ── Primary accent (Electric Cyan) ── */
+            --accent:        #00d4ff;
+            --accent-purple: #7c3aed;
+            --magenta:       #00d4ff;
+
+            /* ── Status ── */
+            --green:   #00e87a;
+            --yellow:  #f59e0b;
+            --orange:  #fb923c;
+            --red:     #ff4040;
+            --blue:    #3b82f6;
+
+            /* ── Sidebar ── */
+            --sidebar-bg: #040a16;
         }
 
-        body.light-theme {
-            --bg:            #F8FAFC;
-            --surface:       #FFFFFF;
-            --border:        #E2E8F0;
-            --text-primary:  #1E293B;
-            --text-secondary:#64748B;
+                body.light-theme {
+            --bg:          #e8edf6;
+            --bg-dark:     #e8edf6;
+            --surface:     #ffffff;
+            --surface2:    #f5f8ff;
+            --surface-color:     #ffffff;
+            --surface-highlight: #f5f8ff;
+
+            --border:       rgba(0,0,0,0.08);
+            --border-color: rgba(0,0,0,0.08);
+
+            --text:          #0a0f1e;
+            --text-primary:  #0a0f1e;
+            --muted:         #4a5568;
+            --text-secondary:#4a5568;
+
+            --accent:        #0095c8;
+            --accent-purple: #6d28d9;
+            --magenta:       #0095c8;
+
+            --sidebar-bg: #0a1e3d;
         }
 
         *, *::before, *::after { box-sizing: border-box; }
@@ -112,6 +147,7 @@
             color: var(--accent-purple);
         }
     </style>
+    <link id="hawk-theme-css-link" rel="stylesheet" href="/scripts/hawk-theme.css">
 </head>
 <body class="dark-theme">
     <div class="drilldown-container">
